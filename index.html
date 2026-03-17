@@ -25,10 +25,10 @@
             <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
                 <i class="fa-solid fa-graduation-cap"></i>
             </div>
-            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">课程签到系统</h1>
+            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">CF Attendance System</h1>
             
             <div id="statusBadge" class="inline-flex items-center gap-2 mt-3 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500 transition-colors duration-300">
-                <i class="fa-solid fa-circle-notch fa-spin text-xs"></i> 连接中...
+                <i class="fa-solid fa-circle-notch fa-spin text-xs"></i> Connecting...
             </div>
         </div>
 
@@ -37,7 +37,7 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="fa-regular fa-id-card text-gray-400"></i>
                 </div>
-                <input type="text" id="studentId" placeholder="学号 (例: BCS23090066)" 
+                <input type="text" id="studentId" placeholder="STUDENT ID SAME AS OCULUS" 
                        class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400">
             </div>
             
@@ -45,13 +45,13 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="fa-regular fa-user text-gray-400"></i>
                 </div>
-                <input type="text" id="studentName" placeholder="全名 (Name)" 
+                <input type="text" id="studentName" placeholder="FULL NAME SAME AS OCULUS" 
                        class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400">
             </div>
 
             <button onclick="submitCheckIn()" id="submitBtn"
                     class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2">
-                <i class="fa-solid fa-check-circle"></i> 确认到场
+                <i class="fa-solid fa-check-circle"></i> Confirm
             </button>
         </div>
 
@@ -59,8 +59,8 @@
             <div class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-sm">
                 <i class="fa-solid fa-check"></i>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">签到成功！</h2>
-            <p class="text-gray-500 text-sm">信息已安全记录，你可以关闭此页面。</p>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Attendance Submitted</h2>
+            <!-- <p class="text-gray-500 text-sm">信息已安全记录，你可以关闭此页面。</p> -->
         </div>
     </div>
 
@@ -86,11 +86,11 @@
             const form = document.getElementById('checkInForm');
 
             if (doc.exists && doc.data().status === "Open") {
-                badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> 签到通道已开启';
+                badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
                 badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm";
                 form.classList.remove('hidden');
             } else {
-                badge.innerHTML = '<i class="fa-solid fa-lock text-xs"></i> 签到通道已关闭';
+                badge.innerHTML = '<i class="fa-solid fa-lock text-xs"></i> Attendance Closed';
                 badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm";
                 form.classList.add('hidden');
             }
@@ -101,11 +101,11 @@
             const studentName = document.getElementById('studentName').value.trim().toUpperCase();
 
             if (!studentId || !studentName) {
-                alert("请填写完整的学号和姓名！"); return;
+                alert("Please enter completed Student Name and ID!"); return;
             }
 
             const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
             btn.disabled = true;
 
             db.collection("Sessions").doc("Class_01").get().then((doc) => {
@@ -118,13 +118,13 @@
                         document.getElementById('statusBadge').classList.add('hidden');
                         document.getElementById('successMessage').classList.remove('hidden');
                     }).catch((error) => {
-                        alert("错误: " + error.message);
-                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> 确认到场'; 
+                        alert("Error: " + error.message);
+                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirmed'; 
                         btn.disabled = false;
                     });
                 } else {
-                    alert("手慢了！签到通道刚刚已关闭。");
-                    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> 确认到场'; 
+                    alert("Sorry, Attendance has been closed.");
+                    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirmed'; 
                     btn.disabled = false;
                 }
             });
