@@ -53,6 +53,11 @@
                     class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2">
                 <i class="fa-solid fa-check-circle"></i> Confirm
             </button>
+            <p class="text-[10px] text-amber-600 mt-4 text-center leading-relaxed px-2 font-medium">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                Please confirm your Name and ID is correct before you submit. 
+                Once submitted, you cannot change it.
+            </p>
         </div>
 
         <div id="successMessage" class="hidden text-center py-6 animate-[fadeIn_0.5s_ease-out]">
@@ -77,13 +82,29 @@
         appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
         };
 
+        // 1. 初始化 Firebase (保持你的配置不变)
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 监听状态改变胶囊 UI
+        // 🌟 新增：检查这台设备是否已经签到过
+        // 获取当前课程的唯一标记（比如按日期，防止明天不能签到）
+        const todayStr = new Date().toISOString().split('T')[0]; 
+        const deviceLockKey = "checkedIn_" + todayStr;
+
+        // 监听状态改变
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById('statusBadge');
             const form = document.getElementById('checkInForm');
+            const successMsg = document.getElementById('successMessage');
+
+            // 首先检查本地标记，如果今天签到过了，直接显示成功画面
+            if (localStorage.getItem(deviceLockKey)) {
+                badge.classList.add('hidden');
+                form.classList.add('hidden');
+                successMsg.classList.remove('hidden');
+                successMsg.querySelector('p').innerText = "You have already checked in for today.";
+                return;
+            }
 
             if (doc.exists && doc.data().status === "Open") {
                 badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
@@ -97,11 +118,17 @@
         });
 
         function submitCheckIn() {
+            // 再次检查防止绕过前端隐藏
+            if (localStorage.getItem(deviceLockKey)) {
+                alert("You have already checked in today!");
+                return;
+            }
+
             const studentId = document.getElementById('studentId').value.trim().toUpperCase();
             const studentName = document.getElementById('studentName').value.trim().toUpperCase();
 
             if (!studentId || !studentName) {
-                alert("Please enter completed Student Name and ID!"); return;
+                alert("Please fill in both Student ID and Name!"); return;
             }
 
             const btn = document.getElementById('submitBtn');
@@ -114,17 +141,20 @@
                         studentId: studentId, studentName: studentName,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp() 
                     }).then(() => {
+                        // 🌟 核心：签到成功后，在本地留下“足迹”
+                        localStorage.setItem(deviceLockKey, "true");
+
                         document.getElementById('checkInForm').classList.add('hidden');
                         document.getElementById('statusBadge').classList.add('hidden');
                         document.getElementById('successMessage').classList.remove('hidden');
                     }).catch((error) => {
                         alert("Error: " + error.message);
-                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirmed'; 
+                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
                         btn.disabled = false;
                     });
                 } else {
-                    alert("Sorry, Attendance has been closed.");
-                    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirmed'; 
+                    alert("Attendance is now closed.");
+                    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
                     btn.disabled = false;
                 }
             });
