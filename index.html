@@ -60,8 +60,9 @@
 
         // 3. 提交数据的动作
         function submitCheckIn() {
-            const studentId = document.getElementById('studentId').value;
-            const studentName = document.getElementById('studentName').value;
+            // 在这里加上了 .trim().toUpperCase() 自动转大写并去除头尾空格
+            const studentId = document.getElementById('studentId').value.trim().toUpperCase();
+            const studentName = document.getElementById('studentName').value.trim().toUpperCase();
 
             if (studentId === "" || studentName === "") {
                 alert("请填写完整的学号和姓名！");
