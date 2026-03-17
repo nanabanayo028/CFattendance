@@ -5,115 +5,126 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>学生签到系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 自定义一点点毛玻璃效果 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
 
-    <div class="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">课程签到</h1>
-            <p id="statusText" class="text-sm text-green-600 mt-1 font-semibold">🟢 签到通道已开启</p>
+    <div class="glass-card p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] max-w-sm w-full relative overflow-hidden">
+        
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+
+        <div class="text-center mb-8 mt-2">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">课程签到系统</h1>
+            
+            <div id="statusBadge" class="inline-flex items-center gap-2 mt-3 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500 transition-colors duration-300">
+                <i class="fa-solid fa-circle-notch fa-spin text-xs"></i> 连接中...
+            </div>
         </div>
 
-        <div id="checkInForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">学号 (Student ID)</label>
-                <input type="text" id="studentId" placeholder="例如: BCS23090066" 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        <div id="checkInForm" class="space-y-5 hidden">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fa-regular fa-id-card text-gray-400"></i>
+                </div>
+                <input type="text" id="studentId" placeholder="学号 (例: BCS23090066)" 
+                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400">
             </div>
             
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">姓名 (Name)</label>
-                <input type="text" id="studentName" placeholder="你的全名" 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fa-regular fa-user text-gray-400"></i>
+                </div>
+                <input type="text" id="studentName" placeholder="全名 (Name)" 
+                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400">
             </div>
 
-            <button onclick="submitCheckIn()" 
-                    class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition duration-200">
-                确认到场
+            <button onclick="submitCheckIn()" id="submitBtn"
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2">
+                <i class="fa-solid fa-check-circle"></i> 确认到场
             </button>
         </div>
 
-        <div id="successMessage" class="hidden text-center py-4">
-            <div class="text-5xl mb-2">✅</div>
-            <h2 class="text-xl font-bold text-gray-800">签到成功！</h2>
-            <p class="text-gray-500 text-sm mt-2">你可以关闭此页面了。</p>
+        <div id="successMessage" class="hidden text-center py-6 animate-[fadeIn_0.5s_ease-out]">
+            <div class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-sm">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">签到成功！</h2>
+            <p class="text-gray-500 text-sm">信息已安全记录，你可以关闭此页面。</p>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script>
-       // 1. 你的 Firebase 钥匙
+        // Your web app's Firebase configuration
         const firebaseConfig = {
-          apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
-          authDomain: "attendance-a7ac5.firebaseapp.com",
-          projectId: "attendance-a7ac5",
-          storageBucket: "attendance-a7ac5.firebasestorage.app",
-          messagingSenderId: "179755027767",
-          appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
+        apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
+        authDomain: "attendance-a7ac5.firebaseapp.com",
+        projectId: "attendance-a7ac5",
+        storageBucket: "attendance-a7ac5.firebasestorage.app",
+        messagingSenderId: "179755027767",
+        appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
         };
 
-        // 2. 初始化 Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // ==========================================
-        // 🌟 新增：实时监听老师的开关状态
-        // ==========================================
+        // 监听状态改变胶囊 UI
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
-            const statusText = document.getElementById('statusText');
-            const checkInForm = document.getElementById('checkInForm');
+            const badge = document.getElementById('statusBadge');
+            const form = document.getElementById('checkInForm');
 
-            // 检查数据库里的状态是不是 Open
             if (doc.exists && doc.data().status === "Open") {
-                // 状态开启：显示绿字，显示输入框
-                statusText.innerText = "🟢 签到通道已开启";
-                statusText.className = "text-sm text-green-600 mt-1 font-semibold";
-                checkInForm.style.display = "block"; 
+                badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> 签到通道已开启';
+                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm";
+                form.classList.remove('hidden');
             } else {
-                // 状态关闭：显示红字，隐藏输入框！(防代签核心)
-                statusText.innerText = "🔴 签到通道未开启或已关闭";
-                statusText.className = "text-sm text-red-600 mt-1 font-semibold";
-                checkInForm.style.display = "none"; 
+                badge.innerHTML = '<i class="fa-solid fa-lock text-xs"></i> 签到通道已关闭';
+                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm";
+                form.classList.add('hidden');
             }
         });
 
-        // 3. 提交数据的动作
         function submitCheckIn() {
-            // 加入了 .trim().toUpperCase() 自动转大写并去除头尾空格
             const studentId = document.getElementById('studentId').value.trim().toUpperCase();
             const studentName = document.getElementById('studentName').value.trim().toUpperCase();
 
-            if (studentId === "" || studentName === "") {
-                alert("请填写完整的学号和姓名！");
-                return;
+            if (!studentId || !studentName) {
+                alert("请填写完整的学号和姓名！"); return;
             }
 
-            const btn = document.querySelector('button');
-            btn.innerText = "提交中...";
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...';
             btn.disabled = true;
 
-            // 双重保险：提交前再次确认老师没有在这一秒钟关掉通道
             db.collection("Sessions").doc("Class_01").get().then((doc) => {
                 if (doc.exists && doc.data().status === "Open") {
-                    // 状态正常，写入数据
                     db.collection("Attendance").add({
-                        studentId: studentId,
-                        studentName: studentName,
+                        studentId: studentId, studentName: studentName,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp() 
                     }).then(() => {
                         document.getElementById('checkInForm').classList.add('hidden');
-                        document.getElementById('statusText').classList.add('hidden');
+                        document.getElementById('statusBadge').classList.add('hidden');
                         document.getElementById('successMessage').classList.remove('hidden');
                     }).catch((error) => {
-                        alert("发生错误: " + error.message);
-                        btn.innerText = "确认到场"; 
+                        alert("错误: " + error.message);
+                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> 确认到场'; 
                         btn.disabled = false;
                     });
                 } else {
-                    // 老师已经关了，拦截作弊
                     alert("手慢了！签到通道刚刚已关闭。");
-                    btn.innerText = "确认到场"; 
+                    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> 确认到场'; 
                     btn.disabled = false;
                 }
             });

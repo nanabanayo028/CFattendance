@@ -3,47 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - 考勤控制台</title>
+    <title>Admin - 考勤控制台</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 p-6 md:p-10 font-sans">
+<body class="bg-slate-50 font-sans text-slate-800 pb-20">
 
-    <div class="max-w-4xl mx-auto space-y-6">
-        
-        <div class="bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">课程考勤控制台</h1>
-                <p class="mt-1 text-gray-600">
-                    当前签到状态: 
-                    <span id="statusBadge" class="font-bold text-gray-500 px-2 py-1 bg-gray-100 rounded">连接中...</span>
-                </p>
+    <nav class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg">
+                <i class="fa-solid fa-chalkboard-user"></i>
             </div>
-            <div class="flex gap-3">
-                <button onclick="changeStatus('Open')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200">
-                    🟢 开启签到
-                </button>
-                <button onclick="changeStatus('Closed')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200">
-                    🔴 关闭签到
-                </button>
+            <h1 class="font-bold text-xl tracking-tight text-slate-900">Admin <span class="text-slate-400 font-normal">| 控制台</span></h1>
+        </div>
+        <div id="statusBadge" class="px-4 py-1.5 rounded-full text-sm font-bold bg-slate-100 text-slate-500 border border-slate-200 flex items-center gap-2 transition-all">
+            <i class="fa-solid fa-circle text-[8px]"></i> 状态检查中...
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto p-8">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="col-span-1 md:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-center">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">考勤通道控制</h2>
+                <div class="flex gap-4">
+                    <button onclick="changeStatus('Open')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-6 rounded-xl shadow-sm shadow-emerald-200 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> 开启签到
+                    </button>
+                    <button onclick="changeStatus('Closed')" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-4 px-6 rounded-xl shadow-sm shadow-rose-200 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-stop"></i> 关闭签到
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 shadow-md text-white flex flex-col justify-center relative overflow-hidden">
+                <i class="fa-solid fa-users absolute -right-6 -bottom-6 text-8xl opacity-20"></i>
+                <h2 class="text-indigo-100 font-medium mb-1 relative z-10">当前列表人数</h2>
+                <div class="text-5xl font-extrabold relative z-10">
+                    <span id="studentCount">0</span>
+                    <span class="text-lg font-normal text-indigo-200 ml-1">人</span>
+                </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                <h2 class="text-xl font-bold text-gray-800">今日已签到名单 (<span id="studentCount" class="text-blue-600">0</span> 人)</h2>
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+            <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200 shadow-sm w-full md:w-auto">
+                <label for="dateFilter" class="text-sm font-bold text-slate-500 pl-2"><i class="fa-regular fa-calendar-days mr-1"></i> 选择日期:</label>
+                <input type="date" id="dateFilter" onchange="renderTable()" 
+                       class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none cursor-pointer">
+                <button onclick="clearDateFilter()" title="清除日期" class="text-slate-400 hover:text-rose-500 px-2 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             
+            <button onclick="exportToExcel()" class="w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-file-excel text-emerald-400"></i> 导出为 Excel
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
-                            <th class="p-4 font-semibold">签到时间</th>
+                        <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                            <th class="p-4 font-semibold pl-8">日期 (Date)</th>
+                            <th class="p-4 font-semibold">时间 (Time)</th>
                             <th class="p-4 font-semibold">学号 (Student ID)</th>
                             <th class="p-4 font-semibold">姓名 (Name)</th>
                         </tr>
                     </thead>
-                    <tbody id="attendanceList" class="divide-y divide-gray-200">
-                        </tbody>
+                    <tbody id="attendanceList" class="divide-y divide-slate-100 text-sm">
+                        <tr><td colspan="4" class="p-8 text-center text-slate-400">正在加载数据...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -53,7 +84,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
     <script>
-        // 1. 【非常重要】把这里替换成你自己的 Firebase Config 钥匙！
+        // Your web app's Firebase configuration
         const firebaseConfig = {
         apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
         authDomain: "attendance-a7ac5.firebaseapp.com",
@@ -63,60 +94,134 @@
         appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
         };
 
-        // 2. 初始化 Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 3. 监听当前签到状态，并改变界面颜色
+        // 全局变量，用来存储从 Firebase 拉取的所有原始数据
+        let allRecords = []; 
+
+        // 1. 监听通道状态 (保持不变)
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
-            const statusBadge = document.getElementById("statusBadge");
+            const badge = document.getElementById("statusBadge");
             if (doc.exists && doc.data().status === "Open") {
-                statusBadge.innerText = "🟢 已开启 (Open)";
-                statusBadge.className = "font-bold text-green-700 bg-green-100 px-2 py-1 rounded";
+                badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] rounded-full"></i> 正在允许签到 (Open)';
+                badge.className = "px-4 py-1.5 rounded-full text-sm font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-2 transition-all";
             } else {
-                statusBadge.innerText = "🔴 已关闭 (Closed)";
-                statusBadge.className = "font-bold text-red-700 bg-red-100 px-2 py-1 rounded";
+                badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)] rounded-full"></i> 签到已关闭 (Closed)';
+                badge.className = "px-4 py-1.5 rounded-full text-sm font-bold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-2 transition-all";
             }
         });
 
-        // 4. 改变状态的 Function (老师点击按钮触发)
+        // 2. 老师改变通道状态 (保持不变)
         function changeStatus(newStatus) {
-            // 使用 set(..., {merge: true}) 确保即使文档不存在也会自动创建
-            db.collection("Sessions").doc("Class_01").set({
-                status: newStatus
-            }, { merge: true }).then(() => {
-                console.log("状态已更新为: " + newStatus);
-            }).catch((error) => {
-                alert("更新状态失败: " + error.message);
-            });
+            db.collection("Sessions").doc("Class_01").set({ status: newStatus }, { merge: true })
+              .catch(error => alert("操作失败: " + error.message));
         }
 
-        // 5. 实时抓取学生签到数据并渲染到表格里
+        // 3. 抓取数据并存入本地池
         db.collection("Attendance").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
-            const list = document.getElementById("attendanceList");
-            list.innerHTML = ""; // 清空旧数据
-            document.getElementById("studentCount").innerText = snapshot.docs.length; // 更新总人数
-
+            allRecords = []; // 清空旧池子
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                
-                // 处理时间格式 (防止本地时间还没同步到服务器时报错)
-                let timeString = "刚刚";
                 if (data.timestamp) {
-                    timeString = data.timestamp.toDate().toLocaleTimeString('zh-CN', { hour12: false });
+                    const jsDate = data.timestamp.toDate();
+                    // 提取出 YYYY-MM-DD 格式，方便过滤
+                    const year = jsDate.getFullYear();
+                    const month = String(jsDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(jsDate.getDate()).padStart(2, '0');
+                    
+                    allRecords.push({
+                        studentId: data.studentId,
+                        studentName: data.studentName,
+                        fullDateObj: jsDate,
+                        dateString: `${year}-${month}-${day}`, // 用于比对的日期字符串
+                        timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false }) // 用于显示的时间
+                    });
                 }
-
-                // 创建新的一行表格 <tr>
-                const tr = document.createElement("tr");
-                tr.className = "hover:bg-gray-50 transition duration-150";
-                tr.innerHTML = `
-                    <td class="p-4 text-gray-500">${timeString}</td>
-                    <td class="p-4 font-medium text-gray-900">${data.studentId}</td>
-                    <td class="p-4 text-gray-700">${data.studentName}</td>
-                `;
-                list.appendChild(tr);
             });
+            renderTable(); // 数据抓完后，开始渲染表格
         });
+
+        // 🌟 4. 渲染表格的核心逻辑 (支持按日期过滤)
+        function renderTable() {
+            const list = document.getElementById("attendanceList");
+            const selectedDate = document.getElementById("dateFilter").value; // 获取老师选的日期
+            
+            // 如果选了日期，就过滤；没选日期，就显示全部
+            let filteredRecords = allRecords;
+            if (selectedDate !== "") {
+                filteredRecords = allRecords.filter(record => record.dateString === selectedDate);
+            }
+
+            // 更新人数统计
+            document.getElementById("studentCount").innerText = filteredRecords.length;
+
+            if (filteredRecords.length === 0) {
+                list.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400"><i class="fa-regular fa-folder-open text-3xl mb-3 block"></i>该日期暂无签到记录</td></tr>';
+                return;
+            }
+
+            // 拼接表格 HTML
+            let htmlContent = "";
+            filteredRecords.forEach(record => {
+                htmlContent += `
+                    <tr class="hover:bg-indigo-50/50 transition duration-150">
+                        <td class="p-4 pl-8 text-slate-500 font-medium">${record.dateString}</td>
+                        <td class="p-4 text-slate-500 font-mono"><span class="bg-slate-100 px-2 py-1 rounded text-xs">${record.timeString}</span></td>
+                        <td class="p-4 font-bold text-indigo-700">${record.studentId}</td>
+                        <td class="p-4 text-slate-700 font-medium">${record.studentName}</td>
+                    </tr>
+                `;
+            });
+            list.innerHTML = htmlContent;
+        }
+
+        // 清除日期筛选，看全部
+        function clearDateFilter() {
+            document.getElementById("dateFilter").value = "";
+            renderTable();
+        }
+
+        // 🌟 5. 导出 Excel (CSV 格式) 功能
+        function exportToExcel() {
+            const selectedDate = document.getElementById("dateFilter").value;
+            
+            // 取出当前过滤后需要导出的数据
+            let recordsToExport = allRecords;
+            if (selectedDate !== "") {
+                recordsToExport = allRecords.filter(record => record.dateString === selectedDate);
+            }
+
+            if (recordsToExport.length === 0) {
+                alert("当前没有可导出的数据！");
+                return;
+            }
+
+            // 构建 CSV 字符串。开头加上 \uFEFF 是为了防止 Excel 打开时中文乱码 (BOM头)
+            let csvContent = "\uFEFF"; 
+            csvContent += "日期 (Date),时间 (Time),学号 (Student ID),姓名 (Name)\n"; // 表头
+
+            // 填充数据行
+            recordsToExport.forEach(record => {
+                // 使用引号包裹，防止名字里带有逗号导致错行
+                const row = `"${record.dateString}","${record.timeString}","${record.studentId}","${record.studentName}"`;
+                csvContent += row + "\n";
+            });
+
+            // 触发浏览器下载
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            // 设置下载的文件名 (如果有选日期就是该日期，否则是 All)
+            const fileName = selectedDate ? `Attendance_${selectedDate}.csv` : `Attendance_All.csv`;
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>
