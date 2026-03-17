@@ -118,47 +118,63 @@
         });
 
         function submitCheckIn() {
-            // 再次检查防止绕过前端隐藏
-            if (localStorage.getItem(deviceLockKey)) {
-                alert("You have already checked in today!");
-                return;
-            }
+        // 1. 检查本地设备锁 (Device Lock)
+        if (localStorage.getItem(deviceLockKey)) {
+            alert("You have already checked in today!");
+            return;
+        }
 
-            const studentId = document.getElementById('studentId').value.trim().toUpperCase();
-            const studentName = document.getElementById('studentName').value.trim().toUpperCase();
+        const studentId = document.getElementById('studentId').value.trim().toUpperCase();
+        const studentName = document.getElementById('studentName').value.trim().toUpperCase();
 
-            if (!studentId || !studentName) {
-                alert("Please fill in both Student ID and Name!"); return;
-            }
+        if (!studentId || !studentName) {
+            alert("Please fill in both Student ID and Name!"); 
+            return;
+        }
 
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
-            btn.disabled = true;
+        // 🌟 获取今天的日期字符串作为“文件夹”名称 (例如: 2026-03-17)
+        const today = new Date();
+        const dateFolderName = today.toISOString().split('T')[0]; 
 
-            db.collection("Sessions").doc("Class_01").get().then((doc) => {
-                if (doc.exists && doc.data().status === "Open") {
-                    db.collection("Attendance").add({
-                        studentId: studentId, studentName: studentName,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-                    }).then(() => {
-                        // 🌟 核心：签到成功后，在本地留下“足迹”
-                        localStorage.setItem(deviceLockKey, "true");
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+        btn.disabled = true;
 
-                        document.getElementById('checkInForm').classList.add('hidden');
-                        document.getElementById('statusBadge').classList.add('hidden');
-                        document.getElementById('successMessage').classList.remove('hidden');
-                    }).catch((error) => {
-                        alert("Error: " + error.message);
-                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                        btn.disabled = false;
-                    });
-                } else {
-                    alert("Attendance is now closed.");
+        // 2. 检查老师是否开启了通道
+        db.collection("Sessions").doc("Class_01").get().then((doc) => {
+            if (doc.exists && doc.data().status === "Open") {
+                
+                // 🌟 3. 核心修改：写入按日期分类的路径
+                // 路径结构: Attendance(Collection) -> 日期文件夹(Document) -> Students(Sub-collection) -> 自动生成的ID
+                db.collection("Attendance")
+                .doc(dateFolderName)
+                .collection("Students")
+                .add({
+                    studentId: studentId, 
+                    studentName: studentName,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                })
+                .then(() => {
+                    // 4. 成功后设置本地设备锁，防止重复提交
+                    localStorage.setItem(deviceLockKey, "true");
+
+                    document.getElementById('checkInForm').classList.add('hidden');
+                    document.getElementById('statusBadge').classList.add('hidden');
+                    document.getElementById('successMessage').classList.remove('hidden');
+                })
+                .catch((error) => {
+                    alert("Error: " + error.message);
                     btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
                     btn.disabled = false;
-                }
-            });
-        }
+                });
+
+            } else {
+                alert("Attendance is now closed.");
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                btn.disabled = false;
+            }
+        });
+    }
     </script>
 </body>
 </html>

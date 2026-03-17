@@ -118,29 +118,60 @@
               .catch(error => alert("操作失败: " + error.message));
         }
 
-        // 3. 抓取数据并存入本地池
-        db.collection("Attendance").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
-            allRecords = []; // 清空旧池子
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.timestamp) {
-                    const jsDate = data.timestamp.toDate();
-                    // 提取出 YYYY-MM-DD 格式，方便过滤
-                    const year = jsDate.getFullYear();
-                    const month = String(jsDate.getMonth() + 1).padStart(2, '0');
-                    const day = String(jsDate.getDate()).padStart(2, '0');
-                    
-                    allRecords.push({
-                        studentId: data.studentId,
-                        studentName: data.studentName,
-                        fullDateObj: jsDate,
-                        dateString: `${year}-${month}-${day}`, // 用于比对的日期字符串
-                        timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false }) // 用于显示的时间
-                    });
+        // 🌟 3. 核心修改：支持“日期文件夹”结构的读取逻辑
+        function loadAllData() {
+            // 每次重新加载时清空本地数据池
+            allRecords = [];
+
+            // 先获取 Attendance 集合下的所有日期文档（即你想要的日期文件夹）
+            db.collection("Attendance").onSnapshot((dateSnapshots) => {
+                // 如果没有任何文件夹
+                if (dateSnapshots.empty) {
+                    allRecords = [];
+                    renderTable();
+                    return;
                 }
+
+                dateSnapshots.forEach((dateDoc) => {
+                    const dateString = dateDoc.id; // 文件夹名字，如 "2026-03-17"
+
+                    // 进入每个日期文件夹，抓取里面的 Students 子集合
+                    db.collection("Attendance")
+                      .doc(dateString)
+                      .collection("Students")
+                      .orderBy("timestamp", "desc")
+                      .onSnapshot((studentSnapshot) => {
+                          
+                          // 【关键】先过滤掉池子里属于这个日期的旧记录，避免重复显示
+                          allRecords = allRecords.filter(r => r.dateString !== dateString);
+
+                          studentSnapshot.forEach((doc) => {
+                              const data = doc.data();
+                              if (data.timestamp) {
+                                  const jsDate = data.timestamp.toDate();
+                                  
+                                  allRecords.push({
+                                      studentId: data.studentId,
+                                      studentName: data.studentName,
+                                      fullDateObj: jsDate, // 用于排序
+                                      dateString: dateString, // 文件夹日期
+                                      timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
+                                  });
+                              }
+                          });
+
+                          // 按照时间先后顺序给所有文件夹的数据重新排序（最新的在最上面）
+                          allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
+
+                          // 渲染表格
+                          renderTable(); 
+                      });
+                });
             });
-            renderTable(); // 数据抓完后，开始渲染表格
-        });
+        }
+
+        // 启动数据加载
+        loadAllData();
 
         // 🌟 4. 渲染表格的核心逻辑 (支持按日期过滤)
         function renderTable() {
