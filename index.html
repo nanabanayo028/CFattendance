@@ -43,8 +43,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script>
-        // 1. 把你刚才在 Firebase 复制的 firebaseConfig 贴在这里替换掉下面的！
-       // Your web app's Firebase configuration
+       // 1. 你的 Firebase 钥匙
         const firebaseConfig = {
           apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
           authDomain: "attendance-a7ac5.firebaseapp.com",
@@ -58,9 +57,30 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // ==========================================
+        // 🌟 新增：实时监听老师的开关状态
+        // ==========================================
+        db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
+            const statusText = document.getElementById('statusText');
+            const checkInForm = document.getElementById('checkInForm');
+
+            // 检查数据库里的状态是不是 Open
+            if (doc.exists && doc.data().status === "Open") {
+                // 状态开启：显示绿字，显示输入框
+                statusText.innerText = "🟢 签到通道已开启";
+                statusText.className = "text-sm text-green-600 mt-1 font-semibold";
+                checkInForm.style.display = "block"; 
+            } else {
+                // 状态关闭：显示红字，隐藏输入框！(防代签核心)
+                statusText.innerText = "🔴 签到通道未开启或已关闭";
+                statusText.className = "text-sm text-red-600 mt-1 font-semibold";
+                checkInForm.style.display = "none"; 
+            }
+        });
+
         // 3. 提交数据的动作
         function submitCheckIn() {
-            // 在这里加上了 .trim().toUpperCase() 自动转大写并去除头尾空格
+            // 加入了 .trim().toUpperCase() 自动转大写并去除头尾空格
             const studentId = document.getElementById('studentId').value.trim().toUpperCase();
             const studentName = document.getElementById('studentName').value.trim().toUpperCase();
 
@@ -69,28 +89,33 @@
                 return;
             }
 
-            // 把按钮文字变成“提交中...”，防止学生连按两下
             const btn = document.querySelector('button');
             btn.innerText = "提交中...";
             btn.disabled = true;
 
-            // 4. 将数据写入 Firestore 的 "Attendance" 表中
-            db.collection("Attendance").add({
-                studentId: studentId,
-                studentName: studentName,
-                // 这里会自动抓取服务器的时间，不怕学生手机时间不准
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-            })
-            .then(() => {
-                // 写入成功后，改变网页界面
-                document.getElementById('checkInForm').classList.add('hidden');
-                document.getElementById('statusText').classList.add('hidden');
-                document.getElementById('successMessage').classList.remove('hidden');
-            })
-            .catch((error) => {
-                alert("发生错误: " + error.message);
-                btn.innerText = "确认到场"; // 失败了恢复按钮
-                btn.disabled = false;
+            // 双重保险：提交前再次确认老师没有在这一秒钟关掉通道
+            db.collection("Sessions").doc("Class_01").get().then((doc) => {
+                if (doc.exists && doc.data().status === "Open") {
+                    // 状态正常，写入数据
+                    db.collection("Attendance").add({
+                        studentId: studentId,
+                        studentName: studentName,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                    }).then(() => {
+                        document.getElementById('checkInForm').classList.add('hidden');
+                        document.getElementById('statusText').classList.add('hidden');
+                        document.getElementById('successMessage').classList.remove('hidden');
+                    }).catch((error) => {
+                        alert("发生错误: " + error.message);
+                        btn.innerText = "确认到场"; 
+                        btn.disabled = false;
+                    });
+                } else {
+                    // 老师已经关了，拦截作弊
+                    alert("手慢了！签到通道刚刚已关闭。");
+                    btn.innerText = "确认到场"; 
+                    btn.disabled = false;
+                }
             });
         }
     </script>
