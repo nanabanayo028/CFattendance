@@ -40,8 +40,25 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script>
-        // 这是前端的模拟逻辑，下一步我们会把这里换成连接 Firebase 数据库的代码
+        // 1. 把你刚才在 Firebase 复制的 firebaseConfig 贴在这里替换掉下面的！
+       // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
+          authDomain: "attendance-a7ac5.firebaseapp.com",
+          projectId: "attendance-a7ac5",
+          storageBucket: "attendance-a7ac5.firebasestorage.app",
+          messagingSenderId: "179755027767",
+          appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
+        };
+
+        // 2. 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 3. 提交数据的动作
         function submitCheckIn() {
             const studentId = document.getElementById('studentId').value;
             const studentName = document.getElementById('studentName').value;
@@ -51,12 +68,29 @@
                 return;
             }
 
-            // 模拟签到成功的界面变化
-            document.getElementById('checkInForm').classList.add('hidden');
-            document.getElementById('statusText').classList.add('hidden');
-            document.getElementById('successMessage').classList.remove('hidden');
-            
-            console.log("准备发送到数据库的数据: ", { id: studentId, name: studentName });
+            // 把按钮文字变成“提交中...”，防止学生连按两下
+            const btn = document.querySelector('button');
+            btn.innerText = "提交中...";
+            btn.disabled = true;
+
+            // 4. 将数据写入 Firestore 的 "Attendance" 表中
+            db.collection("Attendance").add({
+                studentId: studentId,
+                studentName: studentName,
+                // 这里会自动抓取服务器的时间，不怕学生手机时间不准
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+            })
+            .then(() => {
+                // 写入成功后，改变网页界面
+                document.getElementById('checkInForm').classList.add('hidden');
+                document.getElementById('statusText').classList.add('hidden');
+                document.getElementById('successMessage').classList.remove('hidden');
+            })
+            .catch((error) => {
+                alert("发生错误: " + error.message);
+                btn.innerText = "确认到场"; // 失败了恢复按钮
+                btn.disabled = false;
+            });
         }
     </script>
 </body>
