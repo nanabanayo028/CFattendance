@@ -48,6 +48,14 @@
                        class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400">
             </div>
 
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fa-solid fa-key text-gray-400"></i>
+                </div>
+                <input type="number" id="pinCode" placeholder="4-DIGIT PIN FROM SCREEN" 
+                       class="w-full pl-11 pr-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-300 text-center">
+            </div>
+
             <button onclick="submitCheckIn()" id="submitBtn"
                     class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2">
                 <i class="fa-solid fa-check-circle"></i> Confirm
@@ -139,9 +147,10 @@
 
             const studentId = document.getElementById('studentId').value.trim().toUpperCase();
             const studentName = document.getElementById('studentName').value.trim().toUpperCase();
+            const enteredPin = document.getElementById('pinCode').value.trim(); // 🌟 获取学生填的密码
 
-            if (!studentId || !studentName) {
-                alert("Please fill in both Student ID and Name!"); 
+            if (!studentId || !studentName || !enteredPin) {
+                alert("Please fill in Student ID, Name, and the PIN code!"); 
                 return;
             }
 
@@ -152,19 +161,30 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
             btn.disabled = true;
 
+            // 去数据库查状态和密码
             db.collection("Sessions").doc("Class_01").get().then((doc) => {
                 if (doc.exists && doc.data().status === "Open") {
                     
+                    // 🌟 核心防御：核对密码！
+                    const correctPin = doc.data().currentPin;
+                    if (enteredPin !== correctPin) {
+                        alert("❌ The PIN code is incorrect! Please check the screen.");
+                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                        btn.disabled = false;
+                        return; // 密码不对，直接终止运行！
+                    }
+
+                    // 密码正确，继续存入数据 (包含你之前改的用学号当文件名的逻辑)
                     db.collection("Attendance")
                     .doc(dateFolderName)
                     .collection("Students")
-                    .add({
+                    .doc(studentId) // 用学号当文件名，防止重复
+                    .set({
                         studentId: studentId, 
                         studentName: studentName,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp() 
                     })
                     .then(() => {
-                        // 🌟 核心修改：存入当前的“时间戳(毫秒)”而不是 "true"
                         const currentTime = new Date().getTime();
                         localStorage.setItem(deviceLockKey, currentTime.toString());
 

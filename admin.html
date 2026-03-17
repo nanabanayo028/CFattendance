@@ -26,6 +26,25 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="col-span-1 md:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-center">
                 <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">考勤通道控制</h2>
+                
+                <div class="flex items-center gap-3 mb-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <label for="adminPin" class="text-sm font-bold text-slate-600"><i class="fa-solid fa-key text-indigo-400 mr-1"></i> 本次签到 PIN 码:</label>
+                    <input type="text" id="adminPin" placeholder="例如: 8274" maxlength="4"
+                           class="bg-white border border-slate-300 text-slate-800 text-lg font-extrabold tracking-[0.2em] text-center rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-32 py-1 outline-none">
+                    <button onclick="document.getElementById('adminPin').value = Math.floor(1000 + Math.random() * 9000)" 
+                            class="text-xs text-indigo-500 hover:text-indigo-700 underline cursor-pointer font-medium">
+                        随机生成
+                    </button>
+                </div>
+
+                <div class="flex gap-4">
+                    <button onclick="changeStatus('Open')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-6 rounded-xl shadow-sm shadow-emerald-200 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> 开启签到
+                    </button>
+                    <button onclick="changeStatus('Closed')" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-4 px-6 rounded-xl shadow-sm shadow-rose-200 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-stop"></i> 关闭签到
+                    </button>
+                </div>
                 <div class="flex gap-4">
                     <button onclick="changeStatus('Open')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-6 rounded-xl shadow-sm shadow-emerald-200 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-play"></i> 开启签到
@@ -114,8 +133,27 @@
 
         // 2. 老师改变通道状态 (保持不变)
         function changeStatus(newStatus) {
-            db.collection("Sessions").doc("Class_01").set({ status: newStatus }, { merge: true })
-              .catch(error => alert("操作失败: " + error.message));
+            let pinValue = "";
+            
+            // 如果是开启签到，强制要求老师输入 PIN 码
+            if (newStatus === "Open") {
+                pinValue = document.getElementById('adminPin').value.trim();
+                if (pinValue === "") {
+                    alert("⚠️ 请先输入 4 位数的 PIN 码，然后再开启签到！");
+                    document.getElementById('adminPin').focus();
+                    return;
+                }
+            } else {
+                // 如果是关闭签到，自动清空界面上的 PIN 码
+                document.getElementById('adminPin').value = "";
+            }
+
+            // 把状态和当前的 PIN 码一起更新到 Firebase
+            db.collection("Sessions").doc("Class_01").set({ 
+                status: newStatus,
+                currentPin: pinValue // 🌟 新增：把密码存进去
+            }, { merge: true })
+            .catch(error => alert("操作失败: " + error.message));
         }
 
         // 🌟 3. 终极修改：使用 collectionGroup 跨文件夹直接抓取学生数据
