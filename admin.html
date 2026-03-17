@@ -118,14 +118,13 @@
               .catch(error => alert("操作失败: " + error.message));
         }
 
-        // 🌟 3. 核心修改：支持“日期文件夹”结构的读取逻辑
+        // 🌟 3. 核心修改：正确读取带 Sub-collection 的文件夹结构
         function loadAllData() {
-            // 每次重新加载时清空本地数据池
             allRecords = [];
 
-            // 先获取 Attendance 集合下的所有日期文档（即你想要的日期文件夹）
+            // 先获取 Attendance 集合下的所有日期文档
             db.collection("Attendance").onSnapshot((dateSnapshots) => {
-                // 如果没有任何文件夹
+                
                 if (dateSnapshots.empty) {
                     allRecords = [];
                     renderTable();
@@ -133,20 +132,19 @@
                 }
 
                 dateSnapshots.forEach((dateDoc) => {
-                    const dateString = dateDoc.id; // 文件夹名字，如 "2026-03-17"
+                    const dateString = dateDoc.id; // 例如 "2026-03-17"
 
-                    // 进入每个日期文件夹，抓取里面的 Students 子集合
+                    // ⚠️ 关键步骤：明确进入 "Students" 这个子集合
                     db.collection("Attendance")
                       .doc(dateString)
                       .collection("Students")
-                      .orderBy("timestamp", "desc")
                       .onSnapshot((studentSnapshot) => {
                           
-                          // 【关键】先过滤掉池子里属于这个日期的旧记录，避免重复显示
+                          // 先清理掉属于这个旧日期的记录，防止重复
                           allRecords = allRecords.filter(r => r.dateString !== dateString);
 
-                          studentSnapshot.forEach((doc) => {
-                              const data = doc.data();
+                          studentSnapshot.forEach((studentDoc) => {
+                              const data = studentDoc.data();
                               if (data.timestamp) {
                                   const jsDate = data.timestamp.toDate();
                                   
@@ -160,7 +158,7 @@
                               }
                           });
 
-                          // 按照时间先后顺序给所有文件夹的数据重新排序（最新的在最上面）
+                          // 重新按时间排序，最新的在最上
                           allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
 
                           // 渲染表格
