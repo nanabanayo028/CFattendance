@@ -118,53 +118,42 @@
               .catch(error => alert("操作失败: " + error.message));
         }
 
-        // 🌟 3. 核心修改：正确读取带 Sub-collection 的文件夹结构
+        // 🌟 3. 终极修改：使用 collectionGroup 跨文件夹直接抓取学生数据
         function loadAllData() {
-            allRecords = [];
-
-            // 先获取 Attendance 集合下的所有日期文档
-            db.collection("Attendance").onSnapshot((dateSnapshots) => {
+            // 直接监听全网所有名字叫 "Students" 的子集合
+            db.collectionGroup("Students").onSnapshot((snapshot) => {
+                allRecords = []; // 每次更新时清空数据池
                 
-                if (dateSnapshots.empty) {
-                    allRecords = [];
+                if (snapshot.empty) {
                     renderTable();
                     return;
                 }
 
-                dateSnapshots.forEach((dateDoc) => {
-                    const dateString = dateDoc.id; // 例如 "2026-03-17"
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    // 【神来之笔】：直接从路径里往上找两层，提取出文件夹的名字（日期）
+                    // 路径是 Attendance / 日期 / Students / 学生ID
+                    const dateString = doc.ref.parent.parent.id; 
 
-                    // ⚠️ 关键步骤：明确进入 "Students" 这个子集合
-                    db.collection("Attendance")
-                      .doc(dateString)
-                      .collection("Students")
-                      .onSnapshot((studentSnapshot) => {
-                          
-                          // 先清理掉属于这个旧日期的记录，防止重复
-                          allRecords = allRecords.filter(r => r.dateString !== dateString);
-
-                          studentSnapshot.forEach((studentDoc) => {
-                              const data = studentDoc.data();
-                              if (data.timestamp) {
-                                  const jsDate = data.timestamp.toDate();
-                                  
-                                  allRecords.push({
-                                      studentId: data.studentId,
-                                      studentName: data.studentName,
-                                      fullDateObj: jsDate, // 用于排序
-                                      dateString: dateString, // 文件夹日期
-                                      timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
-                                  });
-                              }
-                          });
-
-                          // 重新按时间排序，最新的在最上
-                          allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
-
-                          // 渲染表格
-                          renderTable(); 
-                      });
+                    if (data.timestamp) {
+                        const jsDate = data.timestamp.toDate();
+                        
+                        allRecords.push({
+                            studentId: data.studentId,
+                            studentName: data.studentName,
+                            fullDateObj: jsDate, // 用于排序
+                            dateString: dateString, // 提取到的日期
+                            timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
+                        });
+                    }
                 });
+
+                // 按照时间先后顺序重新排序（最新的在最上面）
+                allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
+
+                // 渲染表格
+                renderTable(); 
             });
         }
 

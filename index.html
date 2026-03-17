@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 自定义一点点毛玻璃效果 */
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -65,7 +64,7 @@
                 <i class="fa-solid fa-check"></i>
             </div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">Attendance Submitted</h2>
-            <!-- <p class="text-gray-500 text-sm">信息已安全记录，你可以关闭此页面。</p> -->
+            <p id="successDesc" class="text-gray-500 text-sm mt-2">You can now close this page.</p>
         </div>
     </div>
 
@@ -74,35 +73,49 @@
     <script>
         // Your web app's Firebase configuration
         const firebaseConfig = {
-        apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
-        authDomain: "attendance-a7ac5.firebaseapp.com",
-        projectId: "attendance-a7ac5",
-        storageBucket: "attendance-a7ac5.firebasestorage.app",
-        messagingSenderId: "179755027767",
-        appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
+            apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
+            authDomain: "attendance-a7ac5.firebaseapp.com",
+            projectId: "attendance-a7ac5",
+            storageBucket: "attendance-a7ac5.firebasestorage.app",
+            messagingSenderId: "179755027767",
+            appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
         };
 
-        // 1. 初始化 Firebase (保持你的配置不变)
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 🌟 新增：检查这台设备是否已经签到过
-        // 获取当前课程的唯一标记（比如按日期，防止明天不能签到）
         const todayStr = new Date().toISOString().split('T')[0]; 
-        const deviceLockKey = "checkedIn_" + todayStr;
+        const deviceLockKey = "checkedInTime_" + todayStr;
 
-        // 监听状态改变
+        // 🌟 新增：专门计算有没有超过 5 分钟的函数
+        function isDeviceLocked() {
+            const savedTime = localStorage.getItem(deviceLockKey);
+            if (!savedTime) return false; // 没签到过，没锁
+
+            const currentTime = new Date().getTime();
+            const timeDifference = currentTime - parseInt(savedTime);
+            
+            // 5 分钟 = 5 * 60 * 1000 = 300,000 毫秒
+            if (timeDifference < 300000) {
+                return true; // 5分钟内，还在锁定期
+            } else {
+                // 超过 5 分钟，清除标记，自动解锁
+                localStorage.removeItem(deviceLockKey);
+                return false;
+            }
+        }
+
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById('statusBadge');
             const form = document.getElementById('checkInForm');
             const successMsg = document.getElementById('successMessage');
 
-            // 首先检查本地标记，如果今天签到过了，直接显示成功画面
-            if (localStorage.getItem(deviceLockKey)) {
+            // 检查 5 分钟锁
+            if (isDeviceLocked()) {
                 badge.classList.add('hidden');
                 form.classList.add('hidden');
                 successMsg.classList.remove('hidden');
-                successMsg.querySelector('p').innerText = "You have already checked in for today.";
+                document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
                 return;
             }
 
@@ -110,6 +123,7 @@
                 badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
                 badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm";
                 form.classList.remove('hidden');
+                successMsg.classList.add('hidden'); // 确保从锁定恢复时，隐藏成功信息
             } else {
                 badge.innerHTML = '<i class="fa-solid fa-lock text-xs"></i> Attendance Closed';
                 badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm";
@@ -118,63 +132,60 @@
         });
 
         function submitCheckIn() {
-        // 1. 检查本地设备锁 (Device Lock)
-        if (localStorage.getItem(deviceLockKey)) {
-            alert("You have already checked in today!");
-            return;
-        }
+            if (isDeviceLocked()) {
+                alert("You have recently checked in. Please wait 5 minutes to submit again.");
+                return;
+            }
 
-        const studentId = document.getElementById('studentId').value.trim().toUpperCase();
-        const studentName = document.getElementById('studentName').value.trim().toUpperCase();
+            const studentId = document.getElementById('studentId').value.trim().toUpperCase();
+            const studentName = document.getElementById('studentName').value.trim().toUpperCase();
 
-        if (!studentId || !studentName) {
-            alert("Please fill in both Student ID and Name!"); 
-            return;
-        }
+            if (!studentId || !studentName) {
+                alert("Please fill in both Student ID and Name!"); 
+                return;
+            }
 
-        // 🌟 获取今天的日期字符串作为“文件夹”名称 (例如: 2026-03-17)
-        const today = new Date();
-        const dateFolderName = today.toISOString().split('T')[0]; 
+            const today = new Date();
+            const dateFolderName = today.toISOString().split('T')[0]; 
 
-        const btn = document.getElementById('submitBtn');
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
-        btn.disabled = true;
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+            btn.disabled = true;
 
-        // 2. 检查老师是否开启了通道
-        db.collection("Sessions").doc("Class_01").get().then((doc) => {
-            if (doc.exists && doc.data().status === "Open") {
-                
-                // 🌟 3. 核心修改：写入按日期分类的路径
-                // 路径结构: Attendance(Collection) -> 日期文件夹(Document) -> Students(Sub-collection) -> 自动生成的ID
-                db.collection("Attendance")
-                .doc(dateFolderName)
-                .collection("Students")
-                .add({
-                    studentId: studentId, 
-                    studentName: studentName,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-                })
-                .then(() => {
-                    // 4. 成功后设置本地设备锁，防止重复提交
-                    localStorage.setItem(deviceLockKey, "true");
+            db.collection("Sessions").doc("Class_01").get().then((doc) => {
+                if (doc.exists && doc.data().status === "Open") {
+                    
+                    db.collection("Attendance")
+                    .doc(dateFolderName)
+                    .collection("Students")
+                    .add({
+                        studentId: studentId, 
+                        studentName: studentName,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                    })
+                    .then(() => {
+                        // 🌟 核心修改：存入当前的“时间戳(毫秒)”而不是 "true"
+                        const currentTime = new Date().getTime();
+                        localStorage.setItem(deviceLockKey, currentTime.toString());
 
-                    document.getElementById('checkInForm').classList.add('hidden');
-                    document.getElementById('statusBadge').classList.add('hidden');
-                    document.getElementById('successMessage').classList.remove('hidden');
-                })
-                .catch((error) => {
-                    alert("Error: " + error.message);
+                        document.getElementById('checkInForm').classList.add('hidden');
+                        document.getElementById('statusBadge').classList.add('hidden');
+                        document.getElementById('successMessage').classList.remove('hidden');
+                        document.getElementById('successDesc').innerText = "Attendance Submitted Successfully!";
+                    })
+                    .catch((error) => {
+                        alert("Error: " + error.message);
+                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                        btn.disabled = false;
+                    });
+
+                } else {
+                    alert("Attendance is now closed.");
                     btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
                     btn.disabled = false;
-                });
-
-            } else {
-                alert("Attendance is now closed.");
-                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                btn.disabled = false;
-            }
-        });
-    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
