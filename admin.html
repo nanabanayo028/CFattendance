@@ -60,8 +60,8 @@
         <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
             <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200 shadow-sm w-full md:w-auto">
                 <label for="dateFilter" class="text-sm font-bold text-slate-500 pl-2"><i class="fa-regular fa-calendar-days mr-1"></i> 选择日期:</label>
-                <input type="date" id="dateFilter" onchange="renderTable()" 
-                       class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none cursor-pointer">
+                <input type="date" id="dateFilter" onchange="handleDateSelection()" 
+       class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none cursor-pointer">
                 <button onclick="clearDateFilter()" title="清除日期" class="text-slate-400 hover:text-rose-500 px-2 transition-colors">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -108,8 +108,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 全局变量，用来存储从 Firebase 拉取的所有原始数据
+        // 全局变量
         let allRecords = []; 
+        let activeListeners = []; // 🌟 新增：用来装监听器，方便随时关掉它们省流量
 
         // 1. 监听通道状态 (保持不变)
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
@@ -123,95 +124,98 @@
             }
         });
 
-        // 2. 老师改变通道状态 (保持不变)
         function changeStatus(newStatus) {
-            let pinValue = "";
-            
-            // 如果是开启签到，强制要求老师输入 PIN 码
-            if (newStatus === "Open") {
-                pinValue = document.getElementById('adminPin').value.trim();
-                if (pinValue === "") {
-                    alert("⚠️ 请先输入 4 位数的 PIN 码，然后再开启签到！");
-                    document.getElementById('adminPin').focus();
-                    return;
-                }
-            } else {
-                // 如果是关闭签到，自动清空界面上的 PIN 码
-                document.getElementById('adminPin').value = "";
-            }
-
-            // 把状态和当前的 PIN 码一起更新到 Firebase
-            db.collection("Sessions").doc("Class_01").set({ 
-                status: newStatus,
-                currentPin: pinValue // 🌟 新增：把密码存进去
-            }, { merge: true })
-            .catch(error => alert("操作失败: " + error.message));
+            db.collection("Sessions").doc("Class_01").set({ status: newStatus }, { merge: true })
+              .catch(error => alert("操作失败: " + error.message));
         }
 
-        // 🌟 3. 终极修改：使用 collectionGroup 跨文件夹直接抓取学生数据
-        function loadAllData() {
-            // 直接监听全网所有名字叫 "Students" 的子集合
-            db.collectionGroup("Students").onSnapshot((snapshot) => {
-                allRecords = []; // 每次更新时清空数据池
-                
-                if (snapshot.empty) {
-                    renderTable();
-                    return;
-                }
+        // 🌟 新增工具：自动计算最近 7 天的日期字符串
+        function getRecent7Days() {
+            const dates = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                dates.push(d.toISOString().split('T')[0]); // 产出 "2026-03-17" 这种格式
+            }
+            return dates;
+        }
 
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    
-                    // 【神来之笔】：直接从路径里往上找两层，提取出文件夹的名字（日期）
-                    // 路径是 Attendance / 日期 / Students / 学生ID
-                    const dateString = doc.ref.parent.parent.id; 
+        // 🌟 核心升级：精准抓取指定日期的数据 (彻底解决 5 年卡顿问题)
+        function loadDataForDates(dateArray) {
+            // 步骤 A: 掐断之前的数据库连接，防止重复扣费和内存泄漏！
+            activeListeners.forEach(unsub => unsub());
+            activeListeners = [];
+            allRecords = []; 
+            renderTable(); // 先清空表格
 
-                    if (data.timestamp) {
-                        const jsDate = data.timestamp.toDate();
-                        
-                        allRecords.push({
-                            studentId: data.studentId,
-                            studentName: data.studentName,
-                            fullDateObj: jsDate, // 用于排序
-                            dateString: dateString, // 提取到的日期
-                            timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
-                        });
-                    }
-                });
+            if (dateArray.length === 0) return;
 
-                // 按照时间先后顺序重新排序（最新的在最上面）
-                allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
+            // 步骤 B: 只为我们需要的日期建立精准连接
+            dateArray.forEach((dateString) => {
+                const unsub = db.collection("Attendance")
+                  .doc(dateString)
+                  .collection("Students")
+                  .onSnapshot((studentSnapshot) => {
+                      
+                      // 清理掉属于这个日期的旧记录，防止重复
+                      allRecords = allRecords.filter(r => r.dateString !== dateString);
 
-                // 渲染表格
-                renderTable(); 
+                      studentSnapshot.forEach((studentDoc) => {
+                          const data = studentDoc.data();
+                          if (data.timestamp) {
+                              const jsDate = data.timestamp.toDate();
+                              allRecords.push({
+                                  studentId: data.studentId,
+                                  studentName: data.studentName,
+                                  fullDateObj: jsDate, 
+                                  dateString: dateString, 
+                                  timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
+                              });
+                          }
+                      });
+
+                      // 重新按时间排序，最新的在最上
+                      allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
+                      renderTable(); 
+                  });
+                  
+                // 把这个连接存起来，下次好关掉它
+                activeListeners.push(unsub);
             });
         }
 
-        // 启动数据加载
-        loadAllData();
+        // 页面刚打开时：默认只加载最近 7 天！
+        loadDataForDates(getRecent7Days());
 
-        // 🌟 4. 渲染表格的核心逻辑 (支持按日期过滤)
+        // 🌟 当老师点击日历选择特定日期时触发
+        function handleDateSelection() {
+            const selectedDate = document.getElementById("dateFilter").value;
+            if (selectedDate) {
+                // 如果选了特定的一天，就只加载那一天！(瞬间跨越 5 年的数据海)
+                loadDataForDates([selectedDate]); 
+            } else {
+                // 如果清空了日期，恢复显示最近 7 天
+                loadDataForDates(getRecent7Days()); 
+            }
+        }
+
+        function clearDateFilter() {
+            document.getElementById("dateFilter").value = "";
+            handleDateSelection();
+        }
+
+        // 🌟 渲染表格：因为数据在请求时就已经精准过滤了，这里只负责显示
         function renderTable() {
             const list = document.getElementById("attendanceList");
-            const selectedDate = document.getElementById("dateFilter").value; // 获取老师选的日期
-            
-            // 如果选了日期，就过滤；没选日期，就显示全部
-            let filteredRecords = allRecords;
-            if (selectedDate !== "") {
-                filteredRecords = allRecords.filter(record => record.dateString === selectedDate);
-            }
+            document.getElementById("studentCount").innerText = allRecords.length;
 
-            // 更新人数统计
-            document.getElementById("studentCount").innerText = filteredRecords.length;
-
-            if (filteredRecords.length === 0) {
+            if (allRecords.length === 0) {
                 list.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400"><i class="fa-regular fa-folder-open text-3xl mb-3 block"></i>该日期暂无签到记录</td></tr>';
                 return;
             }
 
-            // 拼接表格 HTML
             let htmlContent = "";
-            filteredRecords.forEach(record => {
+            allRecords.forEach(record => {
                 htmlContent += `
                     <tr class="hover:bg-indigo-50/50 transition duration-150">
                         <td class="p-4 pl-8 text-slate-500 font-medium">${record.dateString}</td>
@@ -224,45 +228,27 @@
             list.innerHTML = htmlContent;
         }
 
-        // 清除日期筛选，看全部
-        function clearDateFilter() {
-            document.getElementById("dateFilter").value = "";
-            renderTable();
-        }
-
-        // 🌟 5. 导出 Excel (CSV 格式) 功能
+        // 🌟 导出 Excel
         function exportToExcel() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            
-            // 取出当前过滤后需要导出的数据
-            let recordsToExport = allRecords;
-            if (selectedDate !== "") {
-                recordsToExport = allRecords.filter(record => record.dateString === selectedDate);
-            }
-
-            if (recordsToExport.length === 0) {
+            if (allRecords.length === 0) {
                 alert("当前没有可导出的数据！");
                 return;
             }
 
-            // 构建 CSV 字符串。开头加上 \uFEFF 是为了防止 Excel 打开时中文乱码 (BOM头)
             let csvContent = "\uFEFF"; 
-            csvContent += "日期 (Date),时间 (Time),学号 (Student ID),姓名 (Name)\n"; // 表头
+            csvContent += "日期 (Date),时间 (Time),学号 (Student ID),姓名 (Name)\n"; 
 
-            // 填充数据行
-            recordsToExport.forEach(record => {
-                // 使用引号包裹，防止名字里带有逗号导致错行
+            allRecords.forEach(record => {
                 const row = `"${record.dateString}","${record.timeString}","${record.studentId}","${record.studentName}"`;
                 csvContent += row + "\n";
             });
 
-            // 触发浏览器下载
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             
-            // 设置下载的文件名 (如果有选日期就是该日期，否则是 All)
-            const fileName = selectedDate ? `Attendance_${selectedDate}.csv` : `Attendance_All.csv`;
+            const selectedDate = document.getElementById("dateFilter").value;
+            const fileName = selectedDate ? `Attendance_${selectedDate}.csv` : `Attendance_Recent7Days.csv`;
             
             link.setAttribute("href", url);
             link.setAttribute("download", fileName);
