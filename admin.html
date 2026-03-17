@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - 考勤控制台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6 md:p-10 font-sans">
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <div class="bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">课程考勤控制台</h1>
+                <p class="mt-1 text-gray-600">
+                    当前签到状态: 
+                    <span id="statusBadge" class="font-bold text-gray-500 px-2 py-1 bg-gray-100 rounded">连接中...</span>
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="changeStatus('Open')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200">
+                    🟢 开启签到
+                </button>
+                <button onclick="changeStatus('Closed')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200">
+                    🔴 关闭签到
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <h2 class="text-xl font-bold text-gray-800">今日已签到名单 (<span id="studentCount" class="text-blue-600">0</span> 人)</h2>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
+                            <th class="p-4 font-semibold">签到时间</th>
+                            <th class="p-4 font-semibold">学号 (Student ID)</th>
+                            <th class="p-4 font-semibold">姓名 (Name)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceList" class="divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // 1. 【非常重要】把这里替换成你自己的 Firebase Config 钥匙！
+        const firebaseConfig = {
+        apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
+        authDomain: "attendance-a7ac5.firebaseapp.com",
+        projectId: "attendance-a7ac5",
+        storageBucket: "attendance-a7ac5.firebasestorage.app",
+        messagingSenderId: "179755027767",
+        appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
+        };
+
+        // 2. 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 3. 监听当前签到状态，并改变界面颜色
+        db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
+            const statusBadge = document.getElementById("statusBadge");
+            if (doc.exists && doc.data().status === "Open") {
+                statusBadge.innerText = "🟢 已开启 (Open)";
+                statusBadge.className = "font-bold text-green-700 bg-green-100 px-2 py-1 rounded";
+            } else {
+                statusBadge.innerText = "🔴 已关闭 (Closed)";
+                statusBadge.className = "font-bold text-red-700 bg-red-100 px-2 py-1 rounded";
+            }
+        });
+
+        // 4. 改变状态的 Function (老师点击按钮触发)
+        function changeStatus(newStatus) {
+            // 使用 set(..., {merge: true}) 确保即使文档不存在也会自动创建
+            db.collection("Sessions").doc("Class_01").set({
+                status: newStatus
+            }, { merge: true }).then(() => {
+                console.log("状态已更新为: " + newStatus);
+            }).catch((error) => {
+                alert("更新状态失败: " + error.message);
+            });
+        }
+
+        // 5. 实时抓取学生签到数据并渲染到表格里
+        db.collection("Attendance").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+            const list = document.getElementById("attendanceList");
+            list.innerHTML = ""; // 清空旧数据
+            document.getElementById("studentCount").innerText = snapshot.docs.length; // 更新总人数
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                
+                // 处理时间格式 (防止本地时间还没同步到服务器时报错)
+                let timeString = "刚刚";
+                if (data.timestamp) {
+                    timeString = data.timestamp.toDate().toLocaleTimeString('zh-CN', { hour12: false });
+                }
+
+                // 创建新的一行表格 <tr>
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-gray-50 transition duration-150";
+                tr.innerHTML = `
+                    <td class="p-4 text-gray-500">${timeString}</td>
+                    <td class="p-4 font-medium text-gray-900">${data.studentId}</td>
+                    <td class="p-4 text-gray-700">${data.studentName}</td>
+                `;
+                list.appendChild(tr);
+            });
+        });
+    </script>
+</body>
+</html>
