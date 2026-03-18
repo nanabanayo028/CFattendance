@@ -106,7 +106,7 @@
         const todayStr = new Date().toISOString().split('T')[0]; 
         const deviceLockKey = "checkedInTime_" + todayStr;
         let timerInterval = null;
-        let hasAlertedCheat = false; // 用于控制不重复弹窗警告
+        let hasAlertedCheat = false; 
 
         function isDeviceLocked() {
             const savedTime = localStorage.getItem(deviceLockKey);
@@ -121,92 +121,14 @@
             }
         }
 
-        // 实时监听通道状态
-        db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
-            const badge = document.getElementById('statusBadge');
-            const form = document.getElementById('checkInForm');
-            const successMsg = document.getElementById('successMessage');
-            const timerContainer = document.getElementById('countdownTimer');
-            const timeDisplay = document.getElementById('timeDisplay');
-
-            // 🌟 【终极防作弊拦截】: 第一时间检查网址尾巴
-            const searchParams = window.location.search;
-            // 检查有没有 "?" 以及总长度是不是刚好 7 (例如 ?aBcDeF)
-            if (!searchParams || searchParams.length !== 7) {
-                if (timerInterval) clearInterval(timerInterval);
-                form.classList.add('hidden');
-                successMsg.classList.add('hidden');
-                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
-                badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 无法访问 (Invalid Access)';
-                badge.classList.remove('hidden');
-                
-                if (!hasAlertedCheat) {
-                    alert("⚠️ Access Denied：\n\nPlease scan the qr code to take your attendance!");
-                    hasAlertedCheat = true;
-                }
-                return; // 直接中止，彻底切断显示签到表单的可能性
-            }
-
-            if (timerInterval) clearInterval(timerInterval);
-
-            // 如果通道是开启的
-            if (doc.exists && doc.data().status === "Open") {
-                
-                if (isDeviceLocked()) {
-                    badge.classList.add('hidden');
-                    form.classList.add('hidden');
-                    if (timerContainer) timerContainer.classList.add('hidden');
-                    successMsg.classList.remove('hidden');
-                    document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
-                    return; 
-                }
-
-                const endTime = doc.data().endTime; 
-
-                timerInterval = setInterval(() => {
-                    const now = new Date().getTime();
-                    const distance = endTime - now;
-
-                    if (distance <= 0) {
-                        clearInterval(timerInterval);
-                        timeDisplay.innerText = "00:00";
-                        form.classList.add('opacity-50', 'pointer-events-none');
-                    } else {
-                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                        timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-                    }
-                }, 1000);
-
-                badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
-                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm border border-green-200";
-                
-                badge.classList.remove('hidden');
-                form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
-                if (timerContainer) timerContainer.classList.remove('hidden');
-                successMsg.classList.add('hidden');
-
-            } else {
-                badge.innerHTML = '<i class="fa-solid fa-lock text-xs"></i> Attendance Closed';
-                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
-                
-                badge.classList.remove('hidden'); 
-                form.classList.add('hidden');     
-                if (timerContainer) timerContainer.classList.add('hidden'); 
-                successMsg.classList.add('hidden'); 
-            }
-        });
-        // 🌟 终极防作弊系统 (智能兼容微信/WhatsApp追踪码)
+        // 🌟 终极防作弊系统：独立于数据库监听之外
         window.onload = function() {
-            // 获取网址里 ? 后面的部分 (例如: aBcDeF&from=wechat)
             const searchString = window.location.search.substring(1); 
-            
-            // 过滤掉微信等 App 自动加上的尾巴，只拿真正的第一段参数
             const mainParam = searchString.split('&')[0]; 
-            
+            const authCode = mainParam.split('=')[1]; // 获取 ?q= 后面的值
+
             // 检查拿到的参数是不是正好 6 个字母
-            if (!mainParam || mainParam.length !== 6) {
-                
+            if (!authCode || authCode.length !== 6) {
                 if (timerInterval) clearInterval(timerInterval);
                 document.getElementById('checkInForm').classList.add('hidden');
                 
@@ -215,9 +137,77 @@
                 badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 无法访问 (Invalid Access)';
                 badge.classList.remove('hidden');
                 
-                alert("⚠️ Access Denied：\n\n[Please scan the qr code to record attendance.]");
+                if (!hasAlertedCheat) {
+                    alert("⚠️ Access Denied：\n\n[Please scan the qr code to record attendance.]");
+                    hasAlertedCheat = true;
+                }
+                
+                // 彻底中止，不要开启后续的监听
+                return; 
             }
+
+            // ==========================================
+            // 只有当通过了防作弊检查，才开启数据库实时监听！
+            // ==========================================
+            db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
+                const badge = document.getElementById('statusBadge');
+                const form = document.getElementById('checkInForm');
+                const successMsg = document.getElementById('successMessage');
+                const timerContainer = document.getElementById('countdownTimer');
+                const timeDisplay = document.getElementById('timeDisplay');
+
+                if (timerInterval) clearInterval(timerInterval);
+
+                // 如果通道是开启的
+                if (doc.exists && doc.data().status === "Open") {
+                    
+                    if (isDeviceLocked()) {
+                        badge.classList.add('hidden');
+                        form.classList.add('hidden');
+                        if (timerContainer) timerContainer.classList.add('hidden');
+                        successMsg.classList.remove('hidden');
+                        document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
+                        return; 
+                    }
+
+                    const endTime = doc.data().endTime; 
+
+                    timerInterval = setInterval(() => {
+                        const now = new Date().getTime();
+                        const distance = endTime - now;
+
+                        if (distance <= 0) {
+                            clearInterval(timerInterval);
+                            timeDisplay.innerText = "00:00";
+                            form.classList.add('opacity-50', 'pointer-events-none');
+                        } else {
+                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                            timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+                        }
+                    }, 1000);
+
+                    badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
+                    badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm border border-green-200";
+                    
+                    badge.classList.remove('hidden');
+                    form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
+                    if (timerContainer) timerContainer.classList.remove('hidden');
+                    successMsg.classList.add('hidden');
+
+                } else {
+                    // 🕒 🌟 链接对，但老师还没开：显示黄色的等待状态
+                    badge.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Waiting for access...';
+                    badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-amber-100 text-amber-600 shadow-sm border border-amber-200";
+                    
+                    badge.classList.remove('hidden'); 
+                    form.classList.add('hidden');     
+                    if (timerContainer) timerContainer.classList.add('hidden'); 
+                    successMsg.classList.add('hidden'); 
+                }
+            });
         };
+
         // 提交签到数据
         function submitCheckIn() {
             if (isDeviceLocked()) {
