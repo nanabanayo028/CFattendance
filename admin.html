@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CF Admin - Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">    
+    
     <style>
         /* 🌟 高级毛玻璃特效，保证后台文字清晰 */
         .glass-card {
@@ -188,6 +191,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
@@ -201,10 +206,10 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 🌟 唤醒 Flatpickr 高级日历插件
+        // 🌟 唤醒 Flatpickr 高级日历插件 (已修复 disableMobile: true)
         const datePicker = flatpickr("#dateFilter", {
             dateFormat: "Y-m-d", // 设定格式为 2026-03-18
-            disableMobile: "true", // 强制手机上也用这个漂亮的界面
+            disableMobile: true, // 强制手机上也用这个漂亮的界面
             onChange: function(selectedDates, dateStr, instance) {
                 // 当老师选好日期后，自动去抓取数据
                 handleDateSelection(); 
@@ -329,8 +334,8 @@
         }
 
         function clearDateFilter() {
-            datePicker.clear(); // 用插件自带的清除功能
-            handleDateSelection(); // 重新加载空表格
+            datePicker.clear(); 
+            handleDateSelection(); 
         }
 
         function renderTable() {
