@@ -120,8 +120,8 @@
 
         // 全局变量：用于学生的倒计时动画
         let timerInterval = null;
-
-        // 🌟 升级版：实时监听状态与截止时间
+        
+        // 🌟 升级版：实时监听状态与截止时间 (修改了判断优先级)
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById('statusBadge');
             const form = document.getElementById('checkInForm');
@@ -131,36 +131,37 @@
             const timerContainer = document.getElementById('countdownTimer');
             const timeDisplay = document.getElementById('timeDisplay');
 
-            // 检查 5 分钟设备锁
-            if (isDeviceLocked()) {
-                badge.classList.add('hidden');
-                form.classList.add('hidden');
-                successMsg.classList.remove('hidden');
-                document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
-                return;
-            }
-
-            // 只要有状态改变，先清空旧的动画定时器，防止重叠出错
+            // 只要有状态改变，先清空旧的动画定时器
             if (timerInterval) clearInterval(timerInterval);
 
+            // 🌟 优先级 1：先看老师的通道是开还是关？
             if (doc.exists && doc.data().status === "Open") {
-                const endTime = doc.data().endTime; // 从 Firebase 拿到截止时间
+                
+                // 🌟 优先级 2：既然通道开着，那我们来检查这个学生是不是刚刚签到过了？
+                if (isDeviceLocked()) {
+                    // 如果刚签到过，就不给他看表单，只给他看成功提示
+                    badge.classList.add('hidden');
+                    form.classList.add('hidden');
+                    if (timerContainer) timerContainer.classList.add('hidden'); // 隐藏倒计时
+                    successMsg.classList.remove('hidden');
+                    document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
+                    return; // 停止往下执行
+                }
 
-                // 启动每秒更新一次的倒计时动画
+                // --- 下面是正常显示表单和倒计时的逻辑 ---
+                const endTime = doc.data().endTime; 
+
                 timerInterval = setInterval(() => {
                     const now = new Date().getTime();
                     const distance = endTime - now;
 
                     if (distance <= 0) {
-                        // 时间到：前端直接归零，并让整个表单变灰不可点击 (等待 Admin 的强制关闭命令到达)
                         clearInterval(timerInterval);
                         timeDisplay.innerText = "00:00";
                         form.classList.add('opacity-50', 'pointer-events-none');
                     } else {
-                        // 计算分钟和秒数
                         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                        // 补零处理，让 2:5 变成 02:05
                         timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
                     }
                 }, 1000);
@@ -168,17 +169,22 @@
                 badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
                 badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm";
                 
-                // 显示表单和倒计时，并解除变灰锁定
                 form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
                 if (timerContainer) timerContainer.classList.remove('hidden');
                 successMsg.classList.add('hidden');
 
             } else {
+                // 🌟 优先级最高：只要状态不是 Open (比如老师点击了关闭，或者2分钟到了自动关闭)
+                // 强制让所有人的屏幕变成 Closed！不管他刚才是不是签到了。
                 badge.innerHTML = '<i class="fa-solid fa-lock text-xs"></i> Attendance Closed';
                 badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm";
-                form.classList.add('hidden');
-                if (timerContainer) timerContainer.classList.add('hidden'); // 隐藏倒计时
+                
+                badge.classList.remove('hidden'); // 确保 badge 显示出来
+                form.classList.add('hidden');     // 藏起表单
+                if (timerContainer) timerContainer.classList.add('hidden'); // 藏起倒计时
+                successMsg.classList.add('hidden'); // 🌟 关键：把“提交成功”的画面也强行藏起来！
             }
+        });
         });
 
         function submitCheckIn() {
