@@ -124,8 +124,6 @@
             }
         });
 
-        function changeStatus(newStatus) {
-
             // 全局变量：用于控制 Admin 端的自动关闭定时器
             let adminAutoCloseTimer = null; 
 
@@ -167,7 +165,6 @@
                 db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
                 .catch(error => alert("操作失败: " + error.message));
             }
-        }
 
         // 🌟 新增工具：自动计算最近 7 天的日期字符串
         function getRecent7Days() {
