@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CF Admin - Control Panel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">    
     <style>
         /* 🌟 高级毛玻璃特效，保证后台文字清晰 */
         .glass-card {
@@ -91,7 +91,7 @@
         <div class="flex flex-col md:flex-row justify-between items-center mb-5 gap-4">
             <div class="flex items-center gap-3 glass-card p-2 rounded-xl shadow-sm w-full md:w-auto">
                 <label for="dateFilter" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1.5"></i> 选择日期:</label>
-                <input type="date" id="dateFilter" onchange="handleDateSelection()" 
+                <input type="text" id="dateFilter" placeholder="选择查看日期..." 
                        class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none cursor-pointer flex-1">
                 <button onclick="clearDateFilter()" title="清除日期" class="text-slate-400 hover:text-rose-500 px-2 transition-colors">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -199,6 +199,16 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // 🌟 唤醒 Flatpickr 高级日历插件
+        const datePicker = flatpickr("#dateFilter", {
+            dateFormat: "Y-m-d", // 设定格式为 2026-03-18
+            disableMobile: "true", // 强制手机上也用这个漂亮的界面
+            onChange: function(selectedDates, dateStr, instance) {
+                // 当老师选好日期后，自动去抓取数据
+                handleDateSelection(); 
+            }
+        });
 
         let allRecords = []; 
         let activeListeners = []; 
@@ -318,8 +328,8 @@
         }
 
         function clearDateFilter() {
-            document.getElementById("dateFilter").value = "";
-            handleDateSelection();
+            datePicker.clear(); // 用插件自带的清除功能
+            handleDateSelection(); // 重新加载空表格
         }
 
         function renderTable() {
