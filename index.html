@@ -7,11 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 🌟 调整透明度后的高级毛玻璃特效 */
         .glass-card {
-            /* 0.45 是透明度 (越接近 0 越透明，越接近 1 越白) */
             background: rgba(255, 255, 255, 0.30); 
-            /* 稍微降低了一点模糊度，让后面的合照轮廓更清晰 */
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px); 
             border: 1px solid rgba(255, 255, 255, 0.6);
@@ -68,7 +65,7 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="fa-solid fa-key text-indigo-400"></i>
                 </div>
-                <input type="text" id="pinCode" placeholder="4-DIGIT PIN" 
+                <input type="number" id="pinCode" placeholder="4-DIGIT PIN" 
                        class="w-full pl-11 pr-4 py-3.5 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center shadow-sm">
             </div>
 
@@ -77,7 +74,7 @@
                 <i class="fa-solid fa-check-circle"></i> Confirm
             </button>
             <p class="text-[10px] text-black mt-4 text-center leading-relaxed px-1 font-medium">
-                <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-500"></i>
                 Please confirm your STUDENT ID and NAME is corrected. Once submitted, it cannot be changed.
             </p>
         </div>
@@ -109,6 +106,7 @@
         const todayStr = new Date().toISOString().split('T')[0]; 
         const deviceLockKey = "checkedInTime_" + todayStr;
         let timerInterval = null;
+        let hasAlertedCheat = false; // 用于控制不重复弹窗警告
 
         function isDeviceLocked() {
             const savedTime = localStorage.getItem(deviceLockKey);
@@ -123,7 +121,7 @@
             }
         }
 
-        // 3. 实时监听通道状态 (核心逻辑)
+        // 实时监听通道状态
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById('statusBadge');
             const form = document.getElementById('checkInForm');
@@ -131,12 +129,29 @@
             const timerContainer = document.getElementById('countdownTimer');
             const timeDisplay = document.getElementById('timeDisplay');
 
+            // 🌟 【终极防作弊拦截】: 第一时间检查网址尾巴
+            const searchParams = window.location.search;
+            // 检查有没有 "?" 以及总长度是不是刚好 7 (例如 ?aBcDeF)
+            if (!searchParams || searchParams.length !== 7) {
+                if (timerInterval) clearInterval(timerInterval);
+                form.classList.add('hidden');
+                successMsg.classList.add('hidden');
+                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
+                badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 无法访问 (Invalid Access)';
+                badge.classList.remove('hidden');
+                
+                if (!hasAlertedCheat) {
+                    alert("⚠️ 防作弊系统已拦截：\n\n请使用微信或相机扫描大屏幕上的【最新专属二维码】进行签到，禁止使用旧书签或历史链接进入！");
+                    hasAlertedCheat = true;
+                }
+                return; // 直接中止，彻底切断显示签到表单的可能性
+            }
+
             if (timerInterval) clearInterval(timerInterval);
 
-            // 优先判断：如果通道是开启的
+            // 如果通道是开启的
             if (doc.exists && doc.data().status === "Open") {
                 
-                // 次要判断：如果学生刚刚交过卷了，只给他看成功页面
                 if (isDeviceLocked()) {
                     badge.classList.add('hidden');
                     form.classList.add('hidden');
@@ -146,7 +161,6 @@
                     return; 
                 }
 
-                // 如果没交过卷：启动倒计时和表单
                 const endTime = doc.data().endTime; 
 
                 timerInterval = setInterval(() => {
@@ -173,7 +187,6 @@
                 successMsg.classList.add('hidden');
 
             } else {
-                // 如果通道关闭：所有人强行显示 Closed
                 badge.innerHTML = '<i class="fa-solid fa-lock text-xs"></i> Attendance Closed';
                 badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
                 
@@ -184,7 +197,7 @@
             }
         });
 
-        // 4. 提交签到数据
+        // 提交签到数据
         function submitCheckIn() {
             if (isDeviceLocked()) {
                 alert("You have recently checked in. Please wait 5 minutes.");
@@ -207,7 +220,6 @@
             db.collection("Sessions").doc("Class_01").get().then((doc) => {
                 if (doc.exists && doc.data().status === "Open") {
                     
-                    // 核对密码
                     const correctPin = doc.data().currentPin;
                     if (enteredPin !== correctPin) {
                         alert("❌ The PIN code is incorrect! Please check the screen.");
@@ -216,7 +228,6 @@
                         return; 
                     }
 
-                    // 密码正确，用学号做文件名存入数据库
                     const today = new Date();
                     const dateFolderName = today.toISOString().split('T')[0]; 
 
@@ -230,7 +241,6 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp() 
                     })
                     .then(() => {
-                        // 签到成功，上锁 5 分钟
                         const currentTime = new Date().getTime();
                         localStorage.setItem(deviceLockKey, currentTime.toString());
 
