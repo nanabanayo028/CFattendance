@@ -24,7 +24,7 @@
             <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
                 <i class="fa-solid fa-graduation-cap"></i>
             </div>
-            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">CF Attendance System</h1>
+            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">CF Attendance</h1>
             
             <div id="statusBadge" class="inline-flex items-center gap-2 mt-3 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500 transition-colors duration-300">
                 <i class="fa-solid fa-circle-notch fa-spin text-xs"></i> Connecting...
@@ -32,33 +32,34 @@
         </div>
 
         <div id="checkInForm" class="space-y-5 hidden">
-            <!-- 倒计时 -->
+            
             <div id="countdownTimer" class="hidden mb-2 bg-rose-50 border border-rose-100 rounded-xl p-3 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite]">
                 <span class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Time Remaining</span>
                 <div class="text-3xl font-extrabold text-rose-600 font-mono tracking-wider shadow-sm" id="timeDisplay">02:00</div>
             </div>
+
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="fa-regular fa-id-card text-gray-400"></i>
                 </div>
-                <input type="text" id="studentId" placeholder="STUDENT ID SAME AS OCULUS" 
-                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400">
+                <input type="text" id="studentId" placeholder="STUDENT ID" 
+                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase">
             </div>
             
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="fa-regular fa-user text-gray-400"></i>
                 </div>
-                <input type="text" id="studentName" placeholder="FULL NAME SAME AS OCULUS" 
-                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400">
+                <input type="text" id="studentName" placeholder="FULL NAME" 
+                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase">
             </div>
 
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i class="fa-solid fa-key text-gray-400"></i>
+                    <i class="fa-solid fa-key text-indigo-400"></i>
                 </div>
-                <input type="text" id="pinCode" placeholder="4-DIGIT PIN FROM SCREEN" 
-                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400">
+                <input type="number" id="pinCode" placeholder="4-DIGIT PIN FROM SCREEN" 
+                       class="w-full pl-11 pr-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center">
             </div>
 
             <button onclick="submitCheckIn()" id="submitBtn"
@@ -67,8 +68,7 @@
             </button>
             <p class="text-[10px] text-amber-600 mt-4 text-center leading-relaxed px-2 font-medium">
                 <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                Please confirm your Name and ID is correct before you submit. 
-                Once submitted, you cannot change it.
+                Please confirm your details. Once submitted, it cannot be changed.
             </p>
         </div>
 
@@ -84,7 +84,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script>
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
             authDomain: "attendance-a7ac5.firebaseapp.com",
@@ -97,58 +96,49 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // 1. 全局变量设置
         const todayStr = new Date().toISOString().split('T')[0]; 
         const deviceLockKey = "checkedInTime_" + todayStr;
+        let timerInterval = null;
 
-        // 🌟 新增：专门计算有没有超过 5 分钟的函数
+        // 2. 检查设备 5 分钟锁
         function isDeviceLocked() {
             const savedTime = localStorage.getItem(deviceLockKey);
-            if (!savedTime) return false; // 没签到过，没锁
-
+            if (!savedTime) return false; 
             const currentTime = new Date().getTime();
             const timeDifference = currentTime - parseInt(savedTime);
-            
-            // 5 分钟 = 5 * 60 * 1000 = 300,000 毫秒
             if (timeDifference < 300000) {
-                return true; // 5分钟内，还在锁定期
+                return true; 
             } else {
-                // 超过 5 分钟，清除标记，自动解锁
                 localStorage.removeItem(deviceLockKey);
                 return false;
             }
         }
 
-        // 全局变量：用于学生的倒计时动画
-        let timerInterval = null;
-        
-        // 🌟 升级版：实时监听状态与截止时间 (修改了判断优先级)
+        // 3. 实时监听通道状态 (核心逻辑)
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById('statusBadge');
             const form = document.getElementById('checkInForm');
             const successMsg = document.getElementById('successMessage');
-            
-            // 抓取倒计时的元素
             const timerContainer = document.getElementById('countdownTimer');
             const timeDisplay = document.getElementById('timeDisplay');
 
-            // 只要有状态改变，先清空旧的动画定时器
             if (timerInterval) clearInterval(timerInterval);
 
-            // 🌟 优先级 1：先看老师的通道是开还是关？
+            // 优先判断：如果通道是开启的
             if (doc.exists && doc.data().status === "Open") {
                 
-                // 🌟 优先级 2：既然通道开着，那我们来检查这个学生是不是刚刚签到过了？
+                // 次要判断：如果学生刚刚交过卷了，只给他看成功页面
                 if (isDeviceLocked()) {
-                    // 如果刚签到过，就不给他看表单，只给他看成功提示
                     badge.classList.add('hidden');
                     form.classList.add('hidden');
-                    if (timerContainer) timerContainer.classList.add('hidden'); // 隐藏倒计时
+                    if (timerContainer) timerContainer.classList.add('hidden');
                     successMsg.classList.remove('hidden');
                     document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
-                    return; // 停止往下执行
+                    return; 
                 }
 
-                // --- 下面是正常显示表单和倒计时的逻辑 ---
+                // 如果没交过卷：启动倒计时和表单
                 const endTime = doc.data().endTime; 
 
                 timerInterval = setInterval(() => {
@@ -169,70 +159,70 @@
                 badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
                 badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm";
                 
+                badge.classList.remove('hidden');
                 form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
                 if (timerContainer) timerContainer.classList.remove('hidden');
                 successMsg.classList.add('hidden');
 
             } else {
-                // 🌟 优先级最高：只要状态不是 Open (比如老师点击了关闭，或者2分钟到了自动关闭)
-                // 强制让所有人的屏幕变成 Closed！不管他刚才是不是签到了。
+                // 如果通道关闭：所有人强行显示 Closed
                 badge.innerHTML = '<i class="fa-solid fa-lock text-xs"></i> Attendance Closed';
                 badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm";
                 
-                badge.classList.remove('hidden'); // 确保 badge 显示出来
-                form.classList.add('hidden');     // 藏起表单
-                if (timerContainer) timerContainer.classList.add('hidden'); // 藏起倒计时
-                successMsg.classList.add('hidden'); // 🌟 关键：把“提交成功”的画面也强行藏起来！
+                badge.classList.remove('hidden'); 
+                form.classList.add('hidden');     
+                if (timerContainer) timerContainer.classList.add('hidden'); 
+                successMsg.classList.add('hidden'); 
             }
         });
-        });
 
+        // 4. 提交签到数据
         function submitCheckIn() {
             if (isDeviceLocked()) {
-                alert("You have recently checked in. Please wait 5 minutes to submit again.");
+                alert("You have recently checked in. Please wait 5 minutes.");
                 return;
             }
 
             const studentId = document.getElementById('studentId').value.trim().toUpperCase();
             const studentName = document.getElementById('studentName').value.trim().toUpperCase();
-            const enteredPin = document.getElementById('pinCode').value.trim(); // 🌟 获取学生填的密码
+            const enteredPin = document.getElementById('pinCode').value.trim();
 
             if (!studentId || !studentName || !enteredPin) {
                 alert("Please fill in Student ID, Name, and the PIN code!"); 
                 return;
             }
 
-            const today = new Date();
-            const dateFolderName = today.toISOString().split('T')[0]; 
-
             const btn = document.getElementById('submitBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
             btn.disabled = true;
 
-            // 去数据库查状态和密码
             db.collection("Sessions").doc("Class_01").get().then((doc) => {
                 if (doc.exists && doc.data().status === "Open") {
                     
-                    // 🌟 核心防御：核对密码！
+                    // 核对密码
                     const correctPin = doc.data().currentPin;
                     if (enteredPin !== correctPin) {
                         alert("❌ The PIN code is incorrect! Please check the screen.");
                         btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
                         btn.disabled = false;
-                        return; // 密码不对，直接终止运行！
+                        return; 
                     }
 
-                    // 密码正确，继续存入数据 (包含你之前改的用学号当文件名的逻辑)
+                    // 密码正确，用学号做文件名存入数据库
+                    const today = new Date();
+                    const dateFolderName = today.toISOString().split('T')[0]; 
+
                     db.collection("Attendance")
                     .doc(dateFolderName)
                     .collection("Students")
-                    .doc(studentId) // 用学号当文件名，防止重复
+                    .doc(studentId) 
                     .set({
                         studentId: studentId, 
                         studentName: studentName,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp() 
                     })
                     .then(() => {
+                        // 签到成功，上锁 5 分钟
                         const currentTime = new Date().getTime();
                         localStorage.setItem(deviceLockKey, currentTime.toString());
 
