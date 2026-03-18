@@ -388,14 +388,48 @@
             list.innerHTML = htmlContent;
         }
 
-        // 🌟 二维码生成功能：纯 6 位随机字母极简风
+        // 🌟 二维码生成功能：保持状态，手动刷新
+        let currentQRUrl = ""; // 用来记住当前的网址，防止弹窗开关闭合时丢失
+
         function openQRModal() {
             document.getElementById('qrModal').classList.remove('hidden');
-            generateNewQR(); 
+            // 只有当目前还没有二维码时，才自动生成一次。
+            // 之后再打开弹窗，都会保持原来的二维码！
+            if (!currentQRUrl) {
+                generateNewQR(); 
+            }
         }
 
         function closeQRModal() {
             document.getElementById('qrModal').classList.add('hidden');
+        }
+
+        function generateNewQR() {
+            const baseUrl = "https://nanabanayo028.github.io/index.html"; 
+            
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            let randomLetters = '';
+            for (let i = 0; i < 6; i++) {
+                randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            // 生成极简格式：.../index.html?aBcDeF
+            currentQRUrl = `${baseUrl}?${randomLetters}`;
+
+            document.getElementById('qrUrlDisplay').innerText = currentQRUrl;
+
+            const box = document.getElementById("qrcode-box");
+            box.innerHTML = ""; // 清空旧图案
+
+            // 画出新二维码
+            qrCodeInstance = new QRCode(box, {
+                text: currentQRUrl,
+                width: 220,
+                height: 220,
+                colorDark : "#0f172a", 
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H 
+            });
         }
 
         function generateNewQR() {

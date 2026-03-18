@@ -141,7 +141,7 @@
                 badge.classList.remove('hidden');
                 
                 if (!hasAlertedCheat) {
-                    alert("⚠️ 防作弊系统已拦截：\n\n请使用微信或相机扫描大屏幕上的【最新专属二维码】进行签到，禁止使用旧书签或历史链接进入！");
+                    alert("⚠️ Access Denied：\n\nPlease scan the qr code to take your attendance!");
                     hasAlertedCheat = true;
                 }
                 return; // 直接中止，彻底切断显示签到表单的可能性
@@ -196,7 +196,28 @@
                 successMsg.classList.add('hidden'); 
             }
         });
-
+        // 🌟 终极防作弊系统 (智能兼容微信/WhatsApp追踪码)
+        window.onload = function() {
+            // 获取网址里 ? 后面的部分 (例如: aBcDeF&from=wechat)
+            const searchString = window.location.search.substring(1); 
+            
+            // 过滤掉微信等 App 自动加上的尾巴，只拿真正的第一段参数
+            const mainParam = searchString.split('&')[0]; 
+            
+            // 检查拿到的参数是不是正好 6 个字母
+            if (!mainParam || mainParam.length !== 6) {
+                
+                if (timerInterval) clearInterval(timerInterval);
+                document.getElementById('checkInForm').classList.add('hidden');
+                
+                const badge = document.getElementById('statusBadge');
+                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
+                badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 无法访问 (Invalid Access)';
+                badge.classList.remove('hidden');
+                
+                alert("⚠️ Access Denied：\n\n[Please scan the qr code to record attendance.]");
+            }
+        };
         // 提交签到数据
         function submitCheckIn() {
             if (isDeviceLocked()) {
