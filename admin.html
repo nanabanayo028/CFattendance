@@ -36,7 +36,7 @@
 
     <div class="fixed inset-0 bg-black/40 z-0 pointer-events-none"></div>
 
-    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/40 transition-all duration-500">
+    <div id="loginScreen" class="fixed inset-0 z-40 flex items-center justify-center p-4 backdrop-blur-md bg-black/40 transition-all duration-500">
         <div class="glass-login p-8 sm:p-10 rounded-[2rem] w-full max-w-[380px] relative overflow-hidden shadow-2xl modal-fade-in">
             <div class="text-center mb-8">
                 <img src="CF_LOGO.webp" alt="CF Logo" class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-4 border-white/80 shadow-lg">
@@ -74,7 +74,7 @@
     </div>
 
     <div id="adminDashboard" class="hidden opacity-0 transition-opacity duration-500">
-        <nav class="sticky top-0 z-40 bg-indigo-900/80 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3 sm:py-4 flex justify-between items-center shadow-xl">
+        <nav class="sticky top-0 z-30 bg-indigo-900/80 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3 sm:py-4 flex justify-between items-center shadow-xl">
             <div class="flex items-center gap-3 sm:gap-4">
                 <img src="CF_LOGO.webp" alt="CF Logo" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white/80 shadow-sm">
                 <div>
@@ -94,7 +94,7 @@
         <div class="max-w-6xl mx-auto p-4 sm:p-8 relative z-10">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="col-span-1 md:col-span-2 glass-card rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col justify-center">
-                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">考勤通道控制</h2>
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Attendance Control</h2>
                     
                     <div id="adminTimerContainer" class="hidden mb-4 bg-rose-50/80 border border-rose-100 rounded-xl p-4 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite] shadow-inner">
                         <span class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1">
@@ -179,7 +179,9 @@
                 </div>
             </div>
         </div>
-    </div> <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    </div>
+
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden modal-fade-in">
             <div class="bg-purple-600 p-5 text-white flex justify-between items-center">
                 <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-qrcode"></i> 签到专属二维码</h3>
@@ -220,7 +222,7 @@
                 </div>
             </div>
             <div class="p-5 border-t border-slate-100 bg-white flex justify-end gap-3">
-                <button onclick="closeManualModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">取消 (Cancel)</button>
+                <button onclick="closeManualModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">取消</button>
                 <button id="submitManualBtn" onclick="submitManualCheckIn()" class="px-5 py-2.5 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-md shadow-indigo-200 active:scale-95">
                     <i class="fa-solid fa-check"></i> 确认添加
                 </button>
@@ -248,20 +250,110 @@
         </div>
     </div>
 
+    <div id="customDialog" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300" id="customDialogBox">
+            <div class="p-6 text-center">
+                <div id="dialogIcon" class="mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl"></div>
+                <h3 id="dialogTitle" class="text-xl font-bold text-slate-800 mb-2"></h3>
+                <p id="dialogMessage" class="text-slate-500 text-sm mb-6 whitespace-pre-line"></p>
+                <div class="flex gap-3 justify-center" id="dialogButtons"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <script>
-        // 🌟 登录系统核心设定 (账号密码)
-        const ADMIN_CREDENTIALS = {
-            id: "admin",       // 你可以随时在这里修改账号
-            password: "UTSCF2026"  // 你可以随时在这里修改密码
+        // ==========================================
+        // 🌟 1. 高级弹窗系统引擎 (完全替代系统 Alert/Confirm)
+        // ==========================================
+        const dialogOverlay = document.getElementById('customDialog');
+        const dialogBox = document.getElementById('customDialogBox');
+
+        function openDialog(config) {
+            const iconDiv = document.getElementById('dialogIcon');
+            const titleDiv = document.getElementById('dialogTitle');
+            const msgDiv = document.getElementById('dialogMessage');
+            const btnDiv = document.getElementById('dialogButtons');
+
+            titleDiv.innerText = config.title || '系统提示';
+            msgDiv.innerText = config.message || '';
+
+            // 根据类型更换图标和颜色
+            if(config.type === 'success') {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-green-100 text-green-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else if(config.type === 'warning' || config.type === 'confirm') {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-amber-100 text-amber-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
+            } else if(config.type === 'error') {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-rose-100 text-rose-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            } else {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-indigo-100 text-indigo-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-info"></i>';
+            }
+
+            btnDiv.innerHTML = '';
+            if(config.type === 'confirm') {
+                // 如果是需要选择的 Confirm 弹窗
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors";
+                cancelBtn.innerText = "取消";
+                cancelBtn.onclick = closeDialog;
+                btnDiv.appendChild(cancelBtn);
+
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
+                confirmBtn.innerText = "确定";
+                confirmBtn.onclick = () => {
+                    closeDialog();
+                    if(config.onConfirm) config.onConfirm();
+                };
+                btnDiv.appendChild(confirmBtn);
+            } else {
+                // 如果是普通的 Alert 提示
+                const okBtn = document.createElement('button');
+                okBtn.className = "w-full py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
+                okBtn.innerText = "我知道了";
+                okBtn.onclick = closeDialog;
+                btnDiv.appendChild(okBtn);
+            }
+
+            dialogOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                dialogOverlay.classList.remove('opacity-0');
+                dialogBox.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeDialog() {
+            dialogOverlay.classList.add('opacity-0');
+            dialogBox.classList.add('scale-95');
+            setTimeout(() => { dialogOverlay.classList.add('hidden'); }, 300);
+        }
+
+        // 简易调用包装器
+        window.customAlert = function(msg, type='info', title='系统提示') {
+            openDialog({message: msg, type: type, title: title});
+        };
+        window.customConfirm = function(msg, onConfirm, title='确认操作') {
+            openDialog({message: msg, type: 'confirm', title: title, onConfirm: onConfirm});
         };
 
-        // 🌟 闲置自动登出 (Idle Timeout) 设定
-        const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15分钟没有操作自动登出
+
+        // ==========================================
+        // 🌟 2. 登录系统与闲置挂机控制
+        // ==========================================
+        const ADMIN_CREDENTIALS = {
+            id: "admin",       
+            password: "UTSCF2026"  
+        };
+
+        const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15分钟自动登出
         let idleTimer = null;
 
         function startIdleTimer() {
@@ -270,7 +362,7 @@
                 if (sessionStorage.getItem('isLoggedIn') === 'true') {
                     sessionStorage.removeItem('isLoggedIn');
                     hideDashboard();
-                    alert("⏳ 由于您长时间未操作，出于安全考虑，系统已自动登出。");
+                    customAlert("由于您长时间未操作，出于安全考虑，系统已自动登出。", "warning", "自动登出提示");
                 }
             }, IDLE_TIMEOUT_MS);
         }
@@ -279,20 +371,17 @@
             if (idleTimer) clearTimeout(idleTimer);
         }
 
-        // 只要有动作就重置时间
         function resetTimerOnAction() {
             if (sessionStorage.getItem('isLoggedIn') === 'true') {
                 startIdleTimer();
             }
         }
 
-        // 绑定动作监听
         document.addEventListener('mousemove', resetTimerOnAction);
         document.addEventListener('keydown', resetTimerOnAction);
         document.addEventListener('click', resetTimerOnAction);
         document.addEventListener('scroll', resetTimerOnAction);
 
-        // 检查登录状态
         function checkAuthStatus() {
             if (sessionStorage.getItem('isLoggedIn') === 'true') {
                 showDashboard();
@@ -306,14 +395,14 @@
             const errorMsg = document.getElementById('loginError');
             const btn = document.getElementById('loginBtn');
 
-            if (enteredId === ADMIN_CREDENTIALS.id && enteredPass === ADMIN_CREDENTIALS.password) {
+            if (enteredId === ADMIN_CREDENTIALS.id.toUpperCase() && enteredPass === ADMIN_CREDENTIALS.password) {
                 errorMsg.classList.add('hidden');
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
                 
                 setTimeout(() => {
                     sessionStorage.setItem('isLoggedIn', 'true');
                     showDashboard();
-                    startIdleTimer(); // 登录成功开始计挂机时间
+                    startIdleTimer(); 
                     btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Secure Login';
                     document.getElementById('adminUserId').value = "";
                     document.getElementById('adminPassword').value = "";
@@ -327,11 +416,11 @@
         }
 
         function handleLogout() {
-            if(confirm("确定要退出 Admin 控制台吗？")) {
+            customConfirm("您确定要退出 Admin 控制台吗？", () => {
                 sessionStorage.removeItem('isLoggedIn');
-                stopIdleTimer(); // 停止计挂机时间
+                stopIdleTimer(); 
                 hideDashboard();
-            }
+            }, "退出登录");
         }
 
         function showDashboard() {
@@ -364,7 +453,7 @@
         });
 
         // ==========================================
-        // 下面全是原来正常的 Firebase 和后台逻辑代码
+        // 🌟 3. Firebase 与后台业务逻辑 (已补齐全)
         // ==========================================
 
         const firebaseConfig = {
@@ -395,6 +484,7 @@
         let currentManualDate = ""; 
         let qrCodeInstance = null; 
 
+        // 监听通道状态
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById("statusBadge");
             const timerContainer = document.getElementById("adminTimerContainer");
@@ -429,6 +519,7 @@
             }
         });
 
+        // 开启/关闭控制
         function changeStatus(newStatus) {
             let pinValue = "";
             let dataToUpdate = { status: newStatus };
@@ -441,7 +532,7 @@
             if (newStatus === "Open") {
                 pinValue = document.getElementById('adminPin').value.trim();
                 if (pinValue === "") {
-                    alert("⚠️ 请先输入 4 位数的 PIN 码，然后再开启签到！");
+                    customAlert("请先在左侧输入框填写 4 位数的 PIN 码，然后再开启签到！", "warning", "缺少 PIN 码");
                     document.getElementById('adminPin').focus();
                     return;
                 }
@@ -457,9 +548,10 @@
             }
 
             db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
-            .catch(error => alert("操作失败: " + error.message));
+            .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
         }
 
+        // 加载表格数据
         function loadDataForDates(dateArray) {
             activeListeners.forEach(unsub => unsub());
             activeListeners = [];
@@ -538,6 +630,7 @@
             list.innerHTML = htmlContent;
         }
 
+        // 生成二维码
         function openQRModal() {
             document.getElementById('qrModal').classList.remove('hidden');
             if (!currentQRUrl) {
@@ -573,10 +666,12 @@
             });
         }
 
+        // 手动补签模块
         function openManualModal() {
             const selectedDate = document.getElementById("dateFilter").value;
             if (!selectedDate) {
-                alert("⚠️ 请先在日历中选择你要补签的【日期】！");
+                // 高级弹窗
+                customAlert("请先在日历中选择你要进行补签的【日期】！", "warning", "提示");
                 return;
             }
             currentManualDate = selectedDate;
@@ -594,26 +689,34 @@
         function submitManualCheckIn() {
             const stuId = document.getElementById('manualStuId').value.trim().toUpperCase();
             const stuName = document.getElementById('manualStuName').value.trim().toUpperCase();
+            
             if (!stuId || !stuName) {
-                alert("⚠️ STUDENT ID 和 NAME 都不能为空！"); return;
+                // 高级弹窗
+                customAlert("STUDENT ID 和 NAME 都不能为空！", "warning", "信息不完整");
+                return;
             }
+            
             const btn = document.getElementById('submitManualBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...';
             btn.disabled = true;
+            
             db.collection("Attendance").doc(currentManualDate).collection("Students").doc(stuId).set({
                   studentId: stuId, studentName: stuName, timestamp: new Date() 
-              }).then(() => {
-                  alert(`✅ 成功补签！学生 ${stuName} 已加入 ${currentManualDate} 的名单。`);
+            }).then(() => {
+                  // 高级成功弹窗
+                  customAlert(`成功补签！\n学生 ${stuName} 已加入 ${currentManualDate} 的名单。`, "success", "补签成功");
                   closeManualModal();
                   btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加';
                   btn.disabled = false;
-              }).catch(error => {
-                  alert("❌ 补签失败: " + error.message);
+            }).catch(error => {
+                  // 高级错误弹窗
+                  customAlert("补签失败: " + error.message, "error", "操作异常");
                   btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加';
                   btn.disabled = false;
-              });
+            });
         }
 
+        // 达标报表
         function openReportModal() {
             document.getElementById('reportModal').classList.remove('hidden');
             document.getElementById('reportLoading').classList.remove('hidden');
@@ -650,16 +753,27 @@
                     document.getElementById('downloadReportBtn').disabled = false; 
                 }
             }).catch(error => {
-                alert("❌ 统计失败: " + error.message); closeReportModal();
+                // 高级错误弹窗
+                customAlert("统计失败: " + error.message, "error", "系统异常");
+                closeReportModal();
             });
         }
 
-        function closeReportModal() { document.getElementById('reportModal').classList.add('hidden'); }
+        function closeReportModal() { 
+            document.getElementById('reportModal').classList.add('hidden'); 
+        }
 
+        // 导出表格
         function exportToExcel() {
             const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate) { alert("请先选择要导出的日期！"); return; }
-            if (allRecords.length === 0) { alert(`日期 ${selectedDate} 没有可导出的数据！`); return; }
+            if (!selectedDate) { 
+                customAlert("请先在上方日历中选择要导出的日期！", "warning", "操作提示"); 
+                return; 
+            }
+            if (allRecords.length === 0) { 
+                customAlert(`日期 ${selectedDate} 没有可导出的签到数据！`, "warning", "空数据"); 
+                return; 
+            }
             let csvContent = "\uFEFF日期 (Date),时间 (Time),学号 (Student ID),姓名 (Name)\n"; 
             allRecords.forEach(record => { csvContent += `"${record.dateString}","${record.timeString}","${record.studentId}","${record.studentName}"\n`; });
             triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);

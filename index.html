@@ -14,6 +14,9 @@
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
         }
+        /* 自定义弹窗动画 */
+        .modal-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
     <link rel="preload" as="image" href="Background.webp">
     <link rel="preload" as="image" href="CF_LOGO.webp">
@@ -25,52 +28,36 @@
     <div class="absolute inset-0 bg-black/30 z-0 pointer-events-none"></div>
 
     <div class="glass-card p-7 sm:p-8 rounded-3xl w-full max-w-[360px] relative z-10 overflow-hidden">
-        
         <div class="text-center mb-6 mt-2">
             <img src="CF_LOGO.webp" alt="CF Logo" class="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-md">
-            
-            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">UTS校园团契 我来报到啦~</h1>
-            
+            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">UTS校园团契我来报到啦~</h1>
             <div id="statusBadge" class="inline-flex items-center gap-2 mt-3 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500 transition-colors duration-300 shadow-sm border border-white/50">
                 <i class="fa-solid fa-circle-notch fa-spin text-xs"></i> Connecting...
             </div>
         </div>
 
         <div id="checkInForm" class="space-y-4 hidden">
-            
             <div id="countdownTimer" class="hidden mb-2 bg-rose-50 border border-rose-100 rounded-xl p-3 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite] shadow-inner">
-                <span class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">
-                    Time Remaining
-                </span>
+                <span class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Time Remaining</span>
                 <div class="text-3xl font-extrabold text-rose-600 font-mono tracking-wider" id="timeDisplay">02:00</div>
             </div>
 
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i class="fa-regular fa-id-card text-gray-400"></i>
-                </div>
-                <input type="text" id="studentId" placeholder="STUDENT ID AS OCULUS" 
-                       class="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-regular fa-id-card text-gray-400"></i></div>
+                <input type="text" id="studentId" placeholder="STUDENT ID AS OCULUS" class="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase shadow-sm">
             </div>
             
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i class="fa-regular fa-user text-gray-400"></i>
-                </div>
-                <input type="text" id="studentName" placeholder="FULL NAME AS OCULUS" 
-                       class="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-regular fa-user text-gray-400"></i></div>
+                <input type="text" id="studentName" placeholder="FULL NAME AS OCULUS" class="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase shadow-sm">
             </div>
 
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i class="fa-solid fa-key text-indigo-400"></i>
-                </div>
-                <input type="text" id="pinCode" placeholder="4-DIGIT PIN" 
-                       class="w-full pl-11 pr-4 py-3.5 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-solid fa-key text-indigo-400"></i></div>
+                <input type="text" id="pinCode" placeholder="4-DIGIT PIN" class="w-full pl-11 pr-4 py-3.5 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center shadow-sm">
             </div>
 
-            <button onclick="submitCheckIn()" id="submitBtn"
-                    class="w-full mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2">
+            <button onclick="submitCheckIn()" id="submitBtn" class="w-full mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2">
                 <i class="fa-solid fa-check-circle"></i> Confirm
             </button>
             <p class="text-[10px] text-black mt-4 text-center leading-relaxed px-1 font-medium">
@@ -88,9 +75,67 @@
         </div>
     </div>
 
+    <div id="customDialog" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300" id="customDialogBox">
+            <div class="p-6 text-center">
+                <div id="dialogIcon" class="mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl"></div>
+                <h3 id="dialogTitle" class="text-xl font-bold text-slate-800 mb-2"></h3>
+                <p id="dialogMessage" class="text-slate-500 text-sm mb-6 whitespace-pre-line"></p>
+                <div class="flex gap-3 justify-center" id="dialogButtons"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script>
+        // 🌟 系统通用弹窗组件
+        const dialogOverlay = document.getElementById('customDialog');
+        const dialogBox = document.getElementById('customDialogBox');
+
+        function customAlert(msg, type='info', title='系统提示') {
+            const iconDiv = document.getElementById('dialogIcon');
+            const titleDiv = document.getElementById('dialogTitle');
+            const msgDiv = document.getElementById('dialogMessage');
+            const btnDiv = document.getElementById('dialogButtons');
+
+            titleDiv.innerText = title;
+            msgDiv.innerText = msg;
+
+            if(type === 'success') {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-green-100 text-green-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else if(type === 'warning') {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-amber-100 text-amber-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
+            } else if(type === 'error') {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-rose-100 text-rose-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            } else {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-indigo-100 text-indigo-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-info"></i>';
+            }
+
+            btnDiv.innerHTML = '';
+            const okBtn = document.createElement('button');
+            okBtn.className = "w-full py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md";
+            okBtn.innerText = "我知道了";
+            okBtn.onclick = () => {
+                dialogOverlay.classList.add('opacity-0');
+                dialogBox.classList.add('scale-95');
+                setTimeout(() => { dialogOverlay.classList.add('hidden'); }, 300);
+            };
+            btnDiv.appendChild(okBtn);
+
+            dialogOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                dialogOverlay.classList.remove('opacity-0');
+                dialogBox.classList.remove('scale-95');
+            }, 10);
+        }
+
+
+        // Firebase 逻辑
         const firebaseConfig = {
             apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
             authDomain: "attendance-a7ac5.firebaseapp.com",
@@ -121,13 +166,11 @@
             }
         }
 
-        // 🌟 终极防作弊系统：独立于数据库监听之外
         window.onload = function() {
             const searchString = window.location.search.substring(1); 
             const mainParam = searchString.split('&')[0]; 
-            const authCode = mainParam.split('=')[1]; // 获取 ?q= 后面的值
+            const authCode = mainParam.split('=')[1]; 
 
-            // 检查拿到的参数是不是正好 6 个字母
             if (!authCode || authCode.length !== 6) {
                 if (timerInterval) clearInterval(timerInterval);
                 document.getElementById('checkInForm').classList.add('hidden');
@@ -138,17 +181,12 @@
                 badge.classList.remove('hidden');
                 
                 if (!hasAlertedCheat) {
-                    alert("⚠️ Access Denied：\n\n[Please scan the qr code to record attendance.]");
+                    customAlert("Please scan the QR Code for Attendance", "error", "⚠️");
                     hasAlertedCheat = true;
                 }
-                
-                // 彻底中止，不要开启后续的监听
                 return; 
             }
 
-            // ==========================================
-            // 只有当通过了防作弊检查，才开启数据库实时监听！
-            // ==========================================
             db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
                 const badge = document.getElementById('statusBadge');
                 const form = document.getElementById('checkInForm');
@@ -158,7 +196,6 @@
 
                 if (timerInterval) clearInterval(timerInterval);
 
-                // 如果通道是开启的
                 if (doc.exists && doc.data().status === "Open") {
                     
                     if (isDeviceLocked()) {
@@ -196,7 +233,6 @@
                     successMsg.classList.add('hidden');
 
                 } else {
-                    // 🕒 🌟 链接对，但老师还没开：显示黄色的等待状态
                     badge.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Waiting for access...';
                     badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-amber-100 text-amber-600 shadow-sm border border-amber-200";
                     
@@ -208,10 +244,9 @@
             });
         };
 
-        // 提交签到数据
         function submitCheckIn() {
             if (isDeviceLocked()) {
-                alert("You have recently checked in. Please wait 5 minutes.");
+                customAlert("您刚刚已经成功签到过了，请耐心等待 5 分钟后再试。", "warning", "操作太频繁");
                 return;
             }
 
@@ -220,7 +255,7 @@
             const enteredPin = document.getElementById('pinCode').value.trim();
 
             if (!studentId || !studentName || !enteredPin) {
-                alert("Please fill in Student ID, Name, and the PIN code!"); 
+                customAlert("请完整填写 Student ID, Name 以及屏幕上的 PIN 码！", "warning", "信息不完整"); 
                 return;
             }
 
@@ -233,7 +268,7 @@
                     
                     const correctPin = doc.data().currentPin;
                     if (enteredPin !== correctPin) {
-                        alert("❌ The PIN code is incorrect! Please check the screen.");
+                        customAlert("PIN 码不正确！请查看前方大屏幕获取最新的 4 位数密码。", "error", "验证失败");
                         btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
                         btn.disabled = false;
                         return; 
@@ -261,13 +296,13 @@
                         document.getElementById('successDesc').innerText = "Attendance Submitted Successfully!";
                     })
                     .catch((error) => {
-                        alert("Error: " + error.message);
+                        customAlert("提交失败: " + error.message, "error", "网络异常");
                         btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
                         btn.disabled = false;
                     });
 
                 } else {
-                    alert("Attendance is now closed.");
+                    customAlert("已关闭,无法提交。", "warning", "签到结束");
                     btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
                     btn.disabled = false;
                 }
