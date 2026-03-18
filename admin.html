@@ -125,8 +125,48 @@
         });
 
         function changeStatus(newStatus) {
-            db.collection("Sessions").doc("Class_01").set({ status: newStatus }, { merge: true })
-              .catch(error => alert("操作失败: " + error.message));
+
+            // 全局变量：用于控制 Admin 端的自动关闭定时器
+            let adminAutoCloseTimer = null; 
+
+            // 🌟 升级版：加入截止时间 & 2分钟自动关闭
+            function changeStatus(newStatus) {
+                let pinValue = "";
+                let dataToUpdate = { status: newStatus };
+
+                // 如果之前有自动关闭的定时器，先清除掉（比如老师等了 30 秒就提前手动点关闭了）
+                if (adminAutoCloseTimer) {
+                    clearTimeout(adminAutoCloseTimer);
+                    adminAutoCloseTimer = null;
+                }
+
+                if (newStatus === "Open") {
+                    pinValue = document.getElementById('adminPin').value.trim();
+                    if (pinValue === "") {
+                        alert("⚠️ 请先输入 4 位数的 PIN 码，然后再开启签到！");
+                        document.getElementById('adminPin').focus();
+                        return;
+                    }
+                    dataToUpdate.currentPin = pinValue;
+                    
+                    // 核心：计算出 2 分钟后（120秒）的“绝对死亡时间”时间戳
+                    dataToUpdate.endTime = new Date().getTime() + 2 * 60 * 1000; 
+
+                    // 核心：Admin 端自己设定一个闹钟，2分钟后自动把 Firebase 状态改成 Closed
+                    adminAutoCloseTimer = setTimeout(() => {
+                        changeStatus('Closed'); 
+                    }, 2 * 60 * 1000);
+
+                } else {
+                    // 如果是关闭状态
+                    document.getElementById('adminPin').value = "";
+                    dataToUpdate.endTime = 0;
+                }
+
+                // 把数据推上 Firebase
+                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
+                .catch(error => alert("操作失败: " + error.message));
+            }
         }
 
         // 🌟 新增工具：自动计算最近 7 天的日期字符串
