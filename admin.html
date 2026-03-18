@@ -442,7 +442,7 @@
                 });
 
                 globalPassedStudents = Object.values(attendanceCount)
-                                             .filter(student => student.count >= 4) // >=4次达标
+                                             .filter(student => student.count >= 1) // >=4次达标
                                              .sort((a, b) => b.count - a.count);
 
                 document.getElementById('reportLoading').classList.add('hidden');
