@@ -2,50 +2,54 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>学生签到系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CF Attendance</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* 🌟 高级毛玻璃特效，专门为透出照片背景设计 */
         .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.85); /* 稍微透明，透出背景 */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px); /* 专门兼容苹果 iPhone 手机 */
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
 
-    <div class="glass-card p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] max-w-sm w-full relative overflow-hidden">
+<body class="min-h-screen flex items-center justify-center p-4 font-sans text-gray-800 relative bg-cover bg-center bg-no-repeat bg-fixed" 
+      style="background-image: url('Background.jpg');">
+
+    <div class="absolute inset-0 bg-black/30 z-0 pointer-events-none"></div>
+
+    <div class="glass-card p-7 sm:p-8 rounded-3xl w-full max-w-[360px] relative z-10 overflow-hidden">
         
-        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
-
-        <div class="text-center mb-8 mt-2">
-            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
-                <i class="fa-solid fa-graduation-cap"></i>
-            </div>
-            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">CF Attendance</h1>
+        <div class="text-center mb-6 mt-2">
+            <img src="CF_LOGO.png" alt="CF Logo" class="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-md">
             
-            <div id="statusBadge" class="inline-flex items-center gap-2 mt-3 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500 transition-colors duration-300">
+            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">UTS校园团契 我来报到啦~</h1>
+            
+            <div id="statusBadge" class="inline-flex items-center gap-2 mt-3 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500 transition-colors duration-300 shadow-sm border border-white/50">
                 <i class="fa-solid fa-circle-notch fa-spin text-xs"></i> Connecting...
             </div>
         </div>
 
-        <div id="checkInForm" class="space-y-5 hidden">
+        <div id="checkInForm" class="space-y-4 hidden">
             
-            <div id="countdownTimer" class="hidden mb-2 bg-rose-50 border border-rose-100 rounded-xl p-3 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite]">
-                <span class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1">
-                        <i class="fa-regular fa-clock mr-1"></i> 距离通道自动关闭还剩
-                    </span>
-                    <div class="text-4xl font-extrabold text-rose-600 font-mono tracking-wider" id="adminTimeDisplay">02:00</div>
-                </div>
+            <div id="countdownTimer" class="hidden mb-2 bg-rose-50 border border-rose-100 rounded-xl p-3 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite] shadow-inner">
+                <span class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">
+                    Time Remaining
+                </span>
+                <div class="text-3xl font-extrabold text-rose-600 font-mono tracking-wider" id="timeDisplay">02:00</div>
+            </div>
 
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="fa-regular fa-id-card text-gray-400"></i>
                 </div>
                 <input type="text" id="studentId" placeholder="STUDENT ID AS OCULUS" 
-                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase">
+                       class="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase shadow-sm">
             </div>
             
             <div class="relative">
@@ -53,7 +57,7 @@
                     <i class="fa-regular fa-user text-gray-400"></i>
                 </div>
                 <input type="text" id="studentName" placeholder="FULL NAME AS OCULUS" 
-                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase">
+                       class="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase shadow-sm">
             </div>
 
             <div class="relative">
@@ -61,14 +65,14 @@
                     <i class="fa-solid fa-key text-indigo-400"></i>
                 </div>
                 <input type="text" id="pinCode" placeholder="4-DIGIT PIN FROM SCREEN" 
-                       class="w-full pl-11 pr-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center">
+                       class="w-full pl-11 pr-4 py-3.5 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center shadow-sm">
             </div>
 
             <button onclick="submitCheckIn()" id="submitBtn"
-                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2">
+                    class="w-full mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2">
                 <i class="fa-solid fa-check-circle"></i> Confirm
             </button>
-            <p class="text-[10px] text-amber-600 mt-4 text-center leading-relaxed px-2 font-medium">
+            <p class="text-[10px] text-amber-600 mt-4 text-center leading-relaxed px-1 font-medium">
                 <i class="fa-solid fa-triangle-exclamation mr-1"></i>
                 Please confirm your STUDENT ID and NAME is corrected. Once submitted, it cannot be changed.
             </p>
@@ -98,12 +102,10 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 1. 全局变量设置
         const todayStr = new Date().toISOString().split('T')[0]; 
         const deviceLockKey = "checkedInTime_" + todayStr;
         let timerInterval = null;
 
-        // 2. 检查设备 5 分钟锁
         function isDeviceLocked() {
             const savedTime = localStorage.getItem(deviceLockKey);
             if (!savedTime) return false; 
@@ -159,7 +161,7 @@
                 }, 1000);
 
                 badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
-                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm";
+                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm border border-green-200";
                 
                 badge.classList.remove('hidden');
                 form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
@@ -169,7 +171,7 @@
             } else {
                 // 如果通道关闭：所有人强行显示 Closed
                 badge.innerHTML = '<i class="fa-solid fa-lock text-xs"></i> Attendance Closed';
-                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm";
+                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
                 
                 badge.classList.remove('hidden'); 
                 form.classList.add('hidden');     
