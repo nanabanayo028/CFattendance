@@ -80,7 +80,7 @@
             </div>
             
             <div class="flex gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-                <button onclick="manualCheckIn()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-5 rounded-xl shadow-sm flex items-center gap-2 transition-all whitespace-nowrap border border-indigo-200">
+                <button onclick="openManualModal()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-5 rounded-xl shadow-sm flex items-center gap-2 transition-all whitespace-nowrap border border-indigo-200">
                     <i class="fa-solid fa-user-plus"></i> 手动补签
                 </button>
                 <button id="reportBtn" onclick="openReportModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold py-2.5 px-5 rounded-xl shadow-sm flex items-center gap-2 transition-all whitespace-nowrap border border-amber-200">
@@ -111,21 +111,51 @@
         </div>
     </div>
 
+    <div id="manualCheckInModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden modal-fade-in">
+            <div class="bg-indigo-600 p-5 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> 手动添加签到记录</h3>
+                <button onclick="closeManualModal()" class="text-white/80 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div class="bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 mb-2 border border-indigo-100">
+                    <i class="fa-regular fa-calendar-check text-lg"></i> 补签日期: <span id="modalDateDisplay" class="font-mono text-base tracking-wide"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Student ID (学号)</label>
+                    <input type="text" id="manualStuId" placeholder="e.g., BCS23090066" 
+                           class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 block p-3.5 outline-none uppercase font-mono transition-all">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Student Name (全名)</label>
+                    <input type="text" id="manualStuName" placeholder="e.g., ALI BIN ABU" 
+                           class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 block p-3.5 outline-none uppercase font-medium transition-all">
+                </div>
+            </div>
+            
+            <div class="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                <button onclick="closeManualModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-colors">取消 (Cancel)</button>
+                <button id="submitManualBtn" onclick="submitManualCheckIn()" class="px-5 py-2.5 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-md shadow-indigo-200 active:scale-95">
+                    <i class="fa-solid fa-check"></i> 确认添加
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="reportModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] modal-fade-in">
             <div class="bg-gradient-to-r from-amber-400 to-orange-500 p-6 text-white flex justify-between items-center">
                 <h3 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-award"></i> 达标学生名单 (≥4次)</h3>
                 <button onclick="closeReportModal()" class="text-white/80 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            
             <div class="p-6 overflow-y-auto flex-1 bg-slate-50">
                 <div id="reportLoading" class="text-center py-8 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3 block"></i> 正在跨记录统计中...</div>
-                <div id="reportEmpty" class="hidden text-center py-8 text-slate-400"><i class="fa-regular fa-folder-open text-3xl mb-3 block"></i> 暂无达到 4 次出勤的学生</div>
-                
-                <ul id="reportList" class="hidden space-y-3">
-                    </ul>
+                <div id="reportEmpty" class="hidden text-center py-8 text-slate-400"><i class="fa-regular fa-folder-open text-3xl mb-3 block"></i> 暂无达到出勤标准的学生</div>
+                <ul id="reportList" class="hidden space-y-3"></ul>
             </div>
-            
             <div class="p-4 border-t border-slate-100 bg-white flex justify-end gap-3">
                 <button onclick="closeReportModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">关闭</button>
                 <button id="downloadReportBtn" onclick="exportReportToExcel()" disabled class="px-5 py-2.5 rounded-xl font-bold bg-slate-800 text-white hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
@@ -155,7 +185,8 @@
         let activeListeners = []; 
         let adminAutoCloseTimer = null; 
         let adminDisplayTimerInterval = null;
-        let globalPassedStudents = []; // 用于存储计算好的达标学生，方便导出
+        let globalPassedStudents = []; 
+        let currentManualDate = ""; // 记录补签目标日期
 
         // 监听通道状态 & 老师端的同步倒计时
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
@@ -225,7 +256,7 @@
             .catch(error => alert("操作失败: " + error.message));
         }
 
-        // 数据抓取 (只在老师选了日期后执行)
+        // 数据抓取
         function loadDataForDates(dateArray) {
             activeListeners.forEach(unsub => unsub());
             activeListeners = [];
@@ -238,6 +269,7 @@
                 const unsub = db.collection("Attendance")
                   .doc(dateString)
                   .collection("Students")
+                  .orderBy("timestamp", "desc")
                   .onSnapshot((studentSnapshot) => {
                       allRecords = allRecords.filter(r => r.dateString !== dateString);
                       studentSnapshot.forEach((studentDoc) => {
@@ -260,16 +292,13 @@
             });
         }
 
-        // 🌟 核心更改：网页加载时不再默认抓取数据，而是空表格等待老师选择
-        // (去掉了之前的 loadDataForDates 调用)
-
         // 日历与渲染
         function handleDateSelection() {
             const selectedDate = document.getElementById("dateFilter").value;
             if (selectedDate) {
                 loadDataForDates([selectedDate]); 
             } else {
-                loadDataForDates([]); // 传空数组，表格将显示“请选择日期”
+                loadDataForDates([]); 
             }
         }
 
@@ -307,34 +336,65 @@
             list.innerHTML = htmlContent;
         }
 
-        // 🌟 新功能：手动补签
-        function manualCheckIn() {
+        // 🌟 全新的高颜值补签系统
+        function openManualModal() {
             const selectedDate = document.getElementById("dateFilter").value;
             if (!selectedDate) {
-                alert("⚠️ 请先在工具栏选择你要补签的【日期】！");
+                alert("⚠️ 请先在日历中选择你要补签的【日期】！");
+                return;
+            }
+            
+            currentManualDate = selectedDate;
+            document.getElementById('modalDateDisplay').innerText = selectedDate;
+            document.getElementById('manualStuId').value = "";
+            document.getElementById('manualStuName').value = "";
+            
+            document.getElementById('manualCheckInModal').classList.remove('hidden');
+            
+            // 自动聚焦到输入框，体验拉满
+            setTimeout(() => document.getElementById('manualStuId').focus(), 100);
+        }
+
+        function closeManualModal() {
+            document.getElementById('manualCheckInModal').classList.add('hidden');
+        }
+
+        function submitManualCheckIn() {
+            const stuId = document.getElementById('manualStuId').value.trim().toUpperCase();
+            const stuName = document.getElementById('manualStuName').value.trim().toUpperCase();
+            
+            if (!stuId || !stuName) {
+                alert("⚠️ 学号和姓名都不能为空！");
                 return;
             }
 
-            const stuId = prompt(`【手动补签 - ${selectedDate}】\n请输入学生的 Student ID:`);
-            if (!stuId) return; 
-            
-            const stuName = prompt(`请输入学号 ${stuId.toUpperCase()} 的全名 (Full Name):`);
-            if (!stuName) return;
+            const btn = document.getElementById('submitManualBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...';
+            btn.disabled = true;
 
             db.collection("Attendance")
-              .doc(selectedDate)
+              .doc(currentManualDate)
               .collection("Students")
-              .doc(stuId.toUpperCase())
+              .doc(stuId)
               .set({
-                  studentId: stuId.toUpperCase(),
-                  studentName: stuName.toUpperCase(),
+                  studentId: stuId,
+                  studentName: stuName,
                   timestamp: new Date() 
               })
-              .then(() => alert(`✅ 成功将 ${stuName.toUpperCase()} 补签至 ${selectedDate}！`))
-              .catch(error => alert("❌ 补签失败: " + error.message));
+              .then(() => {
+                  alert(`✅ 成功补签！学生 ${stuName} 已加入 ${currentManualDate} 的名单。`);
+                  closeManualModal();
+                  btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加';
+                  btn.disabled = false;
+              })
+              .catch(error => {
+                  alert("❌ 补签失败: " + error.message);
+                  btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加';
+                  btn.disabled = false;
+              });
         }
 
-        // 🌟 新功能：生成达标报表弹窗
+        // 报表弹窗
         function openReportModal() {
             document.getElementById('reportModal').classList.remove('hidden');
             document.getElementById('reportLoading').classList.remove('hidden');
@@ -354,9 +414,8 @@
                     attendanceCount[id].count++;
                 });
 
-                // 筛选并排序 (这里设置的是 >= 4 次，如果你想测试，可以临时改成 1)
                 globalPassedStudents = Object.values(attendanceCount)
-                                             .filter(student => student.count >= 4)
+                                             .filter(student => student.count >= 4) // 这里可以控制要筛选多少次
                                              .sort((a, b) => b.count - a.count);
 
                 document.getElementById('reportLoading').classList.add('hidden');
@@ -379,7 +438,7 @@
                     });
                     document.getElementById('reportList').innerHTML = listHtml;
                     document.getElementById('reportList').classList.remove('hidden');
-                    document.getElementById('downloadReportBtn').disabled = false; // 启用下载按钮
+                    document.getElementById('downloadReportBtn').disabled = false; 
                 }
             }).catch(error => {
                 alert("❌ 统计失败: " + error.message);
@@ -391,7 +450,7 @@
             document.getElementById('reportModal').classList.add('hidden');
         }
 
-        // 🌟 导出特定日期的 Excel
+        // 导出功能
         function exportToExcel() {
             const selectedDate = document.getElementById("dateFilter").value;
             if (!selectedDate) {
@@ -409,7 +468,6 @@
             triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);
         }
 
-        // 🌟 导出达标报表的 Excel
         function exportReportToExcel() {
             let csvContent = "\uFEFF学号 (Student ID),姓名 (Name),总出勤次数 (Total Attendance)\n"; 
             globalPassedStudents.forEach(stu => {
@@ -418,7 +476,6 @@
             triggerDownload(csvContent, `Attendance_Pass_Report.csv`);
         }
 
-        // 辅助下载功能
         function triggerDownload(content, filename) {
             const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
