@@ -256,8 +256,8 @@
     <script>
         // 🌟 登录系统核心设定 (账号密码)
         const ADMIN_CREDENTIALS = {
-            id: "ADMIN01",       // 你可以随时在这里修改账号
-            password: "UTS2026"  // 你可以随时在这里修改密码
+            id: "admin",       // 你可以随时在这里修改账号
+            password: "UTSCF2026"  // 你可以随时在这里修改密码
         };
 
         // 检查登录状态
@@ -268,7 +268,7 @@
         }
 
         function handleLogin() {
-            const enteredId = document.getElementById('adminUserId').value.trim().toUpperCase();
+            const enteredId = document.getElementById('adminUserId').value.trim();
             const enteredPass = document.getElementById('adminPassword').value.trim();
             const errorMsg = document.getElementById('loginError');
             const btn = document.getElementById('loginBtn');
@@ -297,7 +297,7 @@
         }
 
         function handleLogout() {
-            if(confirm("确定要退出 Admin 控制台吗？")) {
+            if(confirm("确定要退出 Admin Control Panel吗？")) {
                 sessionStorage.removeItem('isLoggedIn');
                 hideDashboard();
             }
@@ -521,7 +521,7 @@
         }
 
         function generateNewQR() {
-            const baseUrl = "https://nanabanayo028.github.io/index.html"; 
+            const baseUrl = "https://nanabanayo028.github.io/CFAttendance/index.html"; 
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
             let randomLetters = '';
             for (let i = 0; i < 6; i++) {
