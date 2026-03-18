@@ -6,8 +6,13 @@
     <title>Admin - Control Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 弹窗动画 */
+        .modal-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 pb-20">
+<body class="bg-slate-50 font-sans text-slate-800 pb-20 relative">
 
     <nav class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
         <div class="flex items-center gap-3">
@@ -74,9 +79,17 @@
                 </button>
             </div>
             
-            <button onclick="exportToExcel()" class="w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all">
-                <i class="fa-solid fa-file-excel text-emerald-400"></i> 导出为 Excel
-            </button>
+            <div class="flex gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                <button onclick="manualCheckIn()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-5 rounded-xl shadow-sm flex items-center gap-2 transition-all whitespace-nowrap border border-indigo-200">
+                    <i class="fa-solid fa-user-plus"></i> 手动补签
+                </button>
+                <button id="reportBtn" onclick="openReportModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold py-2.5 px-5 rounded-xl shadow-sm flex items-center gap-2 transition-all whitespace-nowrap border border-amber-200">
+                    <i class="fa-solid fa-trophy text-amber-500"></i> 达标报表
+                </button>
+                <button onclick="exportToExcel()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-5 rounded-xl shadow-sm flex items-center gap-2 transition-all whitespace-nowrap">
+                    <i class="fa-solid fa-file-excel text-emerald-400"></i> 导出当日
+                </button>
+            </div>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -91,9 +104,33 @@
                         </tr>
                     </thead>
                     <tbody id="attendanceList" class="divide-y divide-slate-100 text-sm">
-                        <tr><td colspan="4" class="p-8 text-center text-slate-400">正在加载数据...</td></tr>
+                        <tr><td colspan="4" class="p-12 text-center text-slate-400"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-300"></i>请先在上方选择日期以查看签到名单</td></tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] modal-fade-in">
+            <div class="bg-gradient-to-r from-amber-400 to-orange-500 p-6 text-white flex justify-between items-center">
+                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-award"></i> 达标学生名单 (≥4次)</h3>
+                <button onclick="closeReportModal()" class="text-white/80 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50">
+                <div id="reportLoading" class="text-center py-8 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3 block"></i> 正在跨记录统计中...</div>
+                <div id="reportEmpty" class="hidden text-center py-8 text-slate-400"><i class="fa-regular fa-folder-open text-3xl mb-3 block"></i> 暂无达到 4 次出勤的学生</div>
+                
+                <ul id="reportList" class="hidden space-y-3">
+                    </ul>
+            </div>
+            
+            <div class="p-4 border-t border-slate-100 bg-white flex justify-end gap-3">
+                <button onclick="closeReportModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">关闭</button>
+                <button id="downloadReportBtn" onclick="exportReportToExcel()" disabled class="px-5 py-2.5 rounded-xl font-bold bg-slate-800 text-white hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    <i class="fa-solid fa-download"></i> 导出此报表
+                </button>
             </div>
         </div>
     </div>
@@ -114,13 +151,13 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 全局变量
         let allRecords = []; 
         let activeListeners = []; 
         let adminAutoCloseTimer = null; 
         let adminDisplayTimerInterval = null;
+        let globalPassedStudents = []; // 用于存储计算好的达标学生，方便导出
 
-        // 🌟 监听通道状态 & 老师端的同步倒计时
+        // 监听通道状态 & 老师端的同步倒计时
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById("statusBadge");
             const timerContainer = document.getElementById("adminTimerContainer");
@@ -135,11 +172,9 @@
                 const endTime = doc.data().endTime;
                 if (endTime) {
                     timerContainer.classList.remove('hidden');
-                    
                     adminDisplayTimerInterval = setInterval(() => {
                         const now = new Date().getTime();
                         const distance = endTime - now;
-
                         if (distance <= 0) {
                             clearInterval(adminDisplayTimerInterval);
                             timeDisplay.innerText = "00:00";
@@ -157,12 +192,11 @@
             }
         });
 
-        // 🌟 开启/关闭控制 (附带 2分钟自动关闭)
+        // 开启/关闭控制
         function changeStatus(newStatus) {
             let pinValue = "";
             let dataToUpdate = { status: newStatus };
 
-                // 如果之前有自动关闭的定时器，先清除掉（比如老师等了 30 秒就提前手动点关闭了）
             if (adminAutoCloseTimer) {
                 clearTimeout(adminAutoCloseTimer);
                 adminAutoCloseTimer = null;
@@ -176,57 +210,36 @@
                     return;
                 }
                 dataToUpdate.currentPin = pinValue;
-                    
-                    // 核心：计算出 2 分钟后（120秒）的“绝对死亡时间”时间戳
                 dataToUpdate.endTime = new Date().getTime() + 2 * 60 * 1000; 
 
-                    // 核心：Admin 端自己设定一个闹钟，2分钟后自动把 Firebase 状态改成 Closed
                 adminAutoCloseTimer = setTimeout(() => {
                     changeStatus('Closed'); 
                 }, 2 * 60 * 1000);
 
             } else {
-                    // 如果是关闭状态
                 document.getElementById('adminPin').value = "";
                 dataToUpdate.endTime = 0;
             }
 
-                // 把数据推上 Firebase
             db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
             .catch(error => alert("操作失败: " + error.message));
         }
 
-        // 🌟 抓取数据逻辑 (7天智能窗口)
-        function getRecent7Days() {
-            const dates = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                dates.push(d.toISOString().split('T')[0]); // 产出 "2026-03-17" 这种格式
-            }
-            return dates;
-        }
-
-        // 🌟 核心升级：精准抓取指定日期的数据 (彻底解决 5 年卡顿问题)
+        // 数据抓取 (只在老师选了日期后执行)
         function loadDataForDates(dateArray) {
-            // 步骤 A: 掐断之前的数据库连接，防止重复扣费和内存泄漏！
             activeListeners.forEach(unsub => unsub());
             activeListeners = [];
             allRecords = []; 
-            renderTable(); // 先清空表格
+            renderTable(); 
 
             if (dateArray.length === 0) return;
 
-            // 步骤 B: 只为我们需要的日期建立精准连接
             dateArray.forEach((dateString) => {
                 const unsub = db.collection("Attendance")
                   .doc(dateString)
                   .collection("Students")
                   .onSnapshot((studentSnapshot) => {
-                      
-                    // 清理掉属于这个日期的旧记录，防止重复  
-                    allRecords = allRecords.filter(r => r.dateString !== dateString);
-
+                      allRecords = allRecords.filter(r => r.dateString !== dateString);
                       studentSnapshot.forEach((studentDoc) => {
                           const data = studentDoc.data();
                           if (data.timestamp) {
@@ -239,30 +252,24 @@
                                   timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
                               });
                           }
-                      }); 
-
-                      // 重新按时间排序，最新的在最上
+                      });
                       allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
                       renderTable(); 
                   });
-                  
-                // 把这个连接存起来，下次好关掉它
                 activeListeners.push(unsub);
             });
         }
 
-        // 页面刚打开时：默认只加载最近 7 天！
-        loadDataForDates(getRecent7Days());
+        // 🌟 核心更改：网页加载时不再默认抓取数据，而是空表格等待老师选择
+        // (去掉了之前的 loadDataForDates 调用)
 
-        // 🌟 当老师点击日历选择特定日期时触发
+        // 日历与渲染
         function handleDateSelection() {
             const selectedDate = document.getElementById("dateFilter").value;
             if (selectedDate) {
-                // 如果选了特定的一天，就只加载那一天！(瞬间跨越 5 年的数据海)
                 loadDataForDates([selectedDate]); 
             } else {
-                // 如果清空了日期，恢复显示最近 7 天
-                loadDataForDates(getRecent7Days()); 
+                loadDataForDates([]); // 传空数组，表格将显示“请选择日期”
             }
         }
 
@@ -271,13 +278,18 @@
             handleDateSelection();
         }
 
-        // 🌟 渲染表格：因为数据在请求时就已经精准过滤了，这里只负责显示
         function renderTable() {
             const list = document.getElementById("attendanceList");
+            const selectedDate = document.getElementById("dateFilter").value;
             document.getElementById("studentCount").innerText = allRecords.length;
 
+            if (!selectedDate) {
+                list.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-slate-400"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-300"></i>请先在上方选择日期以查看签到名单</td></tr>';
+                return;
+            }
+
             if (allRecords.length === 0) {
-                list.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400"><i class="fa-regular fa-folder-open text-3xl mb-3 block"></i>该日期暂无签到记录</td></tr>';
+                list.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-slate-400"><i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-300"></i>该日期暂无签到记录</td></tr>';
                 return;
             }
 
@@ -295,30 +307,124 @@
             list.innerHTML = htmlContent;
         }
 
-        // 🌟 导出 Excel
-        function exportToExcel() {
-            if (allRecords.length === 0) {
-                alert("当前没有可导出的数据！");
+        // 🌟 新功能：手动补签
+        function manualCheckIn() {
+            const selectedDate = document.getElementById("dateFilter").value;
+            if (!selectedDate) {
+                alert("⚠️ 请先在工具栏选择你要补签的【日期】！");
                 return;
             }
 
-            let csvContent = "\uFEFF"; 
-            csvContent += "日期 (Date),时间 (Time),学号 (Student ID),姓名 (Name)\n"; 
+            const stuId = prompt(`【手动补签 - ${selectedDate}】\n请输入学生的 Student ID:`);
+            if (!stuId) return; 
+            
+            const stuName = prompt(`请输入学号 ${stuId.toUpperCase()} 的全名 (Full Name):`);
+            if (!stuName) return;
 
+            db.collection("Attendance")
+              .doc(selectedDate)
+              .collection("Students")
+              .doc(stuId.toUpperCase())
+              .set({
+                  studentId: stuId.toUpperCase(),
+                  studentName: stuName.toUpperCase(),
+                  timestamp: new Date() 
+              })
+              .then(() => alert(`✅ 成功将 ${stuName.toUpperCase()} 补签至 ${selectedDate}！`))
+              .catch(error => alert("❌ 补签失败: " + error.message));
+        }
+
+        // 🌟 新功能：生成达标报表弹窗
+        function openReportModal() {
+            document.getElementById('reportModal').classList.remove('hidden');
+            document.getElementById('reportLoading').classList.remove('hidden');
+            document.getElementById('reportEmpty').classList.add('hidden');
+            document.getElementById('reportList').classList.add('hidden');
+            document.getElementById('downloadReportBtn').disabled = true;
+
+            db.collectionGroup("Students").get().then((snapshot) => {
+                let attendanceCount = {}; 
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const id = data.studentId;
+                    if (!attendanceCount[id]) {
+                        attendanceCount[id] = { id: id, name: data.studentName, count: 0 };
+                    }
+                    attendanceCount[id].count++;
+                });
+
+                // 筛选并排序 (这里设置的是 >= 4 次，如果你想测试，可以临时改成 1)
+                globalPassedStudents = Object.values(attendanceCount)
+                                             .filter(student => student.count >= 4)
+                                             .sort((a, b) => b.count - a.count);
+
+                document.getElementById('reportLoading').classList.add('hidden');
+
+                if (globalPassedStudents.length === 0) {
+                    document.getElementById('reportEmpty').classList.remove('hidden');
+                } else {
+                    let listHtml = "";
+                    globalPassedStudents.forEach(stu => {
+                        listHtml += `
+                        <li class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                            <div>
+                                <div class="font-bold text-slate-800">${stu.name}</div>
+                                <div class="text-xs text-slate-500 font-mono">${stu.id}</div>
+                            </div>
+                            <div class="bg-amber-100 text-amber-700 px-3 py-1 rounded-lg font-bold">
+                                ${stu.count} 次
+                            </div>
+                        </li>`;
+                    });
+                    document.getElementById('reportList').innerHTML = listHtml;
+                    document.getElementById('reportList').classList.remove('hidden');
+                    document.getElementById('downloadReportBtn').disabled = false; // 启用下载按钮
+                }
+            }).catch(error => {
+                alert("❌ 统计失败: " + error.message);
+                closeReportModal();
+            });
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+        }
+
+        // 🌟 导出特定日期的 Excel
+        function exportToExcel() {
+            const selectedDate = document.getElementById("dateFilter").value;
+            if (!selectedDate) {
+                alert("请先选择要导出的日期！"); return;
+            }
+            if (allRecords.length === 0) {
+                alert(`日期 ${selectedDate} 没有可导出的数据！`); return;
+            }
+
+            let csvContent = "\uFEFF日期 (Date),时间 (Time),学号 (Student ID),姓名 (Name)\n"; 
             allRecords.forEach(record => {
-                const row = `"${record.dateString}","${record.timeString}","${record.studentId}","${record.studentName}"`;
-                csvContent += row + "\n";
+                csvContent += `"${record.dateString}","${record.timeString}","${record.studentId}","${record.studentName}"\n`;
             });
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);
+        }
+
+        // 🌟 导出达标报表的 Excel
+        function exportReportToExcel() {
+            let csvContent = "\uFEFF学号 (Student ID),姓名 (Name),总出勤次数 (Total Attendance)\n"; 
+            globalPassedStudents.forEach(stu => {
+                csvContent += `"${stu.id}","${stu.name}","${stu.count}"\n`;
+            });
+            triggerDownload(csvContent, `Attendance_Pass_Report.csv`);
+        }
+
+        // 辅助下载功能
+        function triggerDownload(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
-            
-            const selectedDate = document.getElementById("dateFilter").value;
-            const fileName = selectedDate ? `Attendance_${selectedDate}.csv` : `Attendance_Recent7Days.csv`;
-            
             link.setAttribute("href", url);
-            link.setAttribute("download", fileName);
+            link.setAttribute("download", filename);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
