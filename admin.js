@@ -157,6 +157,7 @@ const dialogOverlay = document.getElementById('customDialog');
         let qrCodeInstance = null; 
 
         let isManageMode = false;
+        let hasPlayedAudio = false;
 
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById("statusBadge");
@@ -177,17 +178,22 @@ const dialogOverlay = document.getElementById('customDialog');
                         const now = new Date().getTime();
                         const distance = endTime - now;
                         if (distance <= 0) {
-                            // 时间到了
                             clearInterval(adminDisplayTimerInterval);
                             timeDisplay.innerText = "00:00";
-                            
-                            // 停止音乐
                             if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
                         } else {
-                            // 跳动数字
                             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                             timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+                            
+                            // 🌟 修复：最后 15 秒播放一半音量！
+                            if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
+                                if (audioPlayer) {
+                                    audioPlayer.volume = 0.5;
+                                    audioPlayer.play().catch(e => console.log("浏览器限制自动播放"));
+                                    hasPlayedAudio = true;
+                                }
+                            }
                         }
                     }, 1000);
                 }
@@ -196,7 +202,6 @@ const dialogOverlay = document.getElementById('customDialog');
                 badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
                 if (timerContainer) timerContainer.classList.add('hidden');
                 
-                // 手动关闭时也停止音乐
                 if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
             }
         });
@@ -216,13 +221,16 @@ const dialogOverlay = document.getElementById('customDialog');
                 }
                 dataToUpdate.currentPin = pinValue;
                 dataToUpdate.endTime = new Date().getTime() + 1 * 60 * 1000; 
+                hasPlayedAudio = false;
 
-                // 🌟 重点：老师一按开启，音乐马上全场播放！
+                // 🌟 骗过浏览器：点开启时瞬间播放又瞬间停止，解锁自动播放权限！
                 const audioPlayer = document.getElementById("tenseAudio");
                 if (audioPlayer) {
-                    audioPlayer.currentTime = 0; 
-                    audioPlayer.volume = 0.5; // 🌟 新增：设置音量为 50%
-                    audioPlayer.play().catch(e => console.log("播放失败，请确保你的浏览器允许声音播放"));
+                    audioPlayer.volume = 0.5; 
+                    audioPlayer.play().then(() => {
+                        audioPlayer.pause();
+                        audioPlayer.currentTime = 0;
+                    }).catch(e => {});
                 }
 
                 adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, 1 * 60 * 1000);
@@ -230,7 +238,6 @@ const dialogOverlay = document.getElementById('customDialog');
                 document.getElementById('adminPin').value = "";
                 dataToUpdate.endTime = 0;
                 
-                // 🌟 重点：老师一按关闭，音乐马上停止！
                 const audioPlayer = document.getElementById("tenseAudio");
                 if (audioPlayer) {
                     audioPlayer.pause();
@@ -411,7 +418,11 @@ const dialogOverlay = document.getElementById('customDialog');
             let randomLetters = '';
             for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
             currentQRUrl = `${baseUrl}?q=${randomLetters}`;
-            document.getElementById('qrUrlDisplay').innerText = currentQRUrl;
+            
+            // 🌟 修复：防止如果HTML没写这一行导致整个系统崩溃
+            const urlDisplay = document.getElementById('qrUrlDisplay');
+            if(urlDisplay) urlDisplay.innerText = currentQRUrl;
+            
             const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
             qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
         }

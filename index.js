@@ -62,7 +62,7 @@ const todayStr = new Date().toISOString().split('T')[0];
 const deviceLockKey = "checkedInTime_" + todayStr;
 let timerInterval = null;
 let hasAlertedCheat = false; 
-let hasPlayedAudio = false; // 用于控制只触发一次 play()
+let hasPlayedAudio = false;
 
 // 防止重复签到机制
 function isDeviceLocked() {
@@ -125,17 +125,8 @@ window.onload = function() {
 
             const endTime = doc.data().endTime; 
 
-            // 🌟 如果检测到时间重置（新的一轮），也把音乐标记归零
             if (endTime - new Date().getTime() > 10000) {
                 hasPlayedAudio = false;
-            }
-
-            // 🌟 只要通道开启，立刻尝试播放音乐！
-            if (!hasPlayedAudio && audioPlayer) {
-                audioPlayer.currentTime = 0;
-                audioPlayer.volume = 0.5; // 🌟 新增：设置音量为 50%
-                audioPlayer.play().catch(e => console.log("学生端自动播放音乐被浏览器拦截，这是正常安全机制。"));
-                hasPlayedAudio = true;
             }
 
             timerInterval = setInterval(() => {
@@ -147,7 +138,6 @@ window.onload = function() {
                     timeDisplay.innerText = "00:00";
                     form.classList.add('opacity-50', 'pointer-events-none');
                     
-                    // 倒计时结束停止音乐
                     if (audioPlayer) {
                         audioPlayer.pause();
                         audioPlayer.currentTime = 0;
@@ -156,6 +146,15 @@ window.onload = function() {
                     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                     timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+
+                    // 🌟 修复：最后 15 秒才播放一半音量的音乐！
+                    if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
+                        if (audioPlayer) {
+                            audioPlayer.volume = 0.5; // 50% 音量
+                            audioPlayer.play().catch(e => console.log("学生需要轻触屏幕后才能自动播放音效"));
+                            hasPlayedAudio = true;
+                        }
+                    }
                 }
             }, 1000);
 
@@ -176,7 +175,6 @@ window.onload = function() {
             if (timerContainer) timerContainer.classList.add('hidden'); 
             successMsg.classList.add('hidden'); 
             
-            // 通道关闭也停止音乐
             if (audioPlayer) {
                 audioPlayer.pause();
                 audioPlayer.currentTime = 0;
