@@ -36,7 +36,8 @@
 
     <div class="fixed inset-0 bg-black/40 z-0 pointer-events-none"></div>
 
-        <audio id="tenseAudio" src="bgm.mp3" preload="auto"></audio>
+    <audio id="tenseAudio" src="bgm.mp3" preload="auto"></audio>
+
     <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/40 transition-all duration-500">
         <div class="glass-login p-8 sm:p-10 rounded-[2rem] w-full max-w-[380px] relative overflow-hidden shadow-2xl modal-fade-in">
             <div class="text-center mb-8">
@@ -93,43 +94,15 @@
         </nav>
 
         <div class="max-w-6xl mx-auto p-4 sm:p-8 relative z-10">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="col-span-1 md:col-span-2 glass-card rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col justify-center">
-                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">考勤通道控制</h2>
-                    
-                    <div id="adminTimerContainer" class="hidden mb-4 bg-rose-50/80 border border-rose-100 rounded-xl p-4 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite] shadow-inner">
-                        <span class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1">
-                            <i class="fa-regular fa-clock mr-1"></i> 距离通道自动关闭还剩
-                        </span>
-                        <div class="text-4xl font-extrabold text-rose-600 font-mono tracking-wider" id="adminTimeDisplay">01:00</div>
+            
+            <div class="mb-8">
+                <div class="bg-gradient-to-br from-indigo-600/90 to-purple-700/90 backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-xl text-white flex flex-col sm:flex-row items-center justify-between relative overflow-hidden border border-white/20">
+                    <i class="fa-solid fa-users absolute -right-4 -bottom-4 text-8xl opacity-10"></i>
+                    <div class="mb-2 sm:mb-0 text-center sm:text-left">
+                        <h2 class="text-indigo-100 font-medium relative z-10 uppercase tracking-wider text-sm sm:text-lg">当前列表总人数</h2>
+                        <p class="text-xs text-indigo-300 mt-1">Total Attendance Count</p>
                     </div>
-
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5 bg-white/70 backdrop-blur-sm p-3.5 rounded-xl border border-white shadow-inner">
-                        <label for="adminPin" class="text-sm font-bold text-slate-700 whitespace-nowrap"><i class="fa-solid fa-key text-indigo-500 mr-1.5"></i> 本次签到 PIN 码:</label>
-                        <div class="flex items-center gap-3 w-full sm:w-auto">
-                            <input type="text" id="adminPin" placeholder="8274" maxlength="4"
-                                   class="bg-white border border-slate-200 text-slate-800 text-lg font-extrabold pin-tracking text-center rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-32 py-2.5 outline-none shadow-sm transition-all">
-                            <button onclick="document.getElementById('adminPin').value = Math.floor(1000 + Math.random() * 9000)" 
-                                    class="text-xs text-indigo-600 hover:text-indigo-800 underline cursor-pointer font-bold whitespace-nowrap">
-                                随机生成
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-3 sm:gap-4">
-                        <button onclick="changeStatus('Open')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 sm:py-4 px-4 rounded-xl shadow-lg shadow-emerald-500/30 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-play"></i> 开启签到
-                        </button>
-                        <button onclick="changeStatus('Closed')" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3.5 sm:py-4 px-4 rounded-xl shadow-lg shadow-rose-500/30 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-stop"></i> 关闭签到
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-br from-indigo-600/90 to-purple-700/90 backdrop-blur-md rounded-2xl p-6 shadow-xl text-white flex flex-col justify-center relative overflow-hidden border border-white/20">
-                    <i class="fa-solid fa-users absolute -right-6 -bottom-6 text-8xl opacity-10"></i>
-                    <h2 class="text-indigo-100 font-medium mb-1 relative z-10 uppercase tracking-wider text-sm">当前列表人数</h2>
-                    <div class="text-6xl font-extrabold relative z-10 flex items-baseline mt-2">
+                    <div class="text-6xl sm:text-7xl font-extrabold relative z-10 flex items-baseline">
                         <span id="studentCount" class="font-mono">0</span>
                         <span class="text-xl font-normal text-indigo-200 ml-2">人</span>
                     </div>
@@ -154,9 +127,10 @@
                         <i class="fa-solid fa-list-check"></i> 管理名单
                     </button>
 
-                    <button onclick="openQRModal()" class="flex-1 sm:flex-initial glass-card hover:bg-white text-purple-700 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-purple-200 active:scale-95">
-                        <i class="fa-solid fa-qrcode text-purple-500"></i> 二维码
+                    <button onclick="openQRModal()" class="flex-1 sm:flex-initial bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2 transition-all whitespace-nowrap border border-purple-500 active:scale-95">
+                        <i class="fa-solid fa-qrcode"></i> 大屏扫码与控制
                     </button>
+                    
                     <button onclick="openManualModal()" class="flex-1 sm:flex-initial glass-card hover:bg-white text-indigo-700 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-indigo-200 active:scale-95">
                         <i class="fa-solid fa-user-plus text-indigo-500"></i> 手动补签
                     </button>
@@ -189,21 +163,40 @@
         </div>
     </div>
 
-    <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden modal-fade-in">
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden modal-fade-in border border-white/20">
             <div class="bg-purple-600 p-5 text-white flex justify-between items-center">
-                <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-qrcode"></i> 签到专属二维码</h3>
+                <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-expand"></i> 签到大屏展示与控制</h3>
                 <button onclick="closeQRModal()" class="text-white/80 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="p-6 flex flex-col items-center bg-slate-50">
-                <p class="text-sm text-slate-500 text-center mb-4">每次点击都会生成带有 6 位随机字母的全新二维码。</p>
-                <div id="qrcode-box" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 min-h-[200px] flex items-center justify-center"></div>
-                <p id="qrUrlDisplay" class="text-xs text-slate-500 font-mono mt-3 break-all text-center bg-slate-200/50 px-3 py-1.5 rounded-lg border border-slate-200"></p>
-            </div>
-            <div class="p-5 border-t border-slate-100 bg-white flex justify-center gap-3">
-                <button onclick="generateNewQR()" class="w-full py-3 rounded-xl font-bold bg-purple-600 text-white hover:bg-purple-700 transition-all flex items-center justify-center gap-2 shadow-md shadow-purple-200 active:scale-95">
-                    <i class="fa-solid fa-rotate"></i> 生成新二维码
-                </button>
+            
+            <div class="p-6 bg-slate-50 flex flex-col items-center">
+                <div id="adminTimerContainer" class="hidden mb-4 w-full bg-rose-50 border border-rose-100 rounded-xl p-3 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite] shadow-inner">
+                    <span class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1"><i class="fa-regular fa-clock mr-1"></i> 距离通道自动关闭还剩</span>
+                    <div class="text-4xl font-extrabold text-rose-600 font-mono tracking-wider" id="adminTimeDisplay">01:00</div>
+                </div>
+
+                <div id="qrcode-box" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 min-h-[220px] flex items-center justify-center mb-2"></div>
+                <button onclick="generateNewQR()" class="text-xs text-purple-500 hover:text-purple-700 underline font-bold mb-5 flex items-center gap-1"><i class="fa-solid fa-rotate"></i> 刷新二维码图案</button>
+                
+                <div class="w-full space-y-3">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-white border border-slate-200 rounded-xl flex items-center px-3 py-2 w-full shadow-sm">
+                            <i class="fa-solid fa-key text-indigo-400 mr-2"></i>
+                            <input type="text" id="adminPin" placeholder="PIN 码" maxlength="4" class="bg-transparent text-slate-800 text-lg font-extrabold pin-tracking outline-none w-full">
+                        </div>
+                        <button onclick="document.getElementById('adminPin').value = Math.floor(1000 + Math.random() * 9000)" class="px-4 py-3 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold rounded-xl transition-colors whitespace-nowrap"><i class="fa-solid fa-dice"></i></button>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="changeStatus('Open')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> 开启签到
+                        </button>
+                        <button onclick="changeStatus('Closed')" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-stop"></i> 手动关闭
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

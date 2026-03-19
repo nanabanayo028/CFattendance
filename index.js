@@ -62,7 +62,7 @@ const todayStr = new Date().toISOString().split('T')[0];
 const deviceLockKey = "checkedInTime_" + todayStr;
 let timerInterval = null;
 let hasAlertedCheat = false; 
-let hasPlayedAudio = false; // 音乐播放控制
+let hasPlayedAudio = false; // 用于控制只触发一次 play()
 
 // 防止重复签到机制
 function isDeviceLocked() {
@@ -70,7 +70,7 @@ function isDeviceLocked() {
     if (!savedTime) return false; 
     const currentTime = new Date().getTime();
     const timeDifference = currentTime - parseInt(savedTime);
-    if (timeDifference < 300000) { // 5分钟
+    if (timeDifference < 300000) { 
         return true; 
     } else {
         localStorage.removeItem(deviceLockKey);
@@ -84,7 +84,6 @@ window.onload = function() {
     const mainParam = searchString.split('&')[0]; 
     const authCode = mainParam.split('=')[1]; 
 
-    // 检查网址后缀是否合法
     if (!authCode || authCode.length !== 6) {
         if (timerInterval) clearInterval(timerInterval);
         document.getElementById('checkInForm').classList.add('hidden');
@@ -101,7 +100,6 @@ window.onload = function() {
         return; 
     }
 
-    // 开始实时监听通道状态
     db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
         const badge = document.getElementById('statusBadge');
         const form = document.getElementById('checkInForm');
@@ -127,9 +125,17 @@ window.onload = function() {
 
             const endTime = doc.data().endTime; 
 
-            // 如果重新开启了倒计时，重置音乐状态
+            // 🌟 如果检测到时间重置（新的一轮），也把音乐标记归零
             if (endTime - new Date().getTime() > 10000) {
                 hasPlayedAudio = false;
+            }
+
+            // 🌟 只要通道开启，立刻尝试播放音乐！
+            if (!hasPlayedAudio && audioPlayer) {
+                audioPlayer.currentTime = 0;
+                audioPlayer.volume = 0.5; // 🌟 新增：设置音量为 50%
+                audioPlayer.play().catch(e => console.log("学生端自动播放音乐被浏览器拦截，这是正常安全机制。"));
+                hasPlayedAudio = true;
             }
 
             timerInterval = setInterval(() => {
@@ -137,28 +143,19 @@ window.onload = function() {
                 const distance = endTime - now;
 
                 if (distance <= 0) {
-                    // 时间到
                     clearInterval(timerInterval);
                     timeDisplay.innerText = "00:00";
                     form.classList.add('opacity-50', 'pointer-events-none');
-                    // 停止音乐
+                    
+                    // 倒计时结束停止音乐
                     if (audioPlayer) {
                         audioPlayer.pause();
                         audioPlayer.currentTime = 0;
                     }
                 } else {
-                    // 时间跳动
                     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                     timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-
-                    // 🌟 最后 10 秒播放音乐
-                    if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
-                        if (audioPlayer) {
-                            audioPlayer.play().catch(e => console.log("学生需要轻触屏幕后才能自动播放音效"));
-                            hasPlayedAudio = true;
-                        }
-                    }
                 }
             }, 1000);
 
@@ -171,7 +168,6 @@ window.onload = function() {
             successMsg.classList.add('hidden');
 
         } else {
-            // 通道关闭状态
             badge.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Waiting for access...';
             badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-amber-100 text-amber-600 shadow-sm border border-amber-200";
             
@@ -180,7 +176,7 @@ window.onload = function() {
             if (timerContainer) timerContainer.classList.add('hidden'); 
             successMsg.classList.add('hidden'); 
             
-            // 确保音乐停止
+            // 通道关闭也停止音乐
             if (audioPlayer) {
                 audioPlayer.pause();
                 audioPlayer.currentTime = 0;

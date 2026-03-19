@@ -1,5 +1,4 @@
-    
-        const dialogOverlay = document.getElementById('customDialog');
+const dialogOverlay = document.getElementById('customDialog');
         const dialogBox = document.getElementById('customDialogBox');
 
         function openDialog(config) {
@@ -157,9 +156,7 @@
         let currentManualDate = ""; 
         let qrCodeInstance = null; 
 
-        // 🌟 新增变量
         let isManageMode = false;
-        let hasPlayedAudio = false;
 
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById("statusBadge");
@@ -180,23 +177,17 @@
                         const now = new Date().getTime();
                         const distance = endTime - now;
                         if (distance <= 0) {
+                            // 时间到了
                             clearInterval(adminDisplayTimerInterval);
                             timeDisplay.innerText = "00:00";
                             
                             // 停止音乐
                             if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
                         } else {
+                            // 跳动数字
                             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                             timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-                            
-                            // 🌟 最后 10 秒播放音乐
-                            if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
-                                if (audioPlayer) {
-                                    audioPlayer.play().catch(e => console.log("浏览器限制自动播放"));
-                                    hasPlayedAudio = true;
-                                }
-                            }
                         }
                     }, 1000);
                 }
@@ -205,7 +196,7 @@
                 badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
                 if (timerContainer) timerContainer.classList.add('hidden');
                 
-                // 通道关闭时停止音乐
+                // 手动关闭时也停止音乐
                 if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
             }
         });
@@ -224,15 +215,27 @@
                     return;
                 }
                 dataToUpdate.currentPin = pinValue;
-                
-                // 🌟 改为 1 分钟 (1 * 60 * 1000)
                 dataToUpdate.endTime = new Date().getTime() + 1 * 60 * 1000; 
-                hasPlayedAudio = false; // 每次新开通道重置音乐状态
+
+                // 🌟 重点：老师一按开启，音乐马上全场播放！
+                const audioPlayer = document.getElementById("tenseAudio");
+                if (audioPlayer) {
+                    audioPlayer.currentTime = 0; 
+                    audioPlayer.volume = 0.5; // 🌟 新增：设置音量为 50%
+                    audioPlayer.play().catch(e => console.log("播放失败，请确保你的浏览器允许声音播放"));
+                }
 
                 adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, 1 * 60 * 1000);
             } else {
                 document.getElementById('adminPin').value = "";
                 dataToUpdate.endTime = 0;
+                
+                // 🌟 重点：老师一按关闭，音乐马上停止！
+                const audioPlayer = document.getElementById("tenseAudio");
+                if (audioPlayer) {
+                    audioPlayer.pause();
+                    audioPlayer.currentTime = 0; 
+                }
             }
 
             db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
@@ -273,7 +276,6 @@
 
         function clearDateFilter() { datePicker.clear(); handleDateSelection(); }
 
-        // 🌟 新增：切换管理模式
         function toggleManageMode() {
             const selectedDate = document.getElementById("dateFilter").value;
             if (!selectedDate || allRecords.length === 0) {
@@ -299,13 +301,11 @@
             renderTable();
         }
 
-        // 🌟 新增：全选复选框
         function toggleAllCheckboxes(source) {
             const checkboxes = document.querySelectorAll('.row-checkbox');
             checkboxes.forEach(cb => cb.checked = source.checked);
         }
 
-        // 🌟 更新渲染表格 (加入管理模式)
         function renderTable() {
             const list = document.getElementById("attendanceList");
             const thead = document.getElementById("tableHeader");
@@ -362,7 +362,6 @@
             list.innerHTML = htmlContent;
         }
 
-        // 🌟 新增：编辑学生姓名 (因为学号是主键，所以只改名字)
         function editRecordName(studentId, currentName) {
             const selectedDate = document.getElementById("dateFilter").value;
             const newName = prompt(`正在修改Student ID ${studentId} 的资料\n请输入新的学生姓名：`, currentName);
@@ -378,7 +377,6 @@
             }
         }
 
-        // 🌟 新增：批量删除记录
         function deleteSelectedRecords() {
             const selectedDate = document.getElementById("dateFilter").value;
             const checkboxes = document.querySelectorAll('.row-checkbox:checked');
