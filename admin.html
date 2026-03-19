@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">    
-    
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">  
+
     <style>
         .glass-card {
             background: rgba(255, 255, 255, 0.88);
@@ -36,7 +36,9 @@
 
     <div class="fixed inset-0 bg-black/40 z-0 pointer-events-none"></div>
 
-    <div id="loginScreen" class="fixed inset-0 z-40 flex items-center justify-center p-4 backdrop-blur-md bg-black/40 transition-all duration-500">
+    <audio id="tenseAudio" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
+
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/40 transition-all duration-500">
         <div class="glass-login p-8 sm:p-10 rounded-[2rem] w-full max-w-[380px] relative overflow-hidden shadow-2xl modal-fade-in">
             <div class="text-center mb-8">
                 <img src="CF_LOGO.webp" alt="CF Logo" class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-4 border-white/80 shadow-lg">
@@ -74,7 +76,7 @@
     </div>
 
     <div id="adminDashboard" class="hidden opacity-0 transition-opacity duration-500">
-        <nav class="sticky top-0 z-30 bg-indigo-900/80 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3 sm:py-4 flex justify-between items-center shadow-xl">
+        <nav class="sticky top-0 z-40 bg-indigo-900/80 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3 sm:py-4 flex justify-between items-center shadow-xl">
             <div class="flex items-center gap-3 sm:gap-4">
                 <img src="CF_LOGO.webp" alt="CF Logo" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white/80 shadow-sm">
                 <div>
@@ -94,13 +96,13 @@
         <div class="max-w-6xl mx-auto p-4 sm:p-8 relative z-10">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="col-span-1 md:col-span-2 glass-card rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col justify-center">
-                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Attendance Control</h2>
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">考勤通道控制</h2>
                     
                     <div id="adminTimerContainer" class="hidden mb-4 bg-rose-50/80 border border-rose-100 rounded-xl p-4 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite] shadow-inner">
                         <span class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1">
                             <i class="fa-regular fa-clock mr-1"></i> 距离通道自动关闭还剩
                         </span>
-                        <div class="text-4xl font-extrabold text-rose-600 font-mono tracking-wider" id="adminTimeDisplay">02:00</div>
+                        <div class="text-4xl font-extrabold text-rose-600 font-mono tracking-wider" id="adminTimeDisplay">01:00</div>
                     </div>
 
                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5 bg-white/70 backdrop-blur-sm p-3.5 rounded-xl border border-white shadow-inner">
@@ -146,6 +148,13 @@
                 </div>
                 
                 <div class="flex flex-wrap sm:flex-nowrap gap-3 w-full md:w-auto">
+                    <button onclick="deleteSelectedRecords()" id="deleteSelectedBtn" class="hidden flex-1 sm:flex-initial glass-card hover:bg-rose-50 text-rose-600 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-rose-200 active:scale-95">
+                        <i class="fa-solid fa-trash-can"></i> 删除所选
+                    </button>
+                    <button onclick="toggleManageMode()" id="manageBtn" class="flex-1 sm:flex-initial glass-card hover:bg-white text-blue-700 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-blue-200 active:scale-95">
+                        <i class="fa-solid fa-list-check"></i> 管理名单
+                    </button>
+
                     <button onclick="openQRModal()" class="flex-1 sm:flex-initial glass-card hover:bg-white text-purple-700 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-purple-200 active:scale-95">
                         <i class="fa-solid fa-qrcode text-purple-500"></i> 二维码
                     </button>
@@ -164,7 +173,7 @@
             <div class="glass-card rounded-2xl shadow-xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
-                        <thead>
+                        <thead id="tableHeader">
                             <tr class="bg-white/50 text-slate-600 text-xs uppercase tracking-wider border-b border-white/50">
                                 <th class="p-4 font-bold pl-6 sm:pl-8">Date</th>
                                 <th class="p-4 font-bold">Time</th>
@@ -260,538 +269,12 @@
             </div>
         </div>
     </div>
-
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"> </script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
-    <script>
-        // ==========================================
-        // 🌟 1. 高级弹窗系统引擎 (完全替代系统 Alert/Confirm)
-        // ==========================================
-        const dialogOverlay = document.getElementById('customDialog');
-        const dialogBox = document.getElementById('customDialogBox');
 
-        function openDialog(config) {
-            const iconDiv = document.getElementById('dialogIcon');
-            const titleDiv = document.getElementById('dialogTitle');
-            const msgDiv = document.getElementById('dialogMessage');
-            const btnDiv = document.getElementById('dialogButtons');
-
-            titleDiv.innerText = config.title || '系统提示';
-            msgDiv.innerText = config.message || '';
-
-            // 根据类型更换图标和颜色
-            if(config.type === 'success') {
-                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-green-100 text-green-500";
-                iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
-            } else if(config.type === 'warning' || config.type === 'confirm') {
-                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-amber-100 text-amber-500";
-                iconDiv.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
-            } else if(config.type === 'error') {
-                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-rose-100 text-rose-500";
-                iconDiv.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-            } else {
-                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-indigo-100 text-indigo-500";
-                iconDiv.innerHTML = '<i class="fa-solid fa-info"></i>';
-            }
-
-            btnDiv.innerHTML = '';
-            if(config.type === 'confirm') {
-                // 如果是需要选择的 Confirm 弹窗
-                const cancelBtn = document.createElement('button');
-                cancelBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors";
-                cancelBtn.innerText = "取消";
-                cancelBtn.onclick = closeDialog;
-                btnDiv.appendChild(cancelBtn);
-
-                const confirmBtn = document.createElement('button');
-                confirmBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
-                confirmBtn.innerText = "确定";
-                confirmBtn.onclick = () => {
-                    closeDialog();
-                    if(config.onConfirm) config.onConfirm();
-                };
-                btnDiv.appendChild(confirmBtn);
-            } else {
-                // 如果是普通的 Alert 提示
-                const okBtn = document.createElement('button');
-                okBtn.className = "w-full py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
-                okBtn.innerText = "我知道了";
-                okBtn.onclick = closeDialog;
-                btnDiv.appendChild(okBtn);
-            }
-
-            dialogOverlay.classList.remove('hidden');
-            setTimeout(() => {
-                dialogOverlay.classList.remove('opacity-0');
-                dialogBox.classList.remove('scale-95');
-            }, 10);
-        }
-
-        function closeDialog() {
-            dialogOverlay.classList.add('opacity-0');
-            dialogBox.classList.add('scale-95');
-            setTimeout(() => { dialogOverlay.classList.add('hidden'); }, 300);
-        }
-
-        // 简易调用包装器
-        window.customAlert = function(msg, type='info', title='系统提示') {
-            openDialog({message: msg, type: type, title: title});
-        };
-        window.customConfirm = function(msg, onConfirm, title='确认操作') {
-            openDialog({message: msg, type: 'confirm', title: title, onConfirm: onConfirm});
-        };
-
-
-        // ==========================================
-        // 🌟 2. 登录系统与闲置挂机控制
-        // ==========================================
-        const ADMIN_CREDENTIALS = {
-            id: "admin",       
-            password: "UTSCF2026"  
-        };
-
-        const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15分钟自动登出
-        let idleTimer = null;
-
-        function startIdleTimer() {
-            if (idleTimer) clearTimeout(idleTimer);
-            idleTimer = setTimeout(() => {
-                if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                    sessionStorage.removeItem('isLoggedIn');
-                    hideDashboard();
-                    customAlert("由于您长时间未操作，出于安全考虑，系统已自动登出。", "warning", "自动登出提示");
-                }
-            }, IDLE_TIMEOUT_MS);
-        }
-
-        function stopIdleTimer() {
-            if (idleTimer) clearTimeout(idleTimer);
-        }
-
-        function resetTimerOnAction() {
-            if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                startIdleTimer();
-            }
-        }
-
-        document.addEventListener('mousemove', resetTimerOnAction);
-        document.addEventListener('keydown', resetTimerOnAction);
-        document.addEventListener('click', resetTimerOnAction);
-        document.addEventListener('scroll', resetTimerOnAction);
-
-        function checkAuthStatus() {
-            if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                showDashboard();
-                startIdleTimer();
-            }
-        }
-
-        function handleLogin() {
-            const enteredId = document.getElementById('adminUserId').value.trim().toUpperCase();
-            const enteredPass = document.getElementById('adminPassword').value.trim();
-            const errorMsg = document.getElementById('loginError');
-            const btn = document.getElementById('loginBtn');
-
-            if (enteredId === ADMIN_CREDENTIALS.id.toUpperCase() && enteredPass === ADMIN_CREDENTIALS.password) {
-                errorMsg.classList.add('hidden');
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
-                
-                setTimeout(() => {
-                    sessionStorage.setItem('isLoggedIn', 'true');
-                    showDashboard();
-                    startIdleTimer(); 
-                    btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Secure Login';
-                    document.getElementById('adminUserId').value = "";
-                    document.getElementById('adminPassword').value = "";
-                }, 500); 
-            } else {
-                errorMsg.classList.remove('hidden');
-                const loginBox = document.querySelector('.glass-login');
-                loginBox.classList.add('animate-[pulse_0.2s_ease-in-out_2]');
-                setTimeout(() => loginBox.classList.remove('animate-[pulse_0.2s_ease-in-out_2]'), 400);
-            }
-        }
-
-        function handleLogout() {
-            customConfirm("您确定要退出 Admin 控制台吗？", () => {
-                sessionStorage.removeItem('isLoggedIn');
-                stopIdleTimer(); 
-                hideDashboard();
-            }, "退出登录");
-        }
-
-        function showDashboard() {
-            document.getElementById('loginScreen').classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                document.getElementById('loginScreen').classList.add('hidden');
-                const dash = document.getElementById('adminDashboard');
-                dash.classList.remove('hidden');
-                setTimeout(() => dash.classList.remove('opacity-0'), 50);
-            }, 500);
-        }
-
-        function hideDashboard() {
-            document.getElementById('adminDashboard').classList.add('opacity-0');
-            setTimeout(() => {
-                document.getElementById('adminDashboard').classList.add('hidden');
-                const login = document.getElementById('loginScreen');
-                login.classList.remove('hidden');
-                setTimeout(() => login.classList.remove('opacity-0', 'pointer-events-none'), 50);
-            }, 500);
-        }
-
-        window.onload = checkAuthStatus;
-
-        document.getElementById("adminPassword").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                handleLogin();
-            }
-        });
-
-        // ==========================================
-        // 🌟 3. Firebase 与后台业务逻辑 (已补齐全)
-        // ==========================================
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
-            authDomain: "attendance-a7ac5.firebaseapp.com",
-            projectId: "attendance-a7ac5",
-            storageBucket: "attendance-a7ac5.firebasestorage.app",
-            messagingSenderId: "179755027767",
-            appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        const datePicker = flatpickr("#dateFilter", {
-            dateFormat: "Y-m-d", 
-            disableMobile: true, 
-            onChange: function(selectedDates, dateStr, instance) {
-                handleDateSelection(); 
-            }
-        });
-
-        let allRecords = []; 
-        let activeListeners = []; 
-        let adminAutoCloseTimer = null; 
-        let adminDisplayTimerInterval = null;
-        let globalPassedStudents = []; 
-        let currentManualDate = ""; 
-        let qrCodeInstance = null; 
-
-        // 监听通道状态
-        db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
-            const badge = document.getElementById("statusBadge");
-            const timerContainer = document.getElementById("adminTimerContainer");
-            const timeDisplay = document.getElementById("adminTimeDisplay");
-
-            if (adminDisplayTimerInterval) clearInterval(adminDisplayTimerInterval);
-
-            if (doc.exists && doc.data().status === "Open") {
-                badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] rounded-full"></i> <span class="hidden sm:inline">正在允许签到 (Open)</span><span class="sm:hidden">Open</span>';
-                badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
-                
-                const endTime = doc.data().endTime;
-                if (endTime) {
-                    timerContainer.classList.remove('hidden');
-                    adminDisplayTimerInterval = setInterval(() => {
-                        const now = new Date().getTime();
-                        const distance = endTime - now;
-                        if (distance <= 0) {
-                            clearInterval(adminDisplayTimerInterval);
-                            timeDisplay.innerText = "00:00";
-                        } else {
-                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                            timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-                        }
-                    }, 1000);
-                }
-            } else {
-                badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)] rounded-full"></i> <span class="hidden sm:inline">签到已关闭 (Closed)</span><span class="sm:hidden">Closed</span>';
-                badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
-                if (timerContainer) timerContainer.classList.add('hidden');
-            }
-        });
-
-        // 开启/关闭控制
-        function changeStatus(newStatus) {
-            let pinValue = "";
-            let dataToUpdate = { status: newStatus };
-
-            if (adminAutoCloseTimer) {
-                clearTimeout(adminAutoCloseTimer);
-                adminAutoCloseTimer = null;
-            }
-
-            if (newStatus === "Open") {
-                pinValue = document.getElementById('adminPin').value.trim();
-                if (pinValue === "") {
-                    customAlert("请先在左侧输入框填写 4 位数的 PIN 码，然后再开启签到！", "warning", "缺少 PIN 码");
-                    document.getElementById('adminPin').focus();
-                    return;
-                }
-                dataToUpdate.currentPin = pinValue;
-                dataToUpdate.endTime = new Date().getTime() + 2 * 60 * 1000; 
-
-                adminAutoCloseTimer = setTimeout(() => {
-                    changeStatus('Closed'); 
-                }, 2 * 60 * 1000);
-            } else {
-                document.getElementById('adminPin').value = "";
-                dataToUpdate.endTime = 0;
-            }
-
-            db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
-            .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
-        }
-
-        // 加载表格数据
-        function loadDataForDates(dateArray) {
-            activeListeners.forEach(unsub => unsub());
-            activeListeners = [];
-            allRecords = []; 
-            renderTable(); 
-
-            if (dateArray.length === 0) return;
-
-            dateArray.forEach((dateString) => {
-                const unsub = db.collection("Attendance")
-                  .doc(dateString)
-                  .collection("Students")
-                  .orderBy("timestamp", "desc")
-                  .onSnapshot((studentSnapshot) => {
-                      allRecords = allRecords.filter(r => r.dateString !== dateString);
-                      studentSnapshot.forEach((studentDoc) => {
-                          const data = studentDoc.data();
-                          if (data.timestamp) {
-                              const jsDate = data.timestamp.toDate();
-                              allRecords.push({
-                                  studentId: data.studentId,
-                                  studentName: data.studentName,
-                                  fullDateObj: jsDate, 
-                                  dateString: dateString, 
-                                  timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
-                              });
-                          }
-                      });
-                      allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
-                      renderTable(); 
-                  });
-                activeListeners.push(unsub);
-            });
-        }
-
-        function handleDateSelection() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (selectedDate) {
-                loadDataForDates([selectedDate]); 
-            } else {
-                loadDataForDates([]); 
-            }
-        }
-
-        function clearDateFilter() {
-            datePicker.clear(); 
-            handleDateSelection(); 
-        }
-
-        function renderTable() {
-            const list = document.getElementById("attendanceList");
-            const selectedDate = document.getElementById("dateFilter").value;
-            document.getElementById("studentCount").innerText = allRecords.length;
-
-            if (!selectedDate) {
-                list.innerHTML = '<tr><td colspan="4" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>';
-                return;
-            }
-
-            if (allRecords.length === 0) {
-                list.innerHTML = '<tr><td colspan="4" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-400"></i>该日期暂无签到记录</td></tr>';
-                return;
-            }
-
-            let htmlContent = "";
-            allRecords.forEach(record => {
-                htmlContent += `
-                    <tr class="hover:bg-white/40 transition duration-150 border-b border-white/20 last:border-0">
-                        <td class="p-4 pl-6 sm:pl-8 text-slate-700 font-medium">${record.dateString}</td>
-                        <td class="p-4 text-slate-600 font-mono"><span class="bg-white/60 shadow-sm border border-white px-2 py-1 rounded text-xs">${record.timeString}</span></td>
-                        <td class="p-4 font-bold text-indigo-700">${record.studentId}</td>
-                        <td class="p-4 text-slate-800 font-medium">${record.studentName}</td>
-                    </tr>
-                `;
-            });
-            list.innerHTML = htmlContent;
-        }
-
-        // 生成二维码
-        function openQRModal() {
-            document.getElementById('qrModal').classList.remove('hidden');
-            if (!currentQRUrl) {
-                generateNewQR(); 
-            }
-        }
-
-        function closeQRModal() {
-            document.getElementById('qrModal').classList.add('hidden');
-        }
-
-        function generateNewQR() {
-            const baseUrl = "https://nanabanayo028.github.io/CFattendance/index.html"; 
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-            let randomLetters = '';
-            for (let i = 0; i < 6; i++) {
-                randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            
-            currentQRUrl = `${baseUrl}?q=${randomLetters}`;
-            document.getElementById('qrUrlDisplay').innerText = currentQRUrl;
-
-            const box = document.getElementById("qrcode-box");
-            box.innerHTML = ""; 
-
-            qrCodeInstance = new QRCode(box, {
-                text: currentQRUrl,
-                width: 220,
-                height: 220,
-                colorDark : "#0f172a", 
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H 
-            });
-        }
-
-        // 手动补签模块
-        function openManualModal() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate) {
-                // 高级弹窗
-                customAlert("请先在日历中选择你要进行补签的【日期】！", "warning", "提示");
-                return;
-            }
-            currentManualDate = selectedDate;
-            document.getElementById('modalDateDisplay').innerText = selectedDate;
-            document.getElementById('manualStuId').value = "";
-            document.getElementById('manualStuName').value = "";
-            document.getElementById('manualCheckInModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('manualStuId').focus(), 100);
-        }
-
-        function closeManualModal() {
-            document.getElementById('manualCheckInModal').classList.add('hidden');
-        }
-
-        function submitManualCheckIn() {
-            const stuId = document.getElementById('manualStuId').value.trim().toUpperCase();
-            const stuName = document.getElementById('manualStuName').value.trim().toUpperCase();
-            
-            if (!stuId || !stuName) {
-                // 高级弹窗
-                customAlert("STUDENT ID 和 NAME 都不能为空！", "warning", "信息不完整");
-                return;
-            }
-            
-            const btn = document.getElementById('submitManualBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...';
-            btn.disabled = true;
-            
-            db.collection("Attendance").doc(currentManualDate).collection("Students").doc(stuId).set({
-                  studentId: stuId, studentName: stuName, timestamp: new Date() 
-            }).then(() => {
-                  // 高级成功弹窗
-                  customAlert(`成功补签！\n学生 ${stuName} 已加入 ${currentManualDate} 的名单。`, "success", "补签成功");
-                  closeManualModal();
-                  btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加';
-                  btn.disabled = false;
-            }).catch(error => {
-                  // 高级错误弹窗
-                  customAlert("补签失败: " + error.message, "error", "操作异常");
-                  btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加';
-                  btn.disabled = false;
-            });
-        }
-
-        // 达标报表
-        function openReportModal() {
-            document.getElementById('reportModal').classList.remove('hidden');
-            document.getElementById('reportLoading').classList.remove('hidden');
-            document.getElementById('reportEmpty').classList.add('hidden');
-            document.getElementById('reportList').classList.add('hidden');
-            document.getElementById('downloadReportBtn').disabled = true;
-
-            db.collectionGroup("Students").get().then((snapshot) => {
-                let attendanceCount = {}; 
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const id = data.studentId;
-                    if (!attendanceCount[id]) { attendanceCount[id] = { id: id, name: data.studentName, count: 0 }; }
-                    attendanceCount[id].count++;
-                });
-                globalPassedStudents = Object.values(attendanceCount).filter(student => student.count >= 4).sort((a, b) => b.count - a.count);
-                document.getElementById('reportLoading').classList.add('hidden');
-                if (globalPassedStudents.length === 0) {
-                    document.getElementById('reportEmpty').classList.remove('hidden');
-                } else {
-                    let listHtml = "";
-                    globalPassedStudents.forEach(stu => {
-                        listHtml += `
-                        <li class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
-                            <div>
-                                <div class="font-bold text-slate-800 text-base sm:text-lg">${stu.name}</div>
-                                <div class="text-xs sm:text-sm text-slate-500 font-mono">${stu.id}</div>
-                            </div>
-                            <div class="bg-amber-100 text-amber-700 px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg font-bold text-sm sm:text-base">${stu.count} 次</div>
-                        </li>`;
-                    });
-                    document.getElementById('reportList').innerHTML = listHtml;
-                    document.getElementById('reportList').classList.remove('hidden');
-                    document.getElementById('downloadReportBtn').disabled = false; 
-                }
-            }).catch(error => {
-                // 高级错误弹窗
-                customAlert("统计失败: " + error.message, "error", "系统异常");
-                closeReportModal();
-            });
-        }
-
-        function closeReportModal() { 
-            document.getElementById('reportModal').classList.add('hidden'); 
-        }
-
-        // 导出表格
-        function exportToExcel() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate) { 
-                customAlert("请先在上方日历中选择要导出的日期！", "warning", "操作提示"); 
-                return; 
-            }
-            if (allRecords.length === 0) { 
-                customAlert(`日期 ${selectedDate} 没有可导出的签到数据！`, "warning", "空数据"); 
-                return; 
-            }
-            let csvContent = "\uFEFF日期 (Date),时间 (Time),学号 (Student ID),姓名 (Name)\n"; 
-            allRecords.forEach(record => { csvContent += `"${record.dateString}","${record.timeString}","${record.studentId}","${record.studentName}"\n`; });
-            triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);
-        }
-
-        function exportReportToExcel() {
-            let csvContent = "\uFEFF学号 (Student ID),姓名 (Name),总出勤次数 (Total Attendance)\n"; 
-            globalPassedStudents.forEach(stu => { csvContent += `"${stu.id}","${stu.name}","${stu.count}"\n`; });
-            triggerDownload(csvContent, `Attendance_Pass_Report.csv`);
-        }
-
-        function triggerDownload(content, filename) {
-            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url); link.setAttribute("download", filename);
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
-    </script>
+    <script src="admin.js"></script>
 </body>
 </html>
