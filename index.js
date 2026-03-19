@@ -153,7 +153,7 @@ window.onload = function() {
                     timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
 
                     // 🌟 最后 10 秒播放音乐
-                    if (distance <= 10000 && distance > 0 && !hasPlayedAudio) {
+                    if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
                         if (audioPlayer) {
                             audioPlayer.play().catch(e => console.log("学生需要轻触屏幕后才能自动播放音效"));
                             hasPlayedAudio = true;

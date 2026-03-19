@@ -191,7 +191,7 @@
                             timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
                             
                             // 🌟 最后 10 秒播放音乐
-                            if (distance <= 10000 && distance > 0 && !hasPlayedAudio) {
+                            if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
                                 if (audioPlayer) {
                                     audioPlayer.play().catch(e => console.log("浏览器限制自动播放"));
                                     hasPlayedAudio = true;
