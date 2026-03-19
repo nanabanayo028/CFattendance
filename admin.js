@@ -1,4 +1,4 @@
-        const dialogOverlay = document.getElementById('customDialog');
+const dialogOverlay = document.getElementById('customDialog');
         const dialogBox = document.getElementById('customDialogBox');
 
         function openDialog(config) {
@@ -76,7 +76,6 @@
 
         window.customAlert = function(msg, type='info', title='系统提示') { openDialog({message: msg, type: type, title: title}); };
         window.customConfirm = function(msg, onConfirm, title='确认操作') { openDialog({message: msg, type: 'confirm', title: title, onConfirm: onConfirm}); };
-        // 🌟 定义高级输入弹窗
         window.customPrompt = function(msg, defaultValue, onConfirm, title='编辑内容') { openDialog({message: msg, type: 'prompt', defaultValue: defaultValue, title: title, onConfirm: onConfirm}); };
 
         const ADMIN_CREDENTIALS = { id: "admin", password: "UTSCF2026" };
@@ -128,7 +127,6 @@
         }
 
         function handleLogout() {
-            // 🌟 使用美化版的 Confirm 弹窗！不再是难看的原生提示了
             customConfirm("您确定要退出 Admin 控制台吗？", () => {
                 sessionStorage.removeItem('isLoggedIn');
                 stopIdleTimer(); hideDashboard();
@@ -209,7 +207,6 @@
                             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                             timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
                             
-                            // 🌟 修复：最后 15 秒播放一半音量！
                             if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
                                 if (audioPlayer) {
                                     audioPlayer.volume = 0.5;
@@ -246,7 +243,6 @@
                 dataToUpdate.endTime = new Date().getTime() + 1 * 60 * 1000; 
                 hasPlayedAudio = false;
 
-                // 🌟 骗过浏览器：点开启时瞬间播放又瞬间停止，解锁自动播放权限！
                 const audioPlayer = document.getElementById("tenseAudio");
                 if (audioPlayer) {
                     audioPlayer.volume = 0.5; 
@@ -392,10 +388,10 @@
             list.innerHTML = htmlContent;
         }
 
+        // 🌟 重点修复：这里已经换成漂亮的高级输入弹窗啦！
         function editRecordName(studentId, currentName) {
             const selectedDate = document.getElementById("dateFilter").value;
             
-            // 🌟 换成高颜值弹窗输入！
             customPrompt(`正在修改 Student ID ${studentId} 的资料\n请输入新的学生姓名：`, currentName, (newName) => {
                 if (newName !== null && newName.trim() !== "" && newName.trim() !== currentName) {
                     db.collection("Attendance").doc(selectedDate).collection("Students").doc(studentId).update({
@@ -444,7 +440,6 @@
             for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
             currentQRUrl = `${baseUrl}?q=${randomLetters}`;
             
-            // 🌟 修复：防止如果HTML没写这一行导致整个系统崩溃
             const urlDisplay = document.getElementById('qrUrlDisplay');
             if(urlDisplay) urlDisplay.innerText = currentQRUrl;
             
