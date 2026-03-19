@@ -14,6 +14,11 @@
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
         }
+        /* 🌟 高级发光文字，在暗色照片上依然清晰无比 */
+        .text-glow-dark {
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7), 0 1px 2px rgba(0, 0, 0, 0.9);
+        }
         /* 自定义弹窗动画 */
         .modal-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
@@ -69,11 +74,11 @@
         </div>
 
         <div id="successMessage" class="hidden text-center py-6 animate-[fadeIn_0.5s_ease-out]">
-            <div class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-sm">
+            <div class="w-20 h-20 bg-gradient-to-tr from-emerald-400 to-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-[0_0_20px_rgba(52,211,153,0.6)] border-2 border-white/50">
                 <i class="fa-solid fa-check"></i>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Attendance Submitted</h2>
-            <p id="successDesc" class="text-gray-500 text-sm mt-2">You can now close this page.</p>
+            <h2 class="text-2xl font-extrabold mb-2 text-glow-dark">Attendance Submitted</h2>
+            <p id="successDesc" class="text-sm mt-2 font-medium text-glow-dark opacity-90">You can now close this page.</p>
         </div>
     </div>
 

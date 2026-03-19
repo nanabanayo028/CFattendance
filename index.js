@@ -118,8 +118,6 @@ window.onload = function() {
                 if (timerContainer) timerContainer.classList.add('hidden');
                 successMsg.classList.remove('hidden');
                 document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
-                document.getElementById('successDesc').style.color = 'black';
-                document.getElementById('successDesc').style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
                 return; 
             }
 
@@ -234,8 +232,6 @@ function submitCheckIn() {
                 document.getElementById('statusBadge').classList.add('hidden');
                 document.getElementById('successMessage').classList.remove('hidden');
                 document.getElementById('successDesc').innerText = "Attendance Submitted Successfully!";
-                document.getElementById('successDesc').style.color = 'black';
-                document.getElementById('successDesc').style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
             })
             .catch((error) => {
                 customAlert("提交失败: " + error.message, "error", "网络异常");
