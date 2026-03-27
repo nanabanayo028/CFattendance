@@ -53,17 +53,23 @@
 
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-regular fa-id-card text-gray-500 text-sm"></i></div>
-                <input type="text" id="studentId" placeholder="STUDENT ID" class="w-full pl-9 pr-3 py-2.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-gray-800 font-bold placeholder-gray-400 uppercase shadow-sm">
+                <input type="text" id="studentId" placeholder="STUDENT ID" 
+                       oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();"
+                       class="w-full pl-9 pr-3 py-2.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-gray-800 font-bold placeholder-gray-400 uppercase shadow-sm">
             </div>
             
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-regular fa-user text-gray-500 text-sm"></i></div>
-                <input type="text" id="studentName" placeholder="FULL NAME" class="w-full pl-9 pr-3 py-2.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-gray-800 font-bold placeholder-gray-400 uppercase shadow-sm">
+                <input type="text" id="studentName" placeholder="FULL NAME AS OCULUS" 
+                       oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '').toUpperCase();"
+                       class="w-full pl-9 pr-3 py-2.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-gray-800 font-bold placeholder-gray-400 uppercase shadow-sm">
             </div>
 
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-solid fa-key text-indigo-500 text-sm"></i></div>
-                <input type="number" id="pinCode" placeholder="4-DIGIT PIN" class="w-full pl-9 pr-3 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center shadow-sm">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" id="pinCode" placeholder="4-DIGIT PIN" 
+                       oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 4) this.value = this.value.slice(0,4);"
+                       class="w-full pl-9 pr-3 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center shadow-sm">
             </div>
 
             <button onclick="submitCheckIn()" id="submitBtn" class="w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50">
