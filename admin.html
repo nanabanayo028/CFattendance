@@ -214,12 +214,12 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Student ID</label>
-                    <input type="text" id="manualStuId" placeholder=" " 
+                    <input type="text" id="manualStuId" placeholder="e.g. BCS240001" 
                            class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 outline-none uppercase font-mono transition-all shadow-sm">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Student Name</label>
-                    <input type="text" id="manualStuName" placeholder=" " 
+                    <input type="text" id="manualStuName" placeholder="e.g. ALI BIN ABU" 
                            class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 outline-none uppercase font-medium transition-all shadow-sm">
                 </div>
             </div>
@@ -259,7 +259,16 @@
                 <h3 id="dialogTitle" class="text-xl font-bold text-slate-800 mb-2"></h3>
                 <p id="dialogMessage" class="text-slate-500 text-sm mb-6 whitespace-pre-line"></p>
                 
-                <input type="text" id="dialogInput" class="hidden w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-slate-800 font-bold mb-6 text-center shadow-inner transition-all uppercase" />
+                <div id="dialogInputsContainer" class="hidden flex-col gap-3 mb-6 text-left">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student ID</label>
+                        <input type="text" id="dialogInputId" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all uppercase" placeholder="e.g. BCS23090066" />
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student Name</label>
+                        <input type="text" id="dialogInputName" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all uppercase" placeholder="e.g. ALI BIN ABU" />
+                    </div>
+                </div>
                 
                 <div class="flex gap-3 justify-center" id="dialogButtons"></div>
             </div>

@@ -6,7 +6,11 @@ const dialogOverlay = document.getElementById('customDialog');
             const titleDiv = document.getElementById('dialogTitle');
             const msgDiv = document.getElementById('dialogMessage');
             const btnDiv = document.getElementById('dialogButtons');
-            const inputField = document.getElementById('dialogInput'); // 🌟 获取输入框
+            
+            // 🌟 获取新的双输入框
+            const inputContainer = document.getElementById('dialogInputsContainer'); 
+            const inputId = document.getElementById('dialogInputId');
+            const inputName = document.getElementById('dialogInputName'); 
 
             titleDiv.innerText = config.title || '系统提示';
             msgDiv.innerText = config.message || '';
@@ -20,8 +24,7 @@ const dialogOverlay = document.getElementById('customDialog');
             } else if(config.type === 'error') {
                 iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-rose-100 text-rose-500";
                 iconDiv.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-            } else if(config.type === 'prompt') {
-                // 🌟 给编辑专用的蓝色笔图标
+            } else if(config.type === 'edit') {
                 iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-blue-100 text-blue-500";
                 iconDiv.innerHTML = '<i class="fa-solid fa-pen"></i>';
             } else {
@@ -29,18 +32,21 @@ const dialogOverlay = document.getElementById('customDialog');
                 iconDiv.innerHTML = '<i class="fa-solid fa-info"></i>';
             }
 
-            // 🌟 控制输入框的显示
-            if(config.type === 'prompt') {
-                inputField.classList.remove('hidden');
-                inputField.value = config.defaultValue || '';
-                setTimeout(() => inputField.focus(), 300);
+            if(config.type === 'edit') {
+                inputContainer.classList.remove('hidden');
+                inputContainer.classList.add('flex');
+                inputId.value = config.defaultId || '';
+                inputName.value = config.defaultName || '';
+                setTimeout(() => inputName.focus(), 300);
             } else {
-                inputField.classList.add('hidden');
-                inputField.value = '';
+                if(inputContainer) {
+                    inputContainer.classList.add('hidden');
+                    inputContainer.classList.remove('flex');
+                }
             }
 
             btnDiv.innerHTML = '';
-            if(config.type === 'confirm' || config.type === 'prompt') {
+            if(config.type === 'confirm' || config.type === 'edit') {
                 const cancelBtn = document.createElement('button');
                 cancelBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors";
                 cancelBtn.innerText = "取消";
@@ -53,7 +59,7 @@ const dialogOverlay = document.getElementById('customDialog');
                 confirmBtn.onclick = () => { 
                     closeDialog(); 
                     if(config.onConfirm) {
-                        config.type === 'prompt' ? config.onConfirm(inputField.value) : config.onConfirm();
+                        config.type === 'edit' ? config.onConfirm(inputId.value, inputName.value) : config.onConfirm();
                     }
                 };
                 btnDiv.appendChild(confirmBtn);
@@ -76,7 +82,7 @@ const dialogOverlay = document.getElementById('customDialog');
 
         window.customAlert = function(msg, type='info', title='系统提示') { openDialog({message: msg, type: type, title: title}); };
         window.customConfirm = function(msg, onConfirm, title='确认操作') { openDialog({message: msg, type: 'confirm', title: title, onConfirm: onConfirm}); };
-        window.customPrompt = function(msg, defaultValue, onConfirm, title='编辑内容') { openDialog({message: msg, type: 'prompt', defaultValue: defaultValue, title: title, onConfirm: onConfirm}); };
+        window.customEditPrompt = function(msg, defaultId, defaultName, onConfirm, title='编辑资料') { openDialog({message: msg, type: 'edit', defaultId: defaultId, defaultName: defaultName, title: title, onConfirm: onConfirm}); };
 
         const ADMIN_CREDENTIALS = { id: "admin", password: "UTSCF2026" };
         const IDLE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
@@ -388,21 +394,66 @@ const dialogOverlay = document.getElementById('customDialog');
             list.innerHTML = htmlContent;
         }
 
-        // 🌟 重点修复：这里已经换成漂亮的高级输入弹窗啦！
-        function editRecordName(studentId, currentName) {
+        // 🌟 重点升级：支持同时修改 ID 和名字，并且防止数据库乱掉！
+        function editRecordName(oldStudentId, currentName) {
             const selectedDate = document.getElementById("dateFilter").value;
             
-            customPrompt(`正在修改 Student ID ${studentId} 的资料\n请输入新的学生姓名：`, currentName, (newName) => {
-                if (newName !== null && newName.trim() !== "" && newName.trim() !== currentName) {
-                    db.collection("Attendance").doc(selectedDate).collection("Students").doc(studentId).update({
-                        studentName: newName.trim().toUpperCase()
-                    }).then(() => {
-                        customAlert(`已成功将 Student Name 修改为：${newName.trim().toUpperCase()}`, "success", "修改成功");
-                    }).catch(error => {
-                        customAlert("修改失败: " + error.message, "error", "系统异常");
+            customEditPrompt(`正在修改选中学生的资料\n您可以更改 Student ID 或姓名：`, oldStudentId, currentName, (newId, newName) => {
+                newId = newId.trim().toUpperCase();
+                newName = newName.trim().toUpperCase();
+
+                if (!newId || !newName) {
+                    customAlert("Student ID 和 Name 都不能为空！", "warning", "信息不完整");
+                    return;
+                }
+
+                // 🌟 新增防呆校验
+                if (newId.includes('@')) {
+                    customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误"); return;
+                }
+                if (/\d/.test(newName)) {
+                    customAlert("学生姓名不能包含数字！", "warning", "格式错误"); return;
+                }
+                if (newName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newName)) {
+                    customAlert("学生姓名不能是 Email 格式！", "warning", "格式错误"); return;
+                }
+
+                if (newId === oldStudentId && newName === currentName) {
+                    customAlert("资料没有进行任何修改。", "info", "未修改");
+                    return;
+                }
+
+                const studentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(oldStudentId);
+
+                if (newId === oldStudentId) {
+                    // 如果只改了名字
+                    studentRef.update({ studentName: newName }).then(() => {
+                        customAlert(`已成功将姓名修改为：${newName}`, "success", "修改成功");
+                    }).catch(error => { customAlert("修改失败: " + error.message, "error", "系统异常"); });
+                } else {
+                    // 如果改了 ID，必须进行“读旧->建新->删旧”的替换操作，保留原打卡时间！
+                    studentRef.get().then((docSnapshot) => {
+                        if (docSnapshot.exists) {
+                            const oldData = docSnapshot.data();
+                            const newStudentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(newId);
+                            
+                            const batch = db.batch();
+                            batch.set(newStudentRef, {
+                                studentId: newId,
+                                studentName: newName,
+                                timestamp: oldData.timestamp 
+                            });
+                            batch.delete(studentRef);
+                            
+                            batch.commit().then(() => {
+                                customAlert(`成功！\nID 变为: ${newId}\n姓名变为: ${newName}`, "success", "修改成功");
+                            }).catch(error => {
+                                customAlert("修改 ID 失败: " + error.message, "error", "系统异常");
+                            });
+                        }
                     });
                 }
-            }, "✍️ 编辑学生姓名");
+            }, "✍️ 编辑学生资料");
         }
 
         function deleteSelectedRecords() {
@@ -457,10 +508,17 @@ const dialogOverlay = document.getElementById('customDialog');
             setTimeout(() => document.getElementById('manualStuId').focus(), 100);
         }
         function closeManualModal() { document.getElementById('manualCheckInModal').classList.add('hidden'); }
+        
         function submitManualCheckIn() {
             const stuId = document.getElementById('manualStuId').value.trim().toUpperCase();
             const stuName = document.getElementById('manualStuName').value.trim().toUpperCase();
+            
             if (!stuId || !stuName) { customAlert("STUDENT ID 和 NAME 都不能为空！", "warning", "信息不完整"); return; }
+            
+            // 🌟 手动补签的防呆校验
+            if (stuId.includes('@')) { customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误"); return; }
+            if (/\d/.test(stuName)) { customAlert("Student Name 不能包含数字！", "warning", "格式错误"); return; }
+            if (stuName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stuName)) { customAlert("Student Name 不能是 Email 格式！", "warning", "格式错误"); return; }
             
             const btn = document.getElementById('submitManualBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...'; btn.disabled = true;
