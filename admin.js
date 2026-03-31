@@ -163,12 +163,12 @@ const dialogOverlay = document.getElementById('customDialog');
         document.getElementById("adminPassword").addEventListener("keypress", function(event) { if (event.key === "Enter") { event.preventDefault(); handleLogin(); } });
 
         const firebaseConfig = {
-            apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-            appId: import.meta.env.VITE_FIREBASE_APP_ID
+            apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
+            authDomain: "attendance-a7ac5.firebaseapp.com",
+            projectId: "attendance-a7ac5",
+            storageBucket: "attendance-a7ac5.firebasestorage.app",
+            messagingSenderId: "179755027767",
+            appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -577,23 +577,3 @@ const dialogOverlay = document.getElementById('customDialog');
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
-
-// 🌟 暴露出所有给 HTML onclick 调用的函数 (Vite Module 必备)
-window.handleLogin = handleLogin;
-window.handleLogout = handleLogout;
-window.changeStatus = changeStatus;
-window.clearDateFilter = clearDateFilter;
-window.toggleManageMode = toggleManageMode;
-window.toggleAllCheckboxes = toggleAllCheckboxes;
-window.editRecordName = editRecordName;
-window.deleteSelectedRecords = deleteSelectedRecords;
-window.openQRModal = openQRModal;
-window.closeQRModal = closeQRModal;
-window.generateNewQR = generateNewQR;
-window.openManualModal = openManualModal;
-window.closeManualModal = closeManualModal;
-window.submitManualCheckIn = submitManualCheckIn;
-window.openReportModal = openReportModal;
-window.closeReportModal = closeReportModal;
-window.exportToExcel = exportToExcel;
-window.exportReportToExcel = exportReportToExcel;
