@@ -43,12 +43,12 @@ function customAlert(msg, type='info', title='系统提示') {
 }
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
-    authDomain: "attendance-a7ac5.firebaseapp.com",
-    projectId: "attendance-a7ac5",
-    storageBucket: "attendance-a7ac5.firebasestorage.app",
-    messagingSenderId: "179755027767",
-    appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 firebase.initializeApp(firebaseConfig);
