@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# 🌟 重点安全保护：禁止上传环境变量（密码）文件
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
