@@ -256,3 +256,5 @@ function submitCheckIn() {
         }
     });
 }
+// 🌟 暴露出给 HTML onclick 调用的函数 (Vite Module 必备)
+window.submitCheckIn = submitCheckIn;

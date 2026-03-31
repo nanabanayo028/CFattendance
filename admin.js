@@ -577,3 +577,23 @@ const dialogOverlay = document.getElementById('customDialog');
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
+
+// 🌟 暴露出所有给 HTML onclick 调用的函数 (Vite Module 必备)
+window.handleLogin = handleLogin;
+window.handleLogout = handleLogout;
+window.changeStatus = changeStatus;
+window.clearDateFilter = clearDateFilter;
+window.toggleManageMode = toggleManageMode;
+window.toggleAllCheckboxes = toggleAllCheckboxes;
+window.editRecordName = editRecordName;
+window.deleteSelectedRecords = deleteSelectedRecords;
+window.openQRModal = openQRModal;
+window.closeQRModal = closeQRModal;
+window.generateNewQR = generateNewQR;
+window.openManualModal = openManualModal;
+window.closeManualModal = closeManualModal;
+window.submitManualCheckIn = submitManualCheckIn;
+window.openReportModal = openReportModal;
+window.closeReportModal = closeReportModal;
+window.exportToExcel = exportToExcel;
+window.exportReportToExcel = exportReportToExcel;
