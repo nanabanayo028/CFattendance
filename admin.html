@@ -27,6 +27,11 @@
         .pin-tracking { letter-spacing: 0.3em; text-indent: 0.15em; }
         .modal-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 
@@ -34,7 +39,6 @@
       style="background-image: url('Background.webp');">
 
     <div class="fixed inset-0 bg-black/40 z-0 pointer-events-none"></div>
-
     <audio id="tenseAudio" src="bgm.mp3" preload="auto"></audio>
 
     <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/40 transition-all duration-500">
@@ -50,24 +54,18 @@
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="fa-solid fa-user-shield text-indigo-400"></i>
                     </div>
-                    <input type="text" id="adminUserId" placeholder="Admin ID" 
-                           class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold uppercase shadow-inner transition-all">
+                    <input type="text" id="adminUserId" placeholder="Admin ID" class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold uppercase shadow-inner transition-all">
                 </div>
-                
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="fa-solid fa-lock text-indigo-400"></i>
                     </div>
-                    <input type="password" id="adminPassword" placeholder="Password" 
-                           class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all">
+                    <input type="password" id="adminPassword" placeholder="Password" class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all">
                 </div>
-
                 <div id="loginError" class="hidden text-rose-400 text-xs font-bold text-center bg-rose-100/90 py-2 rounded-lg border border-rose-200">
                     <i class="fa-solid fa-circle-exclamation mr-1"></i> Invalid ID or Password!
                 </div>
-
-                <button onclick="handleLogin()" id="loginBtn"
-                        class="w-full mt-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50">
+                <button onclick="handleLogin()" id="loginBtn" class="w-full mt-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50">
                     <i class="fa-solid fa-right-to-bracket"></i> Secure Login
                 </button>
             </div>
@@ -92,76 +90,68 @@
             </div>
         </nav>
 
-        <div class="max-w-6xl mx-auto p-4 sm:p-8 relative z-10">
-            <div class="mb-6">
-                <div class="bg-gradient-to-br from-indigo-600/90 to-purple-700/90 backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-xl text-white flex flex-col sm:flex-row items-center justify-between relative overflow-hidden border border-white/20">
+        <div class="max-w-7xl mx-auto p-4 sm:p-6 relative z-10">
+            <div class="mb-5">
+                <div class="bg-gradient-to-br from-indigo-600/90 to-purple-700/90 backdrop-blur-md rounded-2xl p-5 sm:p-7 shadow-xl text-white flex flex-col sm:flex-row items-center justify-between relative overflow-hidden border border-white/20">
                     <i class="fa-solid fa-users absolute -right-4 -bottom-4 text-8xl opacity-10"></i>
                     <div class="mb-2 sm:mb-0 text-center sm:text-left">
-                        <h2 class="text-indigo-100 font-medium relative z-10 uppercase tracking-wider text-sm sm:text-lg">当前列表总人数</h2>
-                        <p class="text-xs text-indigo-300 mt-1">Total Attendance Count</p>
+                        <h2 class="text-indigo-100 font-medium relative z-10 uppercase tracking-wider text-sm sm:text-base">当日列表总人数</h2>
                     </div>
-                    <div class="text-6xl sm:text-7xl font-extrabold relative z-10 flex items-baseline">
+                    <div class="text-5xl sm:text-6xl font-extrabold relative z-10 flex items-baseline">
                         <span id="studentCount" class="font-mono">0</span>
-                        <span class="text-xl font-normal text-indigo-200 ml-2">人</span>
+                        <span class="text-lg font-normal text-indigo-200 ml-2">人</span>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-5 gap-4">
-                
-                <div class="flex items-center gap-3 glass-card p-2 rounded-xl shadow-sm w-full lg:w-auto shrink-0">
-                    <label for="dateFilter" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1.5"></i> 筛选:</label>
-                    <input type="text" id="dateFilter" placeholder="选择日期..." class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none cursor-pointer w-full sm:w-40">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-3">
+                <div class="flex items-center gap-2 glass-card p-1.5 rounded-xl shadow-sm w-full lg:w-auto shrink-0">
+                    <label for="dateFilter" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1"></i> 日期:</label>
+                    <input type="text" id="dateFilter" placeholder="选择查看日期..." class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-1.5 outline-none cursor-pointer w-full sm:w-36">
                     <button onclick="clearDateFilter()" title="清除日期" class="text-slate-400 hover:text-rose-500 px-2 transition-colors">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
                 
-                <div class="flex flex-wrap justify-start lg:justify-end gap-2.5 w-full">
-                    <button onclick="deleteSelectedRecords()" id="deleteSelectedBtn" class="hidden glass-card hover:bg-rose-50 text-rose-600 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-rose-200 active:scale-95">
+                <div class="flex flex-wrap justify-start lg:justify-end gap-2 w-full">
+                    <button onclick="deleteSelectedRecords()" id="deleteSelectedBtn" class="hidden glass-card hover:bg-rose-50 text-rose-600 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-rose-200 active:scale-95">
                         <i class="fa-solid fa-trash-can"></i> 删除
                     </button>
-                    
-                    <button onclick="toggleManageMode()" id="manageBtn" class="glass-card hover:bg-white text-blue-700 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-blue-200 active:scale-95">
+                    <button onclick="toggleManageMode()" id="manageBtn" class="glass-card hover:bg-white text-blue-700 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-blue-200 active:scale-95">
                         <i class="fa-solid fa-list-check"></i> 管理
                     </button>
-
-                    <button onclick="openGroupListModal()" class="glass-card hover:bg-white text-emerald-600 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-emerald-200 active:scale-95">
-                        <i class="fa-solid fa-users-viewfinder"></i> 分组
+                    <button onclick="openGroupListModal()" class="glass-card hover:bg-white text-emerald-600 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-emerald-200 active:scale-95">
+                        <i class="fa-solid fa-users-viewfinder"></i> 当日小组
                     </button>
-                    
-                    <button onclick="openManualModal()" class="glass-card hover:bg-white text-indigo-700 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-indigo-200 active:scale-95">
+                    <button onclick="openManualModal()" class="glass-card hover:bg-white text-indigo-700 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-indigo-200 active:scale-95">
                         <i class="fa-solid fa-user-plus"></i> 补签
                     </button>
-
-                    <button id="reportBtn" onclick="openReportModal()" class="glass-card hover:bg-white text-amber-700 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-amber-200 active:scale-95">
-                        <i class="fa-solid fa-trophy"></i> 报表
+                    <button id="reportBtn" onclick="openReportModal()" class="glass-card hover:bg-white text-amber-600 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-amber-200 active:scale-95 ring-2 ring-amber-400/50">
+                        <i class="fa-solid fa-chart-pie"></i> 高级报表
                     </button>
-
-                    <button onclick="exportToExcel()" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap active:scale-95 border border-slate-700">
+                    <button onclick="exportToExcel()" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all active:scale-95 border border-slate-700">
                         <i class="fa-solid fa-file-excel text-emerald-400"></i> 导出
                     </button>
-
-                    <button onclick="openQRModal()" class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-md shadow-purple-500/30 flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border border-purple-500 active:scale-95">
-                        <i class="fa-solid fa-qrcode"></i> 大屏扫码
+                    <button onclick="openQRModal()" class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-1.5 px-4 rounded-lg shadow-md shadow-purple-500/30 flex items-center gap-1.5 transition-all border border-purple-500 active:scale-95">
+                        <i class="fa-solid fa-qrcode"></i> 扫码控制
                     </button>
                 </div>
             </div>
 
             <div class="glass-card rounded-2xl shadow-xl overflow-hidden">
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto max-h-[60vh]">
                     <table class="w-full text-left border-collapse">
-                        <thead id="tableHeader">
-                            <tr class="bg-white/50 text-slate-600 text-xs uppercase tracking-wider border-b border-white/50">
-                                <th class="p-4 font-bold pl-6 sm:pl-8">Date</th>
-                                <th class="p-4 font-bold">Time</th>
-                                <th class="p-4 font-bold text-center">Group</th> 
-                                <th class="p-4 font-bold">Student ID</th>
-                                <th class="p-4 font-bold">Student Name</th>
+                        <thead id="tableHeader" class="bg-white/80 sticky top-0 z-10 backdrop-blur-md border-b border-slate-200">
+                            <tr class="text-slate-600 text-[11px] uppercase tracking-wider">
+                                <th class="p-3 font-bold pl-6 sm:pl-8">Date</th>
+                                <th class="p-3 font-bold">Time</th>
+                                <th class="p-3 font-bold text-center">Group</th> 
+                                <th class="p-3 font-bold">Student ID</th>
+                                <th class="p-3 font-bold">Student Name</th>
                             </tr>
                         </thead>
                         <tbody id="attendanceList" class="divide-y divide-white/40 text-sm">
-                            <tr><td colspan="5" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>
+                            <tr><td colspan="5" class="p-10 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -169,18 +159,106 @@
         </div>
     </div>
 
+    <div id="reportModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col h-[95vh] modal-fade-in border border-white/20">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 sm:p-5 text-white flex justify-between items-center shrink-0">
+                <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-chart-pie"></i> 高级出勤报表大屏</h3>
+                <button onclick="closeReportModal()" class="text-white/80 hover:text-white transition-colors p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-3 items-end shrink-0">
+                <div class="flex-1 min-w-[130px]">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Start Date (开始日期)</label>
+                    <input type="text" id="reportStartDate" placeholder="YYYY-MM-DD" class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-amber-500 block p-2 outline-none shadow-sm cursor-pointer">
+                </div>
+                <div class="flex-1 min-w-[130px]">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">End Date (结束日期)</label>
+                    <input type="text" id="reportEndDate" placeholder="YYYY-MM-DD" class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-amber-500 block p-2 outline-none shadow-sm cursor-pointer">
+                </div>
+                <div class="w-24 shrink-0">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1" title="达到此次数算作达标">达标门槛</label>
+                    <input type="number" id="reportTargetCount" value="4" min="1" class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-amber-500 block p-2 outline-none shadow-sm text-center font-bold">
+                </div>
+                <button id="generateReportBtn" onclick="generateReport()" class="bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2 px-5 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2 h-[38px] shrink-0">
+                    <i class="fa-solid fa-bolt"></i> 生成报表
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-5 overflow-y-auto flex-1 bg-slate-100/50">
+                <div id="reportEmpty" class="text-center py-20 text-slate-400">
+                    <i class="fa-solid fa-filter text-5xl mb-4 block text-slate-300"></i> 
+                    <p class="font-medium text-sm">请在上方选择日期范围，并点击生成报表</p>
+                </div>
+
+                <div id="reportListContainer" class="hidden flex flex-col gap-5">
+                    <div class="grid grid-cols-3 gap-3 sm:gap-4">
+                        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 text-center flex flex-col justify-center">
+                            <div class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">总开放签到天数</div>
+                            <div class="text-2xl sm:text-4xl font-extrabold text-blue-600 font-mono" id="rs_totalSessions">0</div>
+                        </div>
+                        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 text-center flex flex-col justify-center">
+                            <div class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">参与打卡总人数</div>
+                            <div class="text-2xl sm:text-4xl font-extrabold text-indigo-600 font-mono" id="rs_totalStudents">0</div>
+                        </div>
+                        <div class="bg-amber-50 p-3 sm:p-4 rounded-2xl shadow-sm border border-amber-200 text-center flex flex-col justify-center">
+                            <div class="text-[10px] sm:text-xs font-bold text-amber-600 uppercase tracking-widest mb-1">成功达标人数</div>
+                            <div class="text-2xl sm:text-4xl font-extrabold text-amber-600 font-mono" id="rs_qualified">0</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                            <div class="bg-slate-50 border-b border-slate-100 p-3 font-bold text-slate-700 flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-users text-emerald-500"></i> 各小组累积出席人次
+                            </div>
+                            <div class="p-3 grid grid-cols-2 gap-2" id="reportGroupList">
+                                </div>
+                        </div>
+
+                        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
+                            <div class="bg-slate-50 border-b border-slate-100 p-3 font-bold text-slate-700 flex justify-between items-center text-sm">
+                                <span><i class="fa-solid fa-list-ol mr-1 text-blue-500"></i> 学生出席排行榜</span>
+                            </div>
+                            <div class="overflow-y-auto p-0 flex-1">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-white sticky top-0 border-b border-slate-100 shadow-sm z-10">
+                                        <tr class="text-slate-400 text-[10px] uppercase tracking-wider">
+                                            <th class="p-2 pl-4 font-bold w-16 text-center">Group</th>
+                                            <th class="p-2 font-bold">Student Name & ID</th>
+                                            <th class="p-2 font-bold text-center w-20">Count</th>
+                                            <th class="p-2 pr-4 font-bold text-center w-24">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reportStudentList" class="divide-y divide-slate-100">
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 sm:p-4 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0">
+                <button onclick="closeReportModal()" class="px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors active:scale-95">关闭窗口</button>
+                <button id="downloadReportBtn" onclick="exportReportToExcel()" disabled class="px-5 py-2 rounded-xl text-sm font-bold bg-slate-800 text-white hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 active:scale-95">
+                    <i class="fa-solid fa-download"></i> 导出 Excel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="groupListModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] modal-fade-in border border-white/20">
-            <div class="bg-emerald-500 p-5 sm:p-6 text-white flex justify-between items-center">
-                <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-users-viewfinder"></i> 1-8 组当日名单统计</h3>
+            <div class="bg-emerald-500 p-4 sm:p-5 text-white flex justify-between items-center shrink-0">
+                <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-users-viewfinder"></i> 1-8 组当日名单统计</h3>
                 <button onclick="closeGroupListModal()" class="text-white/80 hover:text-white transition-colors p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-50">
-                <div id="groupListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 sm:p-5 overflow-y-auto flex-1 bg-slate-50">
+                <div id="groupListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                     </div>
             </div>
-            <div class="p-4 border-t border-slate-100 bg-white flex justify-end gap-3">
-                <button onclick="closeGroupListModal()" class="px-5 py-2.5 rounded-xl font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors active:scale-95">关闭窗口</button>
+            <div class="p-3 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0">
+                <button onclick="closeGroupListModal()" class="px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors active:scale-95">关闭窗口</button>
             </div>
         </div>
     </div>
@@ -191,17 +269,14 @@
                 <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-expand"></i> 签到大屏展示与控制</h3>
                 <button onclick="closeQRModal()" class="text-white/80 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            
             <div class="p-6 bg-slate-50 flex flex-col items-center">
                 <div id="adminTimerContainer" class="hidden mb-4 w-full bg-rose-50 border border-rose-100 rounded-xl p-3 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite] shadow-inner">
                     <span class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1"><i class="fa-regular fa-clock mr-1"></i> 距离通道自动关闭还剩</span>
                     <div class="text-4xl font-extrabold text-rose-600 font-mono tracking-wider" id="adminTimeDisplay">01:00</div>
                 </div>
-
                 <div id="qrcode-box" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 min-h-[220px] flex items-center justify-center mb-2"></div>
                 <p id="qrUrlDisplay" class="text-[10px] text-slate-400 font-mono mb-2 break-all text-center"></p>
                 <button onclick="generateNewQR()" class="text-xs text-purple-500 hover:text-purple-700 underline font-bold mb-5 flex items-center gap-1"><i class="fa-solid fa-rotate"></i> 刷新二维码图案</button>
-                
                 <div class="w-full space-y-3">
                     <div class="flex items-center gap-2">
                         <div class="bg-white border border-slate-200 rounded-xl flex items-center px-3 py-2 w-full shadow-sm">
@@ -210,12 +285,11 @@
                         </div>
                         <button onclick="document.getElementById('adminPin').value = Math.floor(1000 + Math.random() * 9000)" class="px-4 py-3 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold rounded-xl transition-colors whitespace-nowrap"><i class="fa-solid fa-dice"></i></button>
                     </div>
-
                     <div class="flex gap-2">
-                        <button onclick="changeStatus('Open')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <button onclick="changeStatus('Open')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i> 开启签到
                         </button>
-                        <button onclick="changeStatus('Closed')" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <button onclick="changeStatus('Closed')" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-rose-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-stop"></i> 手动关闭
                         </button>
                     </div>
@@ -225,18 +299,18 @@
     </div>
 
     <div id="manualCheckInModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden modal-fade-in">
-            <div class="bg-indigo-600 p-5 text-white flex justify-between items-center">
-                <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> 手动添加签到记录</h3>
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden modal-fade-in">
+            <div class="bg-indigo-600 p-4 text-white flex justify-between items-center">
+                <h3 class="text-base font-bold flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> 手动添加签到</h3>
                 <button onclick="closeManualModal()" class="text-white/80 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="p-6 space-y-4 bg-slate-50">
-                <div class="bg-indigo-50 text-indigo-700 px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-2 mb-2 border border-indigo-100 shadow-inner">
-                    <i class="fa-regular fa-calendar-check text-lg"></i> 补签日期: <span id="modalDateDisplay" class="font-mono text-base tracking-wide"></span>
+            <div class="p-5 space-y-3 bg-slate-50">
+                <div class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 mb-1 border border-indigo-100 shadow-inner">
+                    <i class="fa-regular fa-calendar-check text-base"></i> 日期: <span id="modalDateDisplay" class="font-mono text-sm tracking-wide"></span>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Group (1-8)</label>
-                    <select id="manualGroup" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 outline-none font-bold transition-all shadow-sm">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Group</label>
+                    <select id="manualGroup" class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 block p-2.5 outline-none font-bold shadow-sm">
                         <option value="" disabled selected>-- Select Group --</option>
                         <option value="1">Group 1</option><option value="2">Group 2</option>
                         <option value="3">Group 3</option><option value="4">Group 4</option>
@@ -246,37 +320,17 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student ID</label>
-                    <input type="text" id="manualStuId" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 outline-none uppercase font-mono transition-all shadow-sm">
+                    <input type="text" id="manualStuId" class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 block p-2.5 outline-none uppercase font-mono shadow-sm">
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student Name</label>
-                    <input type="text" id="manualStuName" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 outline-none uppercase font-medium transition-all shadow-sm">
+                    <input type="text" id="manualStuName" class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 block p-2.5 outline-none uppercase font-medium shadow-sm">
                 </div>
             </div>
-            <div class="p-5 border-t border-slate-100 bg-white flex justify-end gap-3">
-                <button onclick="closeManualModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">取消</button>
-                <button id="submitManualBtn" onclick="submitManualCheckIn()" class="px-5 py-2.5 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-md shadow-indigo-200 active:scale-95">
-                    <i class="fa-solid fa-check"></i> 确认添加
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="reportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh] modal-fade-in">
-            <div class="bg-gradient-to-r from-amber-400 to-orange-500 p-5 sm:p-6 text-white flex justify-between items-center">
-                <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-award"></i> 达标学生名单 (≥4次)</h3>
-                <button onclick="closeReportModal()" class="text-white/80 hover:text-white transition-colors p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-50">
-                <div id="reportLoading" class="text-center py-10 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-4xl mb-3 block"></i> 正在跨记录统计中...</div>
-                <div id="reportEmpty" class="hidden text-center py-10 text-slate-400"><i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-300"></i> 暂无达到出勤标准的学生</div>
-                <ul id="reportList" class="hidden space-y-3"></ul>
-            </div>
             <div class="p-4 border-t border-slate-100 bg-white flex justify-end gap-3">
-                <button onclick="closeReportModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">关闭</button>
-                <button id="downloadReportBtn" onclick="exportReportToExcel()" disabled class="px-5 py-2.5 rounded-xl font-bold bg-slate-800 text-white hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 active:scale-95">
-                    <i class="fa-solid fa-download"></i> 导出报表
+                <button onclick="closeManualModal()" class="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-colors">取消</button>
+                <button id="submitManualBtn" onclick="submitManualCheckIn()" class="px-4 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-md active:scale-95">
+                    <i class="fa-solid fa-check"></i> 确认添加
                 </button>
             </div>
         </div>
@@ -288,7 +342,6 @@
                 <div id="dialogIcon" class="mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl"></div>
                 <h3 id="dialogTitle" class="text-xl font-bold text-slate-800 mb-2"></h3>
                 <p id="dialogMessage" class="text-slate-500 text-sm mb-6 whitespace-pre-line"></p>
-                
                 <div id="dialogInputsContainer" class="hidden flex-col gap-3 mb-6 text-left">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student ID</label>
@@ -299,7 +352,6 @@
                         <input type="text" id="dialogInputName" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all uppercase" />
                     </div>
                 </div>
-                
                 <div class="flex gap-3 justify-center" id="dialogButtons"></div>
             </div>
         </div>
@@ -313,638 +365,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-    <script>
-        const dialogOverlay = document.getElementById('customDialog');
-        const dialogBox = document.getElementById('customDialogBox');
-
-        function openDialog(config) {
-            const iconDiv = document.getElementById('dialogIcon');
-            const titleDiv = document.getElementById('dialogTitle');
-            const msgDiv = document.getElementById('dialogMessage');
-            const btnDiv = document.getElementById('dialogButtons');
-            const inputContainer = document.getElementById('dialogInputsContainer'); 
-            const inputId = document.getElementById('dialogInputId');
-            const inputName = document.getElementById('dialogInputName'); 
-
-            titleDiv.innerText = config.title || '系统提示';
-            msgDiv.innerText = config.message || '';
-
-            if(config.type === 'success') {
-                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-green-100 text-green-500";
-                iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
-            } else if(config.type === 'warning' || config.type === 'confirm') {
-                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-amber-100 text-amber-500";
-                iconDiv.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
-            } else if(config.type === 'error') {
-                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-rose-100 text-rose-500";
-                iconDiv.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-            } else if(config.type === 'edit') {
-                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-blue-100 text-blue-500";
-                iconDiv.innerHTML = '<i class="fa-solid fa-pen"></i>';
-            } else {
-                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-indigo-100 text-indigo-500";
-                iconDiv.innerHTML = '<i class="fa-solid fa-info"></i>';
-            }
-
-            if(config.type === 'edit') {
-                inputContainer.classList.remove('hidden');
-                inputContainer.classList.add('flex');
-                inputId.value = config.defaultId || '';
-                inputName.value = config.defaultName || '';
-                setTimeout(() => inputName.focus(), 300);
-            } else {
-                if(inputContainer) {
-                    inputContainer.classList.add('hidden');
-                    inputContainer.classList.remove('flex');
-                }
-            }
-
-            btnDiv.innerHTML = '';
-            if(config.type === 'confirm' || config.type === 'edit') {
-                const cancelBtn = document.createElement('button');
-                cancelBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors";
-                cancelBtn.innerText = "取消";
-                cancelBtn.onclick = closeDialog;
-                btnDiv.appendChild(cancelBtn);
-
-                const confirmBtn = document.createElement('button');
-                confirmBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
-                confirmBtn.innerText = "确定";
-                confirmBtn.onclick = () => { 
-                    closeDialog(); 
-                    if(config.onConfirm) {
-                        config.type === 'edit' ? config.onConfirm(inputId.value, inputName.value) : config.onConfirm();
-                    }
-                };
-                btnDiv.appendChild(confirmBtn);
-            } else {
-                const okBtn = document.createElement('button');
-                okBtn.className = "w-full py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
-                okBtn.innerText = "我知道了";
-                okBtn.onclick = closeDialog;
-                btnDiv.appendChild(okBtn);
-            }
-
-            dialogOverlay.classList.remove('hidden');
-            setTimeout(() => { dialogOverlay.classList.remove('opacity-0'); dialogBox.classList.remove('scale-95'); }, 10);
-        }
-
-        function closeDialog() {
-            dialogOverlay.classList.add('opacity-0'); dialogBox.classList.add('scale-95');
-            setTimeout(() => { dialogOverlay.classList.add('hidden'); }, 300);
-        }
-
-        window.customAlert = function(msg, type='info', title='系统提示') { openDialog({message: msg, type: type, title: title}); };
-        window.customConfirm = function(msg, onConfirm, title='确认操作') { openDialog({message: msg, type: 'confirm', title: title, onConfirm: onConfirm}); };
-        window.customEditPrompt = function(msg, defaultId, defaultName, onConfirm, title='编辑资料') { openDialog({message: msg, type: 'edit', defaultId: defaultId, defaultName: defaultName, title: title, onConfirm: onConfirm}); };
-
-        const ADMIN_CREDENTIALS = { id: "admin", password: "UTSCF2026" };
-        const IDLE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
-        let idleTimer = null;
-
-        function startIdleTimer() {
-            if (idleTimer) clearTimeout(idleTimer);
-            idleTimer = setTimeout(() => {
-                if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                    sessionStorage.removeItem('isLoggedIn');
-                    hideDashboard();
-                    customAlert("由于您长时间未操作，出于安全考虑，系统已自动登出。", "warning", "自动登出提示");
-                }
-            }, IDLE_TIMEOUT_MS);
-        }
-
-        function stopIdleTimer() { if (idleTimer) clearTimeout(idleTimer); }
-        function resetTimerOnAction() { if (sessionStorage.getItem('isLoggedIn') === 'true') { startIdleTimer(); } }
-
-        document.addEventListener('mousemove', resetTimerOnAction);
-        document.addEventListener('keydown', resetTimerOnAction);
-        document.addEventListener('click', resetTimerOnAction);
-        document.addEventListener('scroll', resetTimerOnAction);
-
-        function checkAuthStatus() { if (sessionStorage.getItem('isLoggedIn') === 'true') { showDashboard(); startIdleTimer(); } }
-
-        function handleLogin() {
-            const enteredId = document.getElementById('adminUserId').value.trim().toUpperCase();
-            const enteredPass = document.getElementById('adminPassword').value.trim();
-            const errorMsg = document.getElementById('loginError');
-            const btn = document.getElementById('loginBtn');
-
-            if (enteredId === ADMIN_CREDENTIALS.id.toUpperCase() && enteredPass === ADMIN_CREDENTIALS.password) {
-                errorMsg.classList.add('hidden');
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
-                setTimeout(() => {
-                    sessionStorage.setItem('isLoggedIn', 'true');
-                    showDashboard(); startIdleTimer(); 
-                    btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Secure Login';
-                    document.getElementById('adminUserId').value = ""; document.getElementById('adminPassword').value = "";
-                }, 500); 
-            } else {
-                errorMsg.classList.remove('hidden');
-                const loginBox = document.querySelector('.glass-login');
-                loginBox.classList.add('animate-[pulse_0.2s_ease-in-out_2]');
-                setTimeout(() => loginBox.classList.remove('animate-[pulse_0.2s_ease-in-out_2]'), 400);
-            }
-        }
-
-        function handleLogout() {
-            customConfirm("您确定要退出 Admin 控制台吗？", () => {
-                sessionStorage.removeItem('isLoggedIn');
-                stopIdleTimer(); hideDashboard();
-            }, "退出登录");
-        }
-
-        function showDashboard() {
-            document.getElementById('loginScreen').classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                document.getElementById('loginScreen').classList.add('hidden');
-                const dash = document.getElementById('adminDashboard');
-                dash.classList.remove('hidden');
-                setTimeout(() => dash.classList.remove('opacity-0'), 50);
-            }, 500);
-        }
-
-        function hideDashboard() {
-            document.getElementById('adminDashboard').classList.add('opacity-0');
-            setTimeout(() => {
-                document.getElementById('adminDashboard').classList.add('hidden');
-                const login = document.getElementById('loginScreen');
-                login.classList.remove('hidden');
-                setTimeout(() => login.classList.remove('opacity-0', 'pointer-events-none'), 50);
-            }, 500);
-        }
-
-        window.onload = checkAuthStatus;
-        document.getElementById("adminPassword").addEventListener("keypress", function(event) { if (event.key === "Enter") { event.preventDefault(); handleLogin(); } });
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
-            authDomain: "attendance-a7ac5.firebaseapp.com",
-            projectId: "attendance-a7ac5",
-            storageBucket: "attendance-a7ac5.firebasestorage.app",
-            messagingSenderId: "179755027767",
-            appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        const datePicker = flatpickr("#dateFilter", { dateFormat: "Y-m-d", disableMobile: true, onChange: function(selectedDates, dateStr, instance) { handleDateSelection(); }});
-
-        let allRecords = []; 
-        let activeListeners = []; 
-        let adminAutoCloseTimer = null; 
-        let adminDisplayTimerInterval = null;
-        let globalPassedStudents = []; 
-        let currentManualDate = ""; 
-        let qrCodeInstance = null; 
-
-        let isManageMode = false;
-        let hasPlayedAudio = false;
-
-        db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
-            const badge = document.getElementById("statusBadge");
-            const timerContainer = document.getElementById("adminTimerContainer");
-            const timeDisplay = document.getElementById("adminTimeDisplay");
-            const audioPlayer = document.getElementById("tenseAudio");
-
-            if (adminDisplayTimerInterval) clearInterval(adminDisplayTimerInterval);
-
-            if (doc.exists && doc.data().status === "Open") {
-                badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] rounded-full"></i> <span class="hidden sm:inline">正在允许签到 (Open)</span><span class="sm:hidden">Open</span>';
-                badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
-                
-                const endTime = doc.data().endTime;
-                if (endTime) {
-                    timerContainer.classList.remove('hidden');
-                    adminDisplayTimerInterval = setInterval(() => {
-                        const now = new Date().getTime();
-                        const distance = endTime - now;
-                        if (distance <= 0) {
-                            clearInterval(adminDisplayTimerInterval);
-                            timeDisplay.innerText = "00:00";
-                            if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
-                        } else {
-                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                            timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-                            
-                            if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
-                                if (audioPlayer) {
-                                    audioPlayer.volume = 0.5;
-                                    audioPlayer.play().catch(e => console.log("浏览器限制自动播放"));
-                                    hasPlayedAudio = true;
-                                }
-                            }
-                        }
-                    }, 1000);
-                }
-            } else {
-                badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)] rounded-full"></i> <span class="hidden sm:inline">签到已关闭 (Closed)</span><span class="sm:hidden">Closed</span>';
-                badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
-                if (timerContainer) timerContainer.classList.add('hidden');
-                
-                if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
-            }
-        });
-
-        function changeStatus(newStatus) {
-            let pinValue = "";
-            let dataToUpdate = { status: newStatus };
-
-            if (adminAutoCloseTimer) { clearTimeout(adminAutoCloseTimer); adminAutoCloseTimer = null; }
-
-            if (newStatus === "Open") {
-                pinValue = document.getElementById('adminPin').value.trim();
-                if (pinValue === "") {
-                    customAlert("请先输入 4 位数的 PIN 码，然后再开启签到！", "warning", "缺少 PIN 码");
-                    document.getElementById('adminPin').focus();
-                    return;
-                }
-                dataToUpdate.currentPin = pinValue;
-                dataToUpdate.endTime = new Date().getTime() + 1 * 60 * 1000; 
-                hasPlayedAudio = false;
-
-                const audioPlayer = document.getElementById("tenseAudio");
-                if (audioPlayer) {
-                    audioPlayer.volume = 0.5; 
-                    audioPlayer.play().then(() => {
-                        audioPlayer.pause();
-                        audioPlayer.currentTime = 0;
-                    }).catch(e => {});
-                }
-
-                adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, 1 * 60 * 1000);
-            } else {
-                document.getElementById('adminPin').value = "";
-                dataToUpdate.endTime = 0;
-                
-                const audioPlayer = document.getElementById("tenseAudio");
-                if (audioPlayer) {
-                    audioPlayer.pause();
-                    audioPlayer.currentTime = 0; 
-                }
-            }
-
-            db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
-            .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
-        }
-
-        function loadDataForDates(dateArray) {
-            activeListeners.forEach(unsub => unsub());
-            activeListeners = [];
-            allRecords = []; 
-            renderTable(); 
-
-            if (dateArray.length === 0) return;
-
-            dateArray.forEach((dateString) => {
-                const unsub = db.collection("Attendance").doc(dateString).collection("Students").orderBy("timestamp", "desc").onSnapshot((studentSnapshot) => {
-                      allRecords = allRecords.filter(r => r.dateString !== dateString);
-                      studentSnapshot.forEach((studentDoc) => {
-                          const data = studentDoc.data();
-                          if (data.timestamp) {
-                              const jsDate = data.timestamp.toDate();
-                              allRecords.push({
-                                  studentId: data.studentId, 
-                                  studentName: data.studentName, 
-                                  groupNumber: data.groupNumber || '-', // 🌟 读取小组数据
-                                  fullDateObj: jsDate, 
-                                  dateString: dateString, 
-                                  timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
-                              });
-                          }
-                      });
-                      allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
-                      renderTable(); 
-                  });
-                activeListeners.push(unsub);
-            });
-        }
-
-        function handleDateSelection() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (selectedDate) { loadDataForDates([selectedDate]); } else { loadDataForDates([]); }
-        }
-
-        function clearDateFilter() { datePicker.clear(); handleDateSelection(); }
-
-        function toggleManageMode() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate || allRecords.length === 0) {
-                customAlert("请先选择有数据的日期，才能进行管理！", "warning", "提示");
-                return;
-            }
-            
-            isManageMode = !isManageMode;
-            const delBtn = document.getElementById('deleteSelectedBtn');
-            const mngBtn = document.getElementById('manageBtn');
-            
-            if (isManageMode) {
-                delBtn.classList.remove('hidden');
-                mngBtn.classList.remove('bg-white', 'text-blue-700');
-                mngBtn.classList.add('bg-blue-600', 'text-white');
-                mngBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> 退出';
-            } else {
-                delBtn.classList.add('hidden');
-                mngBtn.classList.add('bg-white', 'text-blue-700');
-                mngBtn.classList.remove('bg-blue-600', 'text-white');
-                mngBtn.innerHTML = '<i class="fa-solid fa-list-check"></i> 管理';
-            }
-            renderTable();
-        }
-
-        function toggleAllCheckboxes(source) {
-            const checkboxes = document.querySelectorAll('.row-checkbox');
-            checkboxes.forEach(cb => cb.checked = source.checked);
-        }
-
-        function renderTable() {
-            const list = document.getElementById("attendanceList");
-            const thead = document.getElementById("tableHeader");
-            const selectedDate = document.getElementById("dateFilter").value;
-            document.getElementById("studentCount").innerText = allRecords.length;
-
-            if (!selectedDate) {
-                list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 5}" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>`;
-                return;
-            }
-            if (allRecords.length === 0) {
-                list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 5}" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-400"></i>该日期暂无签到记录</td></tr>`;
-                return;
-            }
-
-            if (isManageMode) {
-                thead.innerHTML = `
-                    <tr class="bg-white/50 text-slate-600 text-xs uppercase tracking-wider border-b border-white/50">
-                        <th class="p-4 pl-6 sm:pl-8 w-12"><input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes(this)" class="w-4 h-4 rounded border-gray-300 text-indigo-600 cursor-pointer"></th>
-                        <th class="p-4 font-bold">Date</th>
-                        <th class="p-4 font-bold">Time</th>
-                        <th class="p-4 font-bold text-center">Group</th> <th class="p-4 font-bold">Student ID</th>
-                        <th class="p-4 font-bold">Student Name</th>
-                        <th class="p-4 font-bold text-right pr-6 sm:pr-8">Action</th>
-                    </tr>
-                `;
-            } else {
-                thead.innerHTML = `
-                    <tr class="bg-white/50 text-slate-600 text-xs uppercase tracking-wider border-b border-white/50">
-                        <th class="p-4 font-bold pl-6 sm:pl-8">Date</th>
-                        <th class="p-4 font-bold">Time</th>
-                        <th class="p-4 font-bold text-center">Group</th> <th class="p-4 font-bold">Student ID</th>
-                        <th class="p-4 font-bold">Student Name</th>
-                    </tr>
-                `;
-            }
-
-            let htmlContent = "";
-            allRecords.forEach(record => {
-                htmlContent += `
-                    <tr class="hover:bg-white/60 transition duration-150 border-b border-white/20 last:border-0">
-                        ${isManageMode ? `<td class="p-4 pl-6 sm:pl-8 w-12"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-indigo-600 cursor-pointer" data-id="${record.studentId}"></td>` : ''}
-                        <td class="p-4 ${!isManageMode ? 'pl-6 sm:pl-8' : ''} text-slate-700 font-medium">${record.dateString}</td>
-                        <td class="p-4 text-slate-600 font-mono"><span class="bg-white/60 shadow-sm border border-white px-2 py-1 rounded text-xs">${record.timeString}</span></td>
-                        
-                        <td class="p-4 text-center font-bold text-emerald-600">
-                            ${record.groupNumber !== '-' ? `<span class="bg-emerald-100/80 text-emerald-700 px-2.5 py-1 rounded-md text-xs tracking-wide shadow-sm border border-emerald-200">Group ${record.groupNumber}</span>` : '<span class="text-slate-400 font-normal">-</span>'}
-                        </td>
-                        
-                        <td class="p-4 font-bold text-indigo-700">${record.studentId}</td>
-                        <td class="p-4 text-slate-800 font-medium">${record.studentName}</td>
-                        ${isManageMode ? `<td class="p-4 text-right pr-6 sm:pr-8">
-                            <button onclick="editRecordName('${record.studentId}', '${record.studentName.replace(/'/g, "\\'")}')" class="text-indigo-600 hover:text-white bg-indigo-100 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm border border-indigo-200 hover:border-indigo-500 active:scale-95">
-                                <i class="fa-solid fa-pen mr-1"></i> 编辑
-                            </button>
-                        </td>` : ''}
-                    </tr>`;
-            });
-            list.innerHTML = htmlContent;
-        }
-
-        // 🌟 新增：打开并渲染 1-8 组名单 Modal
-        function openGroupListModal() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate) { customAlert("请先在上方日历中选择你要查看的【日期】！", "warning", "提示"); return; }
-            if (allRecords.length === 0) { customAlert("该日期暂无签到记录！", "warning", "提示"); return; }
-
-            const container = document.getElementById("groupListContainer");
-            container.innerHTML = ""; 
-
-            // 生成 1 到 8 组的卡片
-            for (let i = 1; i <= 8; i++) {
-                const groupStudents = allRecords.filter(r => r.groupNumber === i.toString());
-                
-                let studentListHtml = "";
-                if (groupStudents.length === 0) {
-                    studentListHtml = `<div class="text-center py-4 text-slate-400 text-sm">暂无学生</div>`;
-                } else {
-                    groupStudents.forEach(stu => {
-                        studentListHtml += `
-                            <div class="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
-                                <span class="font-bold text-sm text-slate-700">${stu.studentName}</span>
-                                <span class="text-xs font-mono text-slate-400">${stu.studentId}</span>
-                            </div>
-                        `;
-                    });
-                }
-
-                const cardHtml = `
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-64">
-                        <div class="bg-emerald-50 border-b border-emerald-100 px-4 py-2.5 flex justify-between items-center">
-                            <span class="font-extrabold text-emerald-700">Group ${i}</span>
-                            <span class="text-xs font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full">${groupStudents.length} 人</span>
-                        </div>
-                        <div class="p-3 overflow-y-auto flex-1">
-                            ${studentListHtml}
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += cardHtml;
-            }
-
-            document.getElementById('groupListModal').classList.remove('hidden');
-        }
-
-        function closeGroupListModal() {
-            document.getElementById('groupListModal').classList.add('hidden');
-        }
-
-        function editRecordName(oldStudentId, currentName) {
-            const selectedDate = document.getElementById("dateFilter").value;
-            
-            customEditPrompt(`正在修改选中学生的资料\n您可以更改 Student ID 或姓名：`, oldStudentId, currentName, (newId, newName) => {
-                newId = newId.trim().toUpperCase();
-                newName = newName.trim().toUpperCase();
-
-                if (!newId || !newName) {
-                    customAlert("Student ID 和 Name 都不能为空！", "warning", "信息不完整");
-                    return;
-                }
-
-                if (newId.includes('@')) { customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误"); return; }
-                if (/\d/.test(newName)) { customAlert("学生姓名不能包含数字！", "warning", "格式错误"); return; }
-                if (newName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newName)) { customAlert("学生姓名不能是 Email 格式！", "warning", "格式错误"); return; }
-
-                if (newId === oldStudentId && newName === currentName) {
-                    customAlert("资料没有进行任何修改。", "info", "未修改");
-                    return;
-                }
-
-                const studentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(oldStudentId);
-
-                if (newId === oldStudentId) {
-                    studentRef.update({ studentName: newName }).then(() => {
-                        customAlert(`已成功将姓名修改为：${newName}`, "success", "修改成功");
-                    }).catch(error => { customAlert("修改失败: " + error.message, "error", "系统异常"); });
-                } else {
-                    studentRef.get().then((docSnapshot) => {
-                        if (docSnapshot.exists) {
-                            const oldData = docSnapshot.data();
-                            const newStudentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(newId);
-                            
-                            const batch = db.batch();
-                            // 注意：保留原本的 groupNumber
-                            batch.set(newStudentRef, { studentId: newId, studentName: newName, groupNumber: oldData.groupNumber || '-', timestamp: oldData.timestamp });
-                            batch.delete(studentRef);
-                            
-                            batch.commit().then(() => {
-                                customAlert(`成功！\nID 变为: ${newId}\n姓名变为: ${newName}`, "success", "修改成功");
-                            }).catch(error => { customAlert("修改 ID 失败: " + error.message, "error", "系统异常"); });
-                        }
-                    });
-                }
-            }, "✍️ 编辑学生资料");
-        }
-
-        function deleteSelectedRecords() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
-            
-            if (checkboxes.length === 0) {
-                customAlert("请先在左侧勾选想要删除的学生记录！", "warning", "未选择记录");
-                return;
-            }
-
-            customConfirm(`确定要永久删除这 ${checkboxes.length} 条签到记录吗？\n删除后将无法恢复！`, () => {
-                const batch = db.batch();
-                checkboxes.forEach(cb => {
-                    const idToRemove = cb.getAttribute('data-id');
-                    const docRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(idToRemove);
-                    batch.delete(docRef);
-                });
-
-                batch.commit().then(() => {
-                    customAlert(`成功删除了 ${checkboxes.length} 条记录！`, "success", "删除成功");
-                    if(document.getElementById('selectAll')) document.getElementById('selectAll').checked = false;
-                }).catch(error => {
-                    customAlert("批量删除失败: " + error.message, "error", "系统异常");
-                });
-            }, "🚨 危险操作确认");
-        }
-
-        function openQRModal() { document.getElementById('qrModal').classList.remove('hidden'); if (!currentQRUrl) { generateNewQR(); } }
-        function closeQRModal() { document.getElementById('qrModal').classList.add('hidden'); }
-        function generateNewQR() {
-            const baseUrl = "https://nanabanayo028.github.io/CFattendance/index.html"; 
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-            let randomLetters = '';
-            for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
-            currentQRUrl = `${baseUrl}?q=${randomLetters}`;
-            
-            const urlDisplay = document.getElementById('qrUrlDisplay');
-            if(urlDisplay) urlDisplay.innerText = currentQRUrl;
-            
-            const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
-            qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
-        }
-
-        function openManualModal() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate) { customAlert("请先在上方日历中选择你要进行补签的【日期】！", "warning", "提示"); return; }
-            currentManualDate = selectedDate;
-            document.getElementById('modalDateDisplay').innerText = selectedDate;
-            
-            document.getElementById('manualGroup').value = ""; 
-            document.getElementById('manualStuId').value = ""; 
-            document.getElementById('manualStuName').value = "";
-            
-            document.getElementById('manualCheckInModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('manualStuId').focus(), 100);
-        }
-        function closeManualModal() { document.getElementById('manualCheckInModal').classList.add('hidden'); }
-        
-        function submitManualCheckIn() {
-            const stuGroup = document.getElementById('manualGroup').value; 
-            const stuId = document.getElementById('manualStuId').value.trim().toUpperCase();
-            const stuName = document.getElementById('manualStuName').value.trim().toUpperCase();
-            
-            if (!stuId || !stuName || !stuGroup) { customAlert("Group, Student ID 和 Name 都不能为空！", "warning", "信息不完整"); return; }
-            
-            if (stuId.includes('@')) { customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误"); return; }
-            if (/\d/.test(stuName)) { customAlert("Student Name 不能包含数字！", "warning", "格式错误"); return; }
-            if (stuName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stuName)) { customAlert("Student Name 不能是 Email 格式！", "warning", "格式错误"); return; }
-            
-            const btn = document.getElementById('submitManualBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...'; btn.disabled = true;
-            
-            db.collection("Attendance").doc(currentManualDate).collection("Students").doc(stuId).set({ 
-                studentId: stuId, 
-                studentName: stuName, 
-                groupNumber: stuGroup,
-                timestamp: new Date() 
-            })
-            .then(() => { customAlert(`成功补签！\n学生 ${stuName} 已加入 ${currentManualDate} 的名单 (Group ${stuGroup})。`, "success", "补签成功"); closeManualModal(); btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加'; btn.disabled = false; })
-            .catch(error => { customAlert("补签失败: " + error.message, "error", "操作异常"); btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加'; btn.disabled = false; });
-        }
-
-        function openReportModal() {
-            document.getElementById('reportModal').classList.remove('hidden');
-            document.getElementById('reportLoading').classList.remove('hidden');
-            document.getElementById('reportEmpty').classList.add('hidden');
-            document.getElementById('reportList').classList.add('hidden');
-            document.getElementById('downloadReportBtn').disabled = true;
-
-            db.collectionGroup("Students").get().then((snapshot) => {
-                let attendanceCount = {}; 
-                snapshot.forEach((doc) => {
-                    const data = doc.data(); const id = data.studentId;
-                    if (!attendanceCount[id]) { attendanceCount[id] = { id: id, name: data.studentName, count: 0 }; }
-                    attendanceCount[id].count++;
-                });
-                globalPassedStudents = Object.values(attendanceCount).filter(student => student.count >= 4).sort((a, b) => b.count - a.count);
-                document.getElementById('reportLoading').classList.add('hidden');
-                if (globalPassedStudents.length === 0) {
-                    document.getElementById('reportEmpty').classList.remove('hidden');
-                } else {
-                    let listHtml = "";
-                    globalPassedStudents.forEach(stu => {
-                        listHtml += `<li class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center"><div><div class="font-bold text-slate-800 text-base sm:text-lg">${stu.name}</div><div class="text-xs sm:text-sm text-slate-500 font-mono">${stu.id}</div></div><div class="bg-amber-100 text-amber-700 px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg font-bold text-sm sm:text-base">${stu.count} 次</div></li>`;
-                    });
-                    document.getElementById('reportList').innerHTML = listHtml; document.getElementById('reportList').classList.remove('hidden'); document.getElementById('downloadReportBtn').disabled = false; 
-                }
-            }).catch(error => { customAlert("统计失败: " + error.message, "error", "系统异常"); closeReportModal(); });
-        }
-        function closeReportModal() { document.getElementById('reportModal').classList.add('hidden'); }
-
-        function exportToExcel() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate) { customAlert("请先在上方日历中选择要导出的日期！", "warning", "操作提示"); return; }
-            if (allRecords.length === 0) { customAlert(`日期 ${selectedDate} 没有可导出的签到数据！`, "warning", "空数据"); return; }
-            
-            let csvContent = "\uFEFF日期 (Date),时间 (Time),组别 (Group),学号 (Student ID),姓名 (Name)\n"; 
-            allRecords.forEach(record => { csvContent += `"${record.dateString}","${record.timeString}","${record.groupNumber}","${record.studentId}","${record.studentName}"\n`; });
-            triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);
-        }
-
-        function exportReportToExcel() {
-            let csvContent = "\uFEFF学号 (Student ID),姓名 (Name),总出勤次数 (Total Attendance)\n"; 
-            globalPassedStudents.forEach(stu => { csvContent += `"${stu.id}","${stu.name}","${stu.count}"\n`; });
-            triggerDownload(csvContent, `Attendance_Pass_Report.csv`);
-        }
-
-        function triggerDownload(content, filename) {
-            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename;
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
-    </script>
+    <script type="module" src="/admin.js"></script>
 </body>
 </html>
