@@ -28,7 +28,6 @@
         .modal-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
-        /* 🌟 为报表新增好看的自定义滚动条 */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -56,24 +55,18 @@
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="fa-solid fa-user-shield text-indigo-400"></i>
                     </div>
-                    <input type="text" id="adminUserId" placeholder="Admin ID" 
-                           class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold uppercase shadow-inner transition-all">
+                    <input type="text" id="adminUserId" placeholder="Admin ID" class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold uppercase shadow-inner transition-all">
                 </div>
-                
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="fa-solid fa-lock text-indigo-400"></i>
                     </div>
-                    <input type="password" id="adminPassword" placeholder="Password" 
-                           class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all">
+                    <input type="password" id="adminPassword" placeholder="Password" class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all">
                 </div>
-
                 <div id="loginError" class="hidden text-rose-400 text-xs font-bold text-center bg-rose-100/90 py-2 rounded-lg border border-rose-200">
                     <i class="fa-solid fa-circle-exclamation mr-1"></i> Invalid ID or Password!
                 </div>
-
-                <button onclick="handleLogin()" id="loginBtn"
-                        class="w-full mt-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50">
+                <button onclick="handleLogin()" id="loginBtn" class="w-full mt-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50">
                     <i class="fa-solid fa-right-to-bracket"></i> Secure Login
                 </button>
             </div>
@@ -113,12 +106,25 @@
             </div>
 
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-3">
-                <div class="flex items-center gap-2 glass-card p-1.5 rounded-xl shadow-sm w-full lg:w-auto shrink-0">
-                    <label for="dateFilter" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1"></i> 日期:</label>
-                    <input type="text" id="dateFilter" placeholder="选择查看日期..." class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-1.5 outline-none cursor-pointer w-full sm:w-36">
-                    <button onclick="clearDateFilter()" title="清除日期" class="text-slate-400 hover:text-rose-500 px-2 transition-colors">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
+                
+                <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto shrink-0">
+                    <div class="flex items-center gap-2 glass-card p-1.5 rounded-xl shadow-sm w-full sm:w-auto">
+                        <label for="dateFilter" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1"></i> 日期:</label>
+                        <input type="text" id="dateFilter" placeholder="选择查看日期..." class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-1.5 outline-none cursor-pointer flex-1 sm:w-32">
+                        <button onclick="clearDateFilter()" title="清除日期" class="text-slate-400 hover:text-rose-500 px-2 transition-colors">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2 glass-card p-1.5 rounded-xl shadow-sm w-full sm:w-auto">
+                        <label for="sortMode" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-solid fa-arrow-down-a-z mr-1"></i> 排序:</label>
+                        <select id="sortMode" onchange="applySort()" class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-1.5 outline-none cursor-pointer flex-1 sm:w-auto font-bold">
+                            <option value="time_desc">最新签到 (Time)</option>
+                            <option value="group_asc">小组顺序 (Group 1-8)</option>
+                            <option value="name_asc">学生姓名 (Name A-Z)</option>
+                            <option value="id_asc">学生学号 (ID A-Z)</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="flex flex-wrap justify-start lg:justify-end gap-2 w-full">
@@ -219,8 +225,7 @@
                             <div class="bg-slate-50 border-b border-slate-100 p-3 font-bold text-slate-700 flex items-center gap-2 text-sm">
                                 <i class="fa-solid fa-users text-emerald-500"></i> 各小组累积出席人次
                             </div>
-                            <div class="p-3 grid grid-cols-2 gap-2" id="reportGroupList">
-                            </div>
+                            <div class="p-3 grid grid-cols-2 gap-2" id="reportGroupList"></div>
                         </div>
 
                         <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
@@ -237,8 +242,7 @@
                                             <th class="p-2 pr-4 font-bold text-center w-24">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="reportStudentList" class="divide-y divide-slate-100">
-                                    </tbody>
+                                    <tbody id="reportStudentList" class="divide-y divide-slate-100"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -377,6 +381,10 @@
         </div>
     </div>
 
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, collection, doc, onSnapshot, setDoc, getDoc, updateDoc, writeBatch, getDocs, collectionGroup } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    </script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -395,7 +403,7 @@
             const inputContainer = document.getElementById('dialogInputsContainer'); 
             const inputId = document.getElementById('dialogInputId');
             const inputName = document.getElementById('dialogInputName'); 
-            const inputGroup = document.getElementById('dialogInputGroup'); // 🌟 新增
+            const inputGroup = document.getElementById('dialogInputGroup'); 
 
             titleDiv.innerText = config.title || '系统提示';
             msgDiv.innerText = config.message || '';
@@ -420,7 +428,7 @@
             if(config.type === 'edit') {
                 inputContainer.classList.remove('hidden');
                 inputContainer.classList.add('flex');
-                inputGroup.value = config.defaultGroup || '-'; // 🌟 设定默认组别
+                inputGroup.value = config.defaultGroup || '-'; 
                 inputId.value = config.defaultId || '';
                 inputName.value = config.defaultName || '';
                 setTimeout(() => inputName.focus(), 300);
@@ -445,7 +453,6 @@
                 confirmBtn.onclick = () => { 
                     closeDialog(); 
                     if(config.onConfirm) {
-                        // 🌟 传回三个值
                         config.type === 'edit' ? config.onConfirm(inputId.value, inputName.value, inputGroup.value) : config.onConfirm();
                     }
                 };
@@ -469,7 +476,7 @@
 
         window.customAlert = function(msg, type='info', title='系统提示') { openDialog({message: msg, type: type, title: title}); };
         window.customConfirm = function(msg, onConfirm, title='确认操作') { openDialog({message: msg, type: 'confirm', title: title, onConfirm: onConfirm}); };
-        window.customEditPrompt = function(msg, defaultId, defaultName, defaultGroup, onConfirm, title='编辑资料') { openDialog({message: msg, type: 'edit', defaultId: defaultId, defaultName: defaultName, defaultGroup: defaultGroup, title: title, onConfirm: onConfirm}); }; // 🌟
+        window.customEditPrompt = function(msg, defaultId, defaultName, defaultGroup, onConfirm, title='编辑资料') { openDialog({message: msg, type: 'edit', defaultId: defaultId, defaultName: defaultName, defaultGroup: defaultGroup, title: title, onConfirm: onConfirm}); }; 
 
         const ADMIN_CREDENTIALS = { id: "admin", password: "UTSCF2026" };
         const IDLE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
@@ -550,12 +557,12 @@
         document.getElementById("adminPassword").addEventListener("keypress", function(event) { if (event.key === "Enter") { event.preventDefault(); handleLogin(); } });
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
-            authDomain: "attendance-a7ac5.firebaseapp.com",
-            projectId: "attendance-a7ac5",
-            storageBucket: "attendance-a7ac5.firebasestorage.app",
-            messagingSenderId: "179755027767",
-            appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
+            apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+            appId: import.meta.env.VITE_FIREBASE_APP_ID
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -689,8 +696,9 @@
                               });
                           }
                       });
-                      allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
-                      renderTable(); 
+                      
+                      // 🌟 调用专门的排序函数
+                      applySort(); 
                   });
                 activeListeners.push(unsub);
             });
@@ -702,6 +710,30 @@
         }
 
         function clearDateFilter() { datePicker.clear(); handleDateSelection(); }
+
+        // 🌟 核心：全新排序控制逻辑
+        function applySort() {
+            const mode = document.getElementById("sortMode").value;
+            
+            if (mode === 'time_desc') {
+                // 时间倒序（最新在上）
+                allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
+            } else if (mode === 'name_asc') {
+                // 姓名 A-Z
+                allRecords.sort((a, b) => a.studentName.localeCompare(b.studentName));
+            } else if (mode === 'id_asc') {
+                // 学号 A-Z
+                allRecords.sort((a, b) => a.studentId.localeCompare(b.studentId));
+            } else if (mode === 'group_asc') {
+                // 小组 1-8（没有小组的排在最下面）
+                allRecords.sort((a, b) => {
+                    const gA = a.groupNumber === '-' ? '99' : a.groupNumber;
+                    const gB = b.groupNumber === '-' ? '99' : b.groupNumber;
+                    return gA.localeCompare(gB);
+                });
+            }
+            renderTable();
+        }
 
         function toggleManageMode() {
             const selectedDate = document.getElementById("dateFilter").value;
@@ -785,7 +817,7 @@
                         <td class="p-3 font-bold text-indigo-700">${record.studentId}</td>
                         <td class="p-3 text-slate-800 font-medium text-[13px]">${record.studentName}</td>
                         ${isManageMode ? `<td class="p-3 text-right pr-6 sm:pr-8">
-                            <button onclick="editRecordName('${record.studentId}', '${record.studentName.replace(/'/g, "\\'")}', '${record.groupNumber}')" class="text-indigo-600 hover:text-white bg-indigo-100 hover:bg-indigo-500 px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm border border-indigo-200 hover:border-indigo-500 active:scale-95">
+                            <button onclick="editRecordName('${record.studentId}', '${record.studentName.replace(/'/g, "\\'")}', '${record.groupNumber}')" class="text-indigo-600 hover:text-white bg-indigo-100 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm border border-indigo-200 hover:border-indigo-500 active:scale-95">
                                 <i class="fa-solid fa-pen mr-1"></i> 编辑
                             </button>
                         </td>` : ''}
@@ -804,6 +836,7 @@
 
             for (let i = 1; i <= 8; i++) {
                 const groupStudents = allRecords.filter(r => r.groupNumber === i.toString());
+                
                 let studentListHtml = "";
                 if (groupStudents.length === 0) {
                     studentListHtml = `<div class="text-center py-6 text-slate-400 text-xs">暂无学生</div>`;
@@ -817,6 +850,7 @@
                         `;
                     });
                 }
+
                 const cardHtml = `
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-56">
                         <div class="bg-emerald-50 border-b border-emerald-100 px-3 py-2 flex justify-between items-center shrink-0">
@@ -830,14 +864,12 @@
                 `;
                 container.innerHTML += cardHtml;
             }
+
             document.getElementById('groupListModal').classList.remove('hidden');
         }
 
-        function closeGroupListModal() {
-            document.getElementById('groupListModal').classList.add('hidden');
-        }
+        function closeGroupListModal() { document.getElementById('groupListModal').classList.add('hidden'); }
 
-        // 🌟 升级：编辑框包含三个数据（旧ID, 旧名字, 旧组别）
         function editRecordName(oldStudentId, currentName, currentGroup) {
             const selectedDate = document.getElementById("dateFilter").value;
             
@@ -845,10 +877,7 @@
                 newId = newId.trim().toUpperCase();
                 newName = newName.trim().toUpperCase();
 
-                if (!newId || !newName) {
-                    customAlert("Student ID 和 Name 都不能为空！", "warning", "信息不完整");
-                    return;
-                }
+                if (!newId || !newName) { customAlert("Student ID 和 Name 都不能为空！", "warning", "信息不完整"); return; }
                 if (newId.includes('@')) { customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误"); return; }
                 if (/\d/.test(newName)) { customAlert("学生姓名不能包含数字！", "warning", "格式错误"); return; }
                 if (newName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newName)) { customAlert("学生姓名不能是 Email 格式！", "warning", "格式错误"); return; }
@@ -861,12 +890,10 @@
                 const studentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(oldStudentId);
 
                 if (newId === oldStudentId) {
-                    // ID没变，直接 update 名字和组别
                     studentRef.update({ studentName: newName, groupNumber: newGroup }).then(() => {
                         customAlert(`已成功更新资料！`, "success", "修改成功");
                     }).catch(error => { customAlert("修改失败: " + error.message, "error", "系统异常"); });
                 } else {
-                    // ID变了，必须重新建文档
                     studentRef.get().then((docSnapshot) => {
                         if (docSnapshot.exists) {
                             const oldData = docSnapshot.data();
@@ -1111,6 +1138,9 @@
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
+
+        // 🌟 注册排序函数
+        window.applySort = applySort;
     </script>
 </body>
 </html>
