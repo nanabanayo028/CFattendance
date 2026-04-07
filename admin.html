@@ -55,18 +55,24 @@
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="fa-solid fa-user-shield text-indigo-400"></i>
                     </div>
-                    <input type="text" id="adminUserId" placeholder="Admin ID" class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold uppercase shadow-inner transition-all">
+                    <input type="text" id="adminUserId" placeholder="Admin ID" 
+                           class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold uppercase shadow-inner transition-all">
                 </div>
+                
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="fa-solid fa-lock text-indigo-400"></i>
                     </div>
-                    <input type="password" id="adminPassword" placeholder="Password" class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all">
+                    <input type="password" id="adminPassword" placeholder="Password" 
+                           class="w-full pl-11 pr-4 py-3.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all">
                 </div>
+
                 <div id="loginError" class="hidden text-rose-400 text-xs font-bold text-center bg-rose-100/90 py-2 rounded-lg border border-rose-200">
                     <i class="fa-solid fa-circle-exclamation mr-1"></i> Invalid ID or Password!
                 </div>
-                <button onclick="handleLogin()" id="loginBtn" class="w-full mt-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50">
+
+                <button onclick="handleLogin()" id="loginBtn"
+                        class="w-full mt-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50">
                     <i class="fa-solid fa-right-to-bracket"></i> Secure Login
                 </button>
             </div>
@@ -381,10 +387,6 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { getFirestore, collection, doc, onSnapshot, setDoc, getDoc, updateDoc, writeBatch, getDocs, collectionGroup } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-    </script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -716,16 +718,12 @@
             const mode = document.getElementById("sortMode").value;
             
             if (mode === 'time_desc') {
-                // 时间倒序（最新在上）
                 allRecords.sort((a, b) => b.fullDateObj - a.fullDateObj);
             } else if (mode === 'name_asc') {
-                // 姓名 A-Z
                 allRecords.sort((a, b) => a.studentName.localeCompare(b.studentName));
             } else if (mode === 'id_asc') {
-                // 学号 A-Z
                 allRecords.sort((a, b) => a.studentId.localeCompare(b.studentId));
             } else if (mode === 'group_asc') {
-                // 小组 1-8（没有小组的排在最下面）
                 allRecords.sort((a, b) => {
                     const gA = a.groupNumber === '-' ? '99' : a.groupNumber;
                     const gB = b.groupNumber === '-' ? '99' : b.groupNumber;
@@ -1138,9 +1136,6 @@
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
-
-        // 🌟 注册排序函数
-        window.applySort = applySort;
     </script>
 </body>
 </html>
