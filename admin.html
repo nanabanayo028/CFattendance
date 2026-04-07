@@ -129,19 +129,19 @@
                         <i class="fa-solid fa-list-check"></i> 管理
                     </button>
                     <button onclick="openGroupListModal()" class="glass-card hover:bg-white text-emerald-600 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-emerald-200 active:scale-95">
-                        <i class="fa-solid fa-users-viewfinder"></i> 分组
+                        <i class="fa-solid fa-users-viewfinder"></i> 当日小组
                     </button>
                     <button onclick="openManualModal()" class="glass-card hover:bg-white text-indigo-700 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-indigo-200 active:scale-95">
                         <i class="fa-solid fa-user-plus"></i> 补签
                     </button>
                     <button id="reportBtn" onclick="openReportModal()" class="glass-card hover:bg-white text-amber-600 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-amber-200 active:scale-95 ring-2 ring-amber-400/50">
-                        <i class="fa-solid fa-chart-pie"></i> 报表
+                        <i class="fa-solid fa-chart-pie"></i> 高级报表
                     </button>
                     <button onclick="exportToExcel()" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all active:scale-95 border border-slate-700">
                         <i class="fa-solid fa-file-excel text-emerald-400"></i> 导出
                     </button>
                     <button onclick="openQRModal()" class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-1.5 px-4 rounded-lg shadow-md shadow-purple-500/30 flex items-center gap-1.5 transition-all border border-purple-500 active:scale-95">
-                        <i class="fa-solid fa-qrcode"></i> 大屏扫码
+                        <i class="fa-solid fa-qrcode"></i> 扫码控制
                     </button>
                 </div>
             </div>
@@ -220,7 +220,7 @@
                                 <i class="fa-solid fa-users text-emerald-500"></i> 各小组累积出席人次
                             </div>
                             <div class="p-3 grid grid-cols-2 gap-2" id="reportGroupList">
-                                </div>
+                            </div>
                         </div>
 
                         <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
@@ -238,7 +238,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="reportStudentList" class="divide-y divide-slate-100">
-                                        </tbody>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -263,7 +263,7 @@
             </div>
             <div class="p-4 sm:p-5 overflow-y-auto flex-1 bg-slate-50">
                 <div id="groupListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    </div>
+                </div>
             </div>
             <div class="p-3 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0">
                 <button onclick="closeGroupListModal()" class="px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors active:scale-95">关闭窗口</button>
@@ -350,7 +350,18 @@
                 <div id="dialogIcon" class="mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl"></div>
                 <h3 id="dialogTitle" class="text-xl font-bold text-slate-800 mb-2"></h3>
                 <p id="dialogMessage" class="text-slate-500 text-sm mb-6 whitespace-pre-line"></p>
+                
                 <div id="dialogInputsContainer" class="hidden flex-col gap-3 mb-6 text-left">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Group (1-8)</label>
+                        <select id="dialogInputGroup" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all uppercase">
+                            <option value="1">Group 1</option><option value="2">Group 2</option>
+                            <option value="3">Group 3</option><option value="4">Group 4</option>
+                            <option value="5">Group 5</option><option value="6">Group 6</option>
+                            <option value="7">Group 7</option><option value="8">Group 8</option>
+                            <option value="-">- (无组别)</option>
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student ID</label>
                         <input type="text" id="dialogInputId" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all uppercase" />
@@ -360,6 +371,7 @@
                         <input type="text" id="dialogInputName" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-slate-800 font-bold shadow-inner transition-all uppercase" />
                     </div>
                 </div>
+                
                 <div class="flex gap-3 justify-center" id="dialogButtons"></div>
             </div>
         </div>
@@ -379,9 +391,11 @@
             const titleDiv = document.getElementById('dialogTitle');
             const msgDiv = document.getElementById('dialogMessage');
             const btnDiv = document.getElementById('dialogButtons');
+            
             const inputContainer = document.getElementById('dialogInputsContainer'); 
             const inputId = document.getElementById('dialogInputId');
             const inputName = document.getElementById('dialogInputName'); 
+            const inputGroup = document.getElementById('dialogInputGroup'); // 🌟 新增
 
             titleDiv.innerText = config.title || '系统提示';
             msgDiv.innerText = config.message || '';
@@ -406,6 +420,7 @@
             if(config.type === 'edit') {
                 inputContainer.classList.remove('hidden');
                 inputContainer.classList.add('flex');
+                inputGroup.value = config.defaultGroup || '-'; // 🌟 设定默认组别
                 inputId.value = config.defaultId || '';
                 inputName.value = config.defaultName || '';
                 setTimeout(() => inputName.focus(), 300);
@@ -430,7 +445,8 @@
                 confirmBtn.onclick = () => { 
                     closeDialog(); 
                     if(config.onConfirm) {
-                        config.type === 'edit' ? config.onConfirm(inputId.value, inputName.value) : config.onConfirm();
+                        // 🌟 传回三个值
+                        config.type === 'edit' ? config.onConfirm(inputId.value, inputName.value, inputGroup.value) : config.onConfirm();
                     }
                 };
                 btnDiv.appendChild(confirmBtn);
@@ -453,7 +469,7 @@
 
         window.customAlert = function(msg, type='info', title='系统提示') { openDialog({message: msg, type: type, title: title}); };
         window.customConfirm = function(msg, onConfirm, title='确认操作') { openDialog({message: msg, type: 'confirm', title: title, onConfirm: onConfirm}); };
-        window.customEditPrompt = function(msg, defaultId, defaultName, onConfirm, title='编辑资料') { openDialog({message: msg, type: 'edit', defaultId: defaultId, defaultName: defaultName, title: title, onConfirm: onConfirm}); };
+        window.customEditPrompt = function(msg, defaultId, defaultName, defaultGroup, onConfirm, title='编辑资料') { openDialog({message: msg, type: 'edit', defaultId: defaultId, defaultName: defaultName, defaultGroup: defaultGroup, title: title, onConfirm: onConfirm}); }; // 🌟
 
         const ADMIN_CREDENTIALS = { id: "admin", password: "UTSCF2026" };
         const IDLE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
@@ -544,7 +560,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 🌟 初始化日期选择器
         const datePicker = flatpickr("#dateFilter", { dateFormat: "Y-m-d", disableMobile: true, onChange: function(selectedDates, dateStr, instance) { handleDateSelection(); }});
         flatpickr("#reportStartDate", { dateFormat: "Y-m-d", disableMobile: true });
         flatpickr("#reportEndDate", { dateFormat: "Y-m-d", disableMobile: true });
@@ -765,12 +780,12 @@
                         <td class="p-3 ${!isManageMode ? 'pl-6 sm:pl-8' : ''} text-slate-700 font-medium">${record.dateString}</td>
                         <td class="p-3 text-slate-600 font-mono"><span class="bg-white/60 shadow-sm border border-white px-2 py-0.5 rounded text-[11px]">${record.timeString}</span></td>
                         <td class="p-3 text-center font-bold text-emerald-600">
-                            ${record.groupNumber !== '-' ? `<span class="bg-emerald-100/80 text-emerald-700 px-2 py-0.5 rounded text-[11px] tracking-wide border border-emerald-200 shadow-sm">Group ${record.groupNumber}</span>` : '<span class="text-slate-400 font-normal">-</span>'}
+                            ${record.groupNumber !== '-' ? `<span class="bg-emerald-100/80 text-emerald-700 px-2.5 py-1 rounded-md text-xs tracking-wide shadow-sm border border-emerald-200">Group ${record.groupNumber}</span>` : '<span class="text-slate-400 font-normal">-</span>'}
                         </td>
                         <td class="p-3 font-bold text-indigo-700">${record.studentId}</td>
                         <td class="p-3 text-slate-800 font-medium text-[13px]">${record.studentName}</td>
                         ${isManageMode ? `<td class="p-3 text-right pr-6 sm:pr-8">
-                            <button onclick="editRecordName('${record.studentId}', '${record.studentName.replace(/'/g, "\\'")}')" class="text-indigo-600 hover:text-white bg-indigo-100 hover:bg-indigo-500 px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm border border-indigo-200 hover:border-indigo-500 active:scale-95">
+                            <button onclick="editRecordName('${record.studentId}', '${record.studentName.replace(/'/g, "\\'")}', '${record.groupNumber}')" class="text-indigo-600 hover:text-white bg-indigo-100 hover:bg-indigo-500 px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm border border-indigo-200 hover:border-indigo-500 active:scale-95">
                                 <i class="fa-solid fa-pen mr-1"></i> 编辑
                             </button>
                         </td>` : ''}
@@ -822,9 +837,11 @@
             document.getElementById('groupListModal').classList.add('hidden');
         }
 
-        function editRecordName(oldStudentId, currentName) {
+        // 🌟 升级：编辑框包含三个数据（旧ID, 旧名字, 旧组别）
+        function editRecordName(oldStudentId, currentName, currentGroup) {
             const selectedDate = document.getElementById("dateFilter").value;
-            customEditPrompt(`正在修改选中学生的资料\n您可以更改 Student ID 或姓名：`, oldStudentId, currentName, (newId, newName) => {
+            
+            customEditPrompt(`正在修改选中学生的资料\n您可以更改 Group、Student ID 或 姓名：`, oldStudentId, currentName, currentGroup, (newId, newName, newGroup) => {
                 newId = newId.trim().toUpperCase();
                 newName = newName.trim().toUpperCase();
 
@@ -836,7 +853,7 @@
                 if (/\d/.test(newName)) { customAlert("学生姓名不能包含数字！", "warning", "格式错误"); return; }
                 if (newName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newName)) { customAlert("学生姓名不能是 Email 格式！", "warning", "格式错误"); return; }
 
-                if (newId === oldStudentId && newName === currentName) {
+                if (newId === oldStudentId && newName === currentName && newGroup === currentGroup) {
                     customAlert("资料没有进行任何修改。", "info", "未修改");
                     return;
                 }
@@ -844,19 +861,23 @@
                 const studentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(oldStudentId);
 
                 if (newId === oldStudentId) {
-                    studentRef.update({ studentName: newName }).then(() => {
-                        customAlert(`已成功将姓名修改为：${newName}`, "success", "修改成功");
+                    // ID没变，直接 update 名字和组别
+                    studentRef.update({ studentName: newName, groupNumber: newGroup }).then(() => {
+                        customAlert(`已成功更新资料！`, "success", "修改成功");
                     }).catch(error => { customAlert("修改失败: " + error.message, "error", "系统异常"); });
                 } else {
+                    // ID变了，必须重新建文档
                     studentRef.get().then((docSnapshot) => {
                         if (docSnapshot.exists) {
                             const oldData = docSnapshot.data();
                             const newStudentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(newId);
                             const batch = db.batch();
-                            batch.set(newStudentRef, { studentId: newId, studentName: newName, groupNumber: oldData.groupNumber || '-', timestamp: oldData.timestamp });
+                            
+                            batch.set(newStudentRef, { studentId: newId, studentName: newName, groupNumber: newGroup, timestamp: oldData.timestamp });
                             batch.delete(studentRef);
+                            
                             batch.commit().then(() => {
-                                customAlert(`成功！\nID 变为: ${newId}\n姓名变为: ${newName}`, "success", "修改成功");
+                                customAlert(`成功！\nID 变为: ${newId}\n姓名变为: ${newName}\n组别: Group ${newGroup}`, "success", "修改成功");
                             }).catch(error => { customAlert("修改 ID 失败: " + error.message, "error", "系统异常"); });
                         }
                     });
@@ -940,7 +961,6 @@
             });
         }
 
-        // 🌟 全新升级：高级动态日期报表逻辑
         function openReportModal() {
             document.getElementById('reportModal').classList.remove('hidden');
             document.getElementById('reportListContainer').classList.add('hidden');
@@ -972,7 +992,7 @@
                 let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0 };
 
                 snapshot.forEach((doc) => {
-                    const dateStr = doc.ref.parent.parent.id; // YYYY-MM-DD
+                    const dateStr = doc.ref.parent.parent.id;
                     
                     if (dateStr >= startDate && dateStr <= endDate) {
                         uniqueSessions.add(dateStr);
@@ -1054,7 +1074,6 @@
             });
         }
 
-        // 🌟 高级报表导出功能
         function exportReportToExcel() {
             const startDate = document.getElementById('reportStartDate').value;
             const endDate = document.getElementById('reportEndDate').value;
