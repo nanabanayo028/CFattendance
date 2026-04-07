@@ -93,7 +93,7 @@
         </nav>
 
         <div class="max-w-6xl mx-auto p-4 sm:p-8 relative z-10">
-            <div class="mb-8">
+            <div class="mb-6">
                 <div class="bg-gradient-to-br from-indigo-600/90 to-purple-700/90 backdrop-blur-md rounded-2xl p-6 sm:p-8 shadow-xl text-white flex flex-col sm:flex-row items-center justify-between relative overflow-hidden border border-white/20">
                     <i class="fa-solid fa-users absolute -right-4 -bottom-4 text-8xl opacity-10"></i>
                     <div class="mb-2 sm:mb-0 text-center sm:text-left">
@@ -107,39 +107,43 @@
                 </div>
             </div>
 
-            <div class="flex flex-col md:flex-row justify-between items-center mb-5 gap-4">
-                <div class="flex items-center gap-3 glass-card p-2 rounded-xl shadow-sm w-full md:w-auto">
-                    <label for="dateFilter" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1.5"></i> 选择日期:</label>
-                    <input type="text" id="dateFilter" placeholder="选择查看日期..." class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none cursor-pointer flex-1">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-5 gap-4">
+                
+                <div class="flex items-center gap-3 glass-card p-2 rounded-xl shadow-sm w-full lg:w-auto shrink-0">
+                    <label for="dateFilter" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1.5"></i> 筛选:</label>
+                    <input type="text" id="dateFilter" placeholder="选择日期..." class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none cursor-pointer w-full sm:w-40">
                     <button onclick="clearDateFilter()" title="清除日期" class="text-slate-400 hover:text-rose-500 px-2 transition-colors">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
                 
-                <div class="flex flex-wrap sm:flex-nowrap gap-3 w-full md:w-auto">
-                    <button onclick="deleteSelectedRecords()" id="deleteSelectedBtn" class="hidden flex-1 sm:flex-initial glass-card hover:bg-rose-50 text-rose-600 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-rose-200 active:scale-95">
-                        <i class="fa-solid fa-trash-can"></i> 删除所选
-                    </button>
-                    <button onclick="toggleManageMode()" id="manageBtn" class="flex-1 sm:flex-initial glass-card hover:bg-white text-blue-700 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-blue-200 active:scale-95">
-                        <i class="fa-solid fa-list-check"></i> 管理名单
-                    </button>
-
-                    <button onclick="openGroupListModal()" class="flex-1 sm:flex-initial glass-card hover:bg-white text-emerald-600 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-emerald-200 active:scale-95">
-                        <i class="fa-solid fa-users-viewfinder"></i> 分组名单
-                    </button>
-
-                    <button onclick="openQRModal()" class="flex-1 sm:flex-initial bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2 transition-all whitespace-nowrap border border-purple-500 active:scale-95">
-                        <i class="fa-solid fa-qrcode"></i> 大屏扫码与控制
+                <div class="flex flex-wrap justify-start lg:justify-end gap-2.5 w-full">
+                    <button onclick="deleteSelectedRecords()" id="deleteSelectedBtn" class="hidden glass-card hover:bg-rose-50 text-rose-600 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-rose-200 active:scale-95">
+                        <i class="fa-solid fa-trash-can"></i> 删除
                     </button>
                     
-                    <button onclick="openManualModal()" class="flex-1 sm:flex-initial glass-card hover:bg-white text-indigo-700 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-indigo-200 active:scale-95">
-                        <i class="fa-solid fa-user-plus text-indigo-500"></i> 手动补签
+                    <button onclick="toggleManageMode()" id="manageBtn" class="glass-card hover:bg-white text-blue-700 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-blue-200 active:scale-95">
+                        <i class="fa-solid fa-list-check"></i> 管理
                     </button>
-                    <button id="reportBtn" onclick="openReportModal()" class="flex-1 sm:flex-initial glass-card hover:bg-white text-amber-700 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-amber-200 active:scale-95">
-                        <i class="fa-solid fa-trophy text-amber-500"></i> 达标报表
+
+                    <button onclick="openGroupListModal()" class="glass-card hover:bg-white text-emerald-600 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-emerald-200 active:scale-95">
+                        <i class="fa-solid fa-users-viewfinder"></i> 分组
                     </button>
-                    <button onclick="exportToExcel()" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all whitespace-nowrap active:scale-95 border border-slate-700">
-                        <i class="fa-solid fa-file-excel text-emerald-400"></i> 导出当日
+                    
+                    <button onclick="openManualModal()" class="glass-card hover:bg-white text-indigo-700 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-indigo-200 active:scale-95">
+                        <i class="fa-solid fa-user-plus"></i> 补签
+                    </button>
+
+                    <button id="reportBtn" onclick="openReportModal()" class="glass-card hover:bg-white text-amber-700 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border-amber-200 active:scale-95">
+                        <i class="fa-solid fa-trophy"></i> 报表
+                    </button>
+
+                    <button onclick="exportToExcel()" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all whitespace-nowrap active:scale-95 border border-slate-700">
+                        <i class="fa-solid fa-file-excel text-emerald-400"></i> 导出
+                    </button>
+
+                    <button onclick="openQRModal()" class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-md shadow-purple-500/30 flex items-center justify-center gap-1.5 transition-all whitespace-nowrap border border-purple-500 active:scale-95">
+                        <i class="fa-solid fa-qrcode"></i> 大屏扫码
                     </button>
                 </div>
             </div>
@@ -151,7 +155,7 @@
                             <tr class="bg-white/50 text-slate-600 text-xs uppercase tracking-wider border-b border-white/50">
                                 <th class="p-4 font-bold pl-6 sm:pl-8">Date</th>
                                 <th class="p-4 font-bold">Time</th>
-                                <th class="p-4 font-bold">Group</th>
+                                <th class="p-4 font-bold text-center">Group</th> 
                                 <th class="p-4 font-bold">Student ID</th>
                                 <th class="p-4 font-bold">Student Name</th>
                             </tr>
@@ -301,6 +305,10 @@
         </div>
     </div>
 
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, collection, doc, onSnapshot, setDoc, getDoc, updateDoc, writeBatch, getDocs, collectionGroup } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    </script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -599,7 +607,7 @@
                               allRecords.push({
                                   studentId: data.studentId, 
                                   studentName: data.studentName, 
-                                  groupNumber: data.groupNumber || '-', // 🌟 读取小组数据 (旧数据如果没有默认显示 '-')
+                                  groupNumber: data.groupNumber || '-', // 🌟 读取小组数据
                                   fullDateObj: jsDate, 
                                   dateString: dateString, 
                                   timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
@@ -635,12 +643,12 @@
                 delBtn.classList.remove('hidden');
                 mngBtn.classList.remove('bg-white', 'text-blue-700');
                 mngBtn.classList.add('bg-blue-600', 'text-white');
-                mngBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> 退出管理';
+                mngBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> 退出';
             } else {
                 delBtn.classList.add('hidden');
                 mngBtn.classList.add('bg-white', 'text-blue-700');
                 mngBtn.classList.remove('bg-blue-600', 'text-white');
-                mngBtn.innerHTML = '<i class="fa-solid fa-list-check"></i> 管理名单';
+                mngBtn.innerHTML = '<i class="fa-solid fa-list-check"></i> 管理';
             }
             renderTable();
         }
@@ -671,7 +679,7 @@
                         <th class="p-4 pl-6 sm:pl-8 w-12"><input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes(this)" class="w-4 h-4 rounded border-gray-300 text-indigo-600 cursor-pointer"></th>
                         <th class="p-4 font-bold">Date</th>
                         <th class="p-4 font-bold">Time</th>
-                        <th class="p-4 font-bold">Group</th> <th class="p-4 font-bold">Student ID</th>
+                        <th class="p-4 font-bold text-center">Group</th> <th class="p-4 font-bold">Student ID</th>
                         <th class="p-4 font-bold">Student Name</th>
                         <th class="p-4 font-bold text-right pr-6 sm:pr-8">Action</th>
                     </tr>
@@ -681,7 +689,7 @@
                     <tr class="bg-white/50 text-slate-600 text-xs uppercase tracking-wider border-b border-white/50">
                         <th class="p-4 font-bold pl-6 sm:pl-8">Date</th>
                         <th class="p-4 font-bold">Time</th>
-                        <th class="p-4 font-bold">Group</th> <th class="p-4 font-bold">Student ID</th>
+                        <th class="p-4 font-bold text-center">Group</th> <th class="p-4 font-bold">Student ID</th>
                         <th class="p-4 font-bold">Student Name</th>
                     </tr>
                 `;
@@ -690,13 +698,13 @@
             let htmlContent = "";
             allRecords.forEach(record => {
                 htmlContent += `
-                    <tr class="hover:bg-white/40 transition duration-150 border-b border-white/20 last:border-0">
+                    <tr class="hover:bg-white/60 transition duration-150 border-b border-white/20 last:border-0">
                         ${isManageMode ? `<td class="p-4 pl-6 sm:pl-8 w-12"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-indigo-600 cursor-pointer" data-id="${record.studentId}"></td>` : ''}
                         <td class="p-4 ${!isManageMode ? 'pl-6 sm:pl-8' : ''} text-slate-700 font-medium">${record.dateString}</td>
                         <td class="p-4 text-slate-600 font-mono"><span class="bg-white/60 shadow-sm border border-white px-2 py-1 rounded text-xs">${record.timeString}</span></td>
                         
-                        <td class="p-4 font-bold text-emerald-600">
-                            ${record.groupNumber !== '-' ? `<span class="bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200 shadow-sm">Group ${record.groupNumber}</span>` : '<span class="text-slate-400 font-normal">-</span>'}
+                        <td class="p-4 text-center font-bold text-emerald-600">
+                            ${record.groupNumber !== '-' ? `<span class="bg-emerald-100/80 text-emerald-700 px-2.5 py-1 rounded-md text-xs tracking-wide shadow-sm border border-emerald-200">Group ${record.groupNumber}</span>` : '<span class="text-slate-400 font-normal">-</span>'}
                         </td>
                         
                         <td class="p-4 font-bold text-indigo-700">${record.studentId}</td>
@@ -718,11 +726,10 @@
             if (allRecords.length === 0) { customAlert("该日期暂无签到记录！", "warning", "提示"); return; }
 
             const container = document.getElementById("groupListContainer");
-            container.innerHTML = ""; // 清空旧内容
+            container.innerHTML = ""; 
 
             // 生成 1 到 8 组的卡片
             for (let i = 1; i <= 8; i++) {
-                // 筛选出属于这一组的学生
                 const groupStudents = allRecords.filter(r => r.groupNumber === i.toString());
                 
                 let studentListHtml = "";
@@ -739,7 +746,6 @@
                     });
                 }
 
-                // 拼装每组的卡片
                 const cardHtml = `
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-64">
                         <div class="bg-emerald-50 border-b border-emerald-100 px-4 py-2.5 flex justify-between items-center">
@@ -795,7 +801,7 @@
                             const newStudentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(newId);
                             
                             const batch = db.batch();
-                            // 🌟 注意：保留原本的 groupNumber
+                            // 注意：保留原本的 groupNumber
                             batch.set(newStudentRef, { studentId: newId, studentName: newName, groupNumber: oldData.groupNumber || '-', timestamp: oldData.timestamp });
                             batch.delete(studentRef);
                             
@@ -856,7 +862,6 @@
             currentManualDate = selectedDate;
             document.getElementById('modalDateDisplay').innerText = selectedDate;
             
-            // 🌟 开启手动补签时，重置所有输入框（包括小组）
             document.getElementById('manualGroup').value = ""; 
             document.getElementById('manualStuId').value = ""; 
             document.getElementById('manualStuName').value = "";
@@ -867,7 +872,7 @@
         function closeManualModal() { document.getElementById('manualCheckInModal').classList.add('hidden'); }
         
         function submitManualCheckIn() {
-            const stuGroup = document.getElementById('manualGroup').value; // 🌟 获取老师选择的组别
+            const stuGroup = document.getElementById('manualGroup').value; 
             const stuId = document.getElementById('manualStuId').value.trim().toUpperCase();
             const stuName = document.getElementById('manualStuName').value.trim().toUpperCase();
             
@@ -880,7 +885,6 @@
             const btn = document.getElementById('submitManualBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...'; btn.disabled = true;
             
-            // 🌟 保存时加入 groupNumber
             db.collection("Attendance").doc(currentManualDate).collection("Students").doc(stuId).set({ 
                 studentId: stuId, 
                 studentName: stuName, 
@@ -925,7 +929,6 @@
             if (!selectedDate) { customAlert("请先在上方日历中选择要导出的日期！", "warning", "操作提示"); return; }
             if (allRecords.length === 0) { customAlert(`日期 ${selectedDate} 没有可导出的签到数据！`, "warning", "空数据"); return; }
             
-            // 🌟 导出时新增 Group 栏位
             let csvContent = "\uFEFF日期 (Date),时间 (Time),组别 (Group),学号 (Student ID),姓名 (Name)\n"; 
             allRecords.forEach(record => { csvContent += `"${record.dateString}","${record.timeString}","${record.groupNumber}","${record.studentId}","${record.studentName}"\n`; });
             triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);
