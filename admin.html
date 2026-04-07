@@ -106,12 +106,24 @@
             </div>
 
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-3">
-                <div class="flex items-center gap-2 glass-card p-1.5 rounded-xl shadow-sm w-full lg:w-auto shrink-0">
-                    <label for="dateFilter" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1"></i> 日期:</label>
-                    <input type="text" id="dateFilter" placeholder="选择查看日期..." class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-1.5 outline-none cursor-pointer w-full sm:w-36">
-                    <button onclick="clearDateFilter()" title="清除日期" class="text-slate-400 hover:text-rose-500 px-2 transition-colors">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
+                <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto shrink-0">
+                    <div class="flex items-center gap-2 glass-card p-1.5 rounded-xl shadow-sm w-full sm:w-auto">
+                        <label for="dateFilter" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-regular fa-calendar-days mr-1"></i> 日期:</label>
+                        <input type="text" id="dateFilter" placeholder="选择查看日期..." class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-1.5 outline-none cursor-pointer flex-1 sm:w-32">
+                        <button onclick="clearDateFilter()" title="清除日期" class="text-slate-400 hover:text-rose-500 px-2 transition-colors">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2 glass-card p-1.5 rounded-xl shadow-sm w-full sm:w-auto">
+                        <label for="sortMode" class="text-sm font-bold text-slate-600 pl-2 whitespace-nowrap"><i class="fa-solid fa-arrow-down-a-z mr-1"></i> 排序:</label>
+                        <select id="sortMode" onchange="applySort()" class="bg-white/80 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-1.5 outline-none cursor-pointer flex-1 sm:w-auto font-bold">
+                            <option value="time_desc">最新签到 (Time)</option>
+                            <option value="group_asc">小组顺序 (Group 1-8)</option>
+                            <option value="name_asc">学生姓名 (Name A-Z)</option>
+                            <option value="id_asc">学生学号 (ID A-Z)</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="flex flex-wrap justify-start lg:justify-end gap-2 w-full">
@@ -143,6 +155,13 @@
                 <div class="overflow-x-auto max-h-[60vh]">
                     <table class="w-full text-left border-collapse">
                         <thead id="tableHeader" class="bg-white/80 sticky top-0 z-10 backdrop-blur-md border-b border-slate-200">
+                            <tr class="text-slate-600 text-[11px] uppercase tracking-wider">
+                                <th class="p-3 font-bold pl-6 sm:pl-8">Date</th>
+                                <th class="p-3 font-bold">Time</th>
+                                <th class="p-3 font-bold text-center">Group</th> 
+                                <th class="p-3 font-bold">Student ID</th>
+                                <th class="p-3 font-bold">Student Name</th>
+                            </tr>
                         </thead>
                         <tbody id="attendanceList" class="divide-y divide-white/40 text-sm">
                             <tr><td colspan="5" class="p-10 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>
@@ -202,8 +221,9 @@
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                         <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                            <div class="bg-slate-50 border-b border-slate-100 p-3 font-bold text-slate-700 flex items-center gap-2 text-sm">
-                                <i class="fa-solid fa-users text-emerald-500"></i> 各小组累积出席人次
+                            <div class="bg-slate-50 border-b border-slate-100 p-3 font-bold text-slate-700 flex items-center justify-between text-sm">
+                                <span><i class="fa-solid fa-users text-emerald-500"></i> 各小组累积出席人次</span>
+                                <span class="text-[9px] text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">点击查看</span>
                             </div>
                             <div class="p-3 grid grid-cols-2 gap-2" id="reportGroupList"></div>
                         </div>
@@ -235,6 +255,31 @@
                 <button id="downloadReportBtn" onclick="exportReportToExcel()" disabled class="px-5 py-2 rounded-xl text-sm font-bold bg-slate-800 text-white hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 active:scale-95">
                     <i class="fa-solid fa-download"></i> 导出 Excel
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportGroupDetailsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[80vh] modal-fade-in border border-white/20">
+            <div class="bg-emerald-500 p-4 sm:p-5 text-white flex justify-between items-center shrink-0">
+                <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-users"></i> <span id="rgd_title">Group 名单详情</span></h3>
+                <button onclick="closeReportGroupDetailsModal()" class="text-white/80 hover:text-white transition-colors p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-0 overflow-y-auto flex-1">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 shadow-sm z-10">
+                        <tr class="text-slate-500 text-[10px] uppercase tracking-wider">
+                            <th class="p-3 pl-6 font-bold w-16 text-center">No.</th>
+                            <th class="p-3 font-bold">Student Name & ID</th>
+                            <th class="p-3 pr-6 font-bold text-center w-32">Attendance Count</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rgd_list" class="divide-y divide-slate-100">
+                        </tbody>
+                </table>
+            </div>
+            <div class="p-3 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
+                <button onclick="closeReportGroupDetailsModal()" class="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors active:scale-95 shadow-sm">返回</button>
             </div>
         </div>
     </div>
@@ -556,9 +601,8 @@
         let isManageMode = false;
         let hasPlayedAudio = false;
 
-        // 🌟 新增：追踪当前的排序状态
-        let currentSortColumn = 'time'; // 'time', 'group', 'id', 'name'
-        let currentSortOrder = 'desc';  // 'asc', 'desc'
+        let currentSortColumn = 'time'; 
+        let currentSortOrder = 'desc';  
 
         let currentReportData = [];
         let currentReportSessions = 0;
@@ -691,13 +735,10 @@
 
         function clearDateFilter() { datePicker.clear(); handleDateSelection(); }
 
-        // 🌟 核心：表头点击触发排序
         function handleSortClick(column) {
             if (currentSortColumn === column) {
-                // 如果点的是当前列，反转顺序
                 currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
             } else {
-                // 如果点的是新列，设为当前列，默认 time 是倒序，其他都是正序
                 currentSortColumn = column;
                 currentSortOrder = column === 'time' ? 'desc' : 'asc';
             }
@@ -705,7 +746,6 @@
             renderTable();
         }
 
-        // 执行排序动作
         function executeSort() {
             allRecords.sort((a, b) => {
                 let valA, valB;
@@ -771,7 +811,6 @@
                 return;
             }
 
-            // 获取每个表头的 Icon 状态
             const getSortIcon = (col) => {
                 if (currentSortColumn !== col) return '<i class="fa-solid fa-sort ml-1 opacity-30"></i>';
                 return currentSortOrder === 'asc' 
@@ -779,7 +818,6 @@
                     : '<i class="fa-solid fa-sort-down ml-1 text-indigo-600"></i>';
             };
 
-            // 🌟 动态生成支持点击排序的表头 (加入了 select-none 防止双击选中文字)
             const theadHtml = `
                 <tr class="text-slate-600 text-[11px] uppercase tracking-wider">
                     ${isManageMode ? '<th class="p-3 pl-6 sm:pl-8 w-12"><input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes(this)" class="w-4 h-4 rounded border-gray-300 text-indigo-600 cursor-pointer"></th>' : ''}
@@ -1039,7 +1077,7 @@
                 let groupHtml = "";
                 for(let i=1; i<=8; i++) {
                     groupHtml += `
-                        <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex justify-between items-center">
+                        <div onclick="openReportGroupDetails('${i}')" class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex justify-between items-center cursor-pointer hover:bg-emerald-100 hover:shadow-sm transition-all active:scale-95">
                             <span class="text-[11px] font-bold text-emerald-800">Group ${i}</span>
                             <span class="text-xs font-extrabold bg-emerald-500 text-white px-2 py-0.5 rounded-full shadow-sm">${groupStats[i]}</span>
                         </div>
@@ -1090,6 +1128,40 @@
             });
         }
 
+        // 🌟 新增：高级报表内的小组名单钻取展示
+        function openReportGroupDetails(groupNum) {
+            if (currentReportData.length === 0) return;
+
+            const groupStudents = currentReportData.filter(stu => stu.group === groupNum);
+            
+            document.getElementById('rgd_title').innerText = `Group ${groupNum} - 成员出勤详情`;
+            
+            let listHtml = "";
+            if (groupStudents.length === 0) {
+                listHtml = `<tr><td colspan="3" class="p-8 text-center text-slate-400">此时间段内，该小组无打卡记录</td></tr>`;
+            } else {
+                groupStudents.forEach((stu, index) => {
+                    listHtml += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 pl-6 text-center font-bold text-slate-400">${index + 1}</td>
+                            <td class="p-3">
+                                <div class="font-bold text-xs text-slate-700 uppercase leading-tight">${stu.name}</div>
+                                <div class="text-[10px] font-mono text-slate-400">${stu.id}</div>
+                            </td>
+                            <td class="p-3 pr-6 text-center font-extrabold text-blue-600 text-base">${stu.count}</td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            document.getElementById('rgd_list').innerHTML = listHtml;
+            document.getElementById('reportGroupDetailsModal').classList.remove('hidden');
+        }
+
+        function closeReportGroupDetailsModal() {
+            document.getElementById('reportGroupDetailsModal').classList.add('hidden');
+        }
+
         function exportReportToExcel() {
             const startDate = document.getElementById('reportStartDate').value;
             const endDate = document.getElementById('reportEndDate').value;
@@ -1128,8 +1200,9 @@
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        // 🌟 暴露新的点击函数
         window.handleSortClick = handleSortClick;
+        window.openReportGroupDetails = openReportGroupDetails;
+        window.closeReportGroupDetailsModal = closeReportGroupDetailsModal;
     </script>
 </body>
 </html>
