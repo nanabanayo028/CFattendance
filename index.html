@@ -23,6 +23,14 @@
         }
 
         input[type="text"], input[type="number"] { font-size: 16px !important; }
+
+        /* 🌟 新增：小组按钮被选中时的特效 */
+        .group-btn.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+        }
     </style>
     <link rel="preload" as="image" href="Background.webp">
     <link rel="preload" as="image" href="CF_LOGO.webp">
@@ -65,6 +73,20 @@
                        class="w-full pl-9 pr-3 py-2.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-gray-800 font-bold placeholder-gray-400 uppercase shadow-sm">
             </div>
 
+            <div class="bg-white/80 p-2.5 rounded-xl border border-white/50 shadow-sm">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Select Your Group / 选择你的小组</label>
+                <div class="grid grid-cols-4 gap-2" id="groupSelector">
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="1">1</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="2">2</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="3">3</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="4">4</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="5">5</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="6">6</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="7">7</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="8">8</button>
+                </div>
+            </div>
+
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-solid fa-key text-indigo-500 text-sm"></i></div>
                 <input type="text" inputmode="numeric" pattern="[0-9]*" id="pinCode" placeholder="4-DIGIT PIN" 
@@ -78,8 +100,7 @@
             
             <p class="text-[10px] mt-1 text-center leading-relaxed px-1 font-medium tracking-wide text-glow-dark">
                 <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-400"></i>
-                Please confirm ID & NAME. Cannot be changed.
-            </p>
+                Please confirm ID, NAME & GROUP. Cannot be changed. </p>
         </div>
 
         <div id="successMessage" class="hidden text-center py-4 animate-[fadeIn_0.5s_ease-out]">
@@ -167,6 +188,9 @@
         let timerInterval = null;
         let hasAlertedCheat = false; 
         let hasPlayedAudio = false;
+        
+        // 🌟 新增：追踪用户选了第几组
+        let currentSelectedGroup = "";
 
         function isDeviceLocked() {
             const savedTime = localStorage.getItem(deviceLockKey);
@@ -201,6 +225,17 @@
                 }
                 return; 
             }
+
+            // 🌟 新增：处理小组按钮点击效果
+            document.querySelectorAll('.group-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // 移除所有按钮的 active 状态
+                    document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+                    // 给当前点击的按钮加上 active 状态
+                    e.currentTarget.classList.add('active');
+                    currentSelectedGroup = e.currentTarget.getAttribute('data-group');
+                });
+            });
 
             db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
                 const badge = document.getElementById('statusBadge');
@@ -300,6 +335,12 @@
                 return;
             }
 
+            // 🌟 新增校验：必须选组
+            if (currentSelectedGroup === "") {
+                customAlert("请选择您的组别 (Group 1-8)！", "warning", "缺少组别"); 
+                return;
+            }
+
             // 🌟 重点防呆验证
             if (studentId.includes('@')) {
                 customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误");
@@ -340,6 +381,7 @@
                     .set({
                         studentId: studentId, 
                         studentName: studentName,
+                        groupNumber: currentSelectedGroup, // 🌟 保存组别进数据库
                         timestamp: firebase.firestore.FieldValue.serverTimestamp() 
                     })
                     .then(() => {

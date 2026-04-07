@@ -123,9 +123,15 @@
                     <button onclick="toggleManageMode()" id="manageBtn" class="flex-1 sm:flex-initial glass-card hover:bg-white text-blue-700 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-blue-200 active:scale-95">
                         <i class="fa-solid fa-list-check"></i> 管理名单
                     </button>
+
+                    <button onclick="openGroupListModal()" class="flex-1 sm:flex-initial glass-card hover:bg-white text-emerald-600 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-emerald-200 active:scale-95">
+                        <i class="fa-solid fa-users-viewfinder"></i> 分组名单
+                    </button>
+
                     <button onclick="openQRModal()" class="flex-1 sm:flex-initial bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2 transition-all whitespace-nowrap border border-purple-500 active:scale-95">
                         <i class="fa-solid fa-qrcode"></i> 大屏扫码与控制
                     </button>
+                    
                     <button onclick="openManualModal()" class="flex-1 sm:flex-initial glass-card hover:bg-white text-indigo-700 font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap border-indigo-200 active:scale-95">
                         <i class="fa-solid fa-user-plus text-indigo-500"></i> 手动补签
                     </button>
@@ -145,15 +151,32 @@
                             <tr class="bg-white/50 text-slate-600 text-xs uppercase tracking-wider border-b border-white/50">
                                 <th class="p-4 font-bold pl-6 sm:pl-8">Date</th>
                                 <th class="p-4 font-bold">Time</th>
+                                <th class="p-4 font-bold">Group</th>
                                 <th class="p-4 font-bold">Student ID</th>
                                 <th class="p-4 font-bold">Student Name</th>
                             </tr>
                         </thead>
                         <tbody id="attendanceList" class="divide-y divide-white/40 text-sm">
-                            <tr><td colspan="4" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>
+                            <tr><td colspan="5" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="groupListModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] modal-fade-in border border-white/20">
+            <div class="bg-emerald-500 p-5 sm:p-6 text-white flex justify-between items-center">
+                <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-users-viewfinder"></i> 1-8 组当日名单统计</h3>
+                <button onclick="closeGroupListModal()" class="text-white/80 hover:text-white transition-colors p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-50">
+                <div id="groupListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    </div>
+            </div>
+            <div class="p-4 border-t border-slate-100 bg-white flex justify-end gap-3">
+                <button onclick="closeGroupListModal()" class="px-5 py-2.5 rounded-xl font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors active:scale-95">关闭窗口</button>
             </div>
         </div>
     </div>
@@ -208,11 +231,21 @@
                     <i class="fa-regular fa-calendar-check text-lg"></i> 补签日期: <span id="modalDateDisplay" class="font-mono text-base tracking-wide"></span>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Student ID</label>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Group (1-8)</label>
+                    <select id="manualGroup" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 outline-none font-bold transition-all shadow-sm">
+                        <option value="" disabled selected>-- Select Group --</option>
+                        <option value="1">Group 1</option><option value="2">Group 2</option>
+                        <option value="3">Group 3</option><option value="4">Group 4</option>
+                        <option value="5">Group 5</option><option value="6">Group 6</option>
+                        <option value="7">Group 7</option><option value="8">Group 8</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student ID</label>
                     <input type="text" id="manualStuId" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 outline-none uppercase font-mono transition-all shadow-sm">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Student Name</label>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student Name</label>
                     <input type="text" id="manualStuName" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 outline-none uppercase font-medium transition-all shadow-sm">
                 </div>
             </div>
@@ -564,7 +597,12 @@
                           if (data.timestamp) {
                               const jsDate = data.timestamp.toDate();
                               allRecords.push({
-                                  studentId: data.studentId, studentName: data.studentName, fullDateObj: jsDate, dateString: dateString, timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
+                                  studentId: data.studentId, 
+                                  studentName: data.studentName, 
+                                  groupNumber: data.groupNumber || '-', // 🌟 读取小组数据 (旧数据如果没有默认显示 '-')
+                                  fullDateObj: jsDate, 
+                                  dateString: dateString, 
+                                  timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
                               });
                           }
                       });
@@ -619,11 +657,11 @@
             document.getElementById("studentCount").innerText = allRecords.length;
 
             if (!selectedDate) {
-                list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 4}" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>`;
+                list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 5}" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>`;
                 return;
             }
             if (allRecords.length === 0) {
-                list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 4}" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-400"></i>该日期暂无签到记录</td></tr>`;
+                list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 5}" class="p-10 sm:p-14 text-center text-slate-500 font-medium"><i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-400"></i>该日期暂无签到记录</td></tr>`;
                 return;
             }
 
@@ -633,7 +671,7 @@
                         <th class="p-4 pl-6 sm:pl-8 w-12"><input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes(this)" class="w-4 h-4 rounded border-gray-300 text-indigo-600 cursor-pointer"></th>
                         <th class="p-4 font-bold">Date</th>
                         <th class="p-4 font-bold">Time</th>
-                        <th class="p-4 font-bold">Student ID</th>
+                        <th class="p-4 font-bold">Group</th> <th class="p-4 font-bold">Student ID</th>
                         <th class="p-4 font-bold">Student Name</th>
                         <th class="p-4 font-bold text-right pr-6 sm:pr-8">Action</th>
                     </tr>
@@ -643,7 +681,7 @@
                     <tr class="bg-white/50 text-slate-600 text-xs uppercase tracking-wider border-b border-white/50">
                         <th class="p-4 font-bold pl-6 sm:pl-8">Date</th>
                         <th class="p-4 font-bold">Time</th>
-                        <th class="p-4 font-bold">Student ID</th>
+                        <th class="p-4 font-bold">Group</th> <th class="p-4 font-bold">Student ID</th>
                         <th class="p-4 font-bold">Student Name</th>
                     </tr>
                 `;
@@ -656,6 +694,11 @@
                         ${isManageMode ? `<td class="p-4 pl-6 sm:pl-8 w-12"><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-gray-300 text-indigo-600 cursor-pointer" data-id="${record.studentId}"></td>` : ''}
                         <td class="p-4 ${!isManageMode ? 'pl-6 sm:pl-8' : ''} text-slate-700 font-medium">${record.dateString}</td>
                         <td class="p-4 text-slate-600 font-mono"><span class="bg-white/60 shadow-sm border border-white px-2 py-1 rounded text-xs">${record.timeString}</span></td>
+                        
+                        <td class="p-4 font-bold text-emerald-600">
+                            ${record.groupNumber !== '-' ? `<span class="bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200 shadow-sm">Group ${record.groupNumber}</span>` : '<span class="text-slate-400 font-normal">-</span>'}
+                        </td>
+                        
                         <td class="p-4 font-bold text-indigo-700">${record.studentId}</td>
                         <td class="p-4 text-slate-800 font-medium">${record.studentName}</td>
                         ${isManageMode ? `<td class="p-4 text-right pr-6 sm:pr-8">
@@ -666,6 +709,56 @@
                     </tr>`;
             });
             list.innerHTML = htmlContent;
+        }
+
+        // 🌟 新增：打开并渲染 1-8 组名单 Modal
+        function openGroupListModal() {
+            const selectedDate = document.getElementById("dateFilter").value;
+            if (!selectedDate) { customAlert("请先在上方日历中选择你要查看的【日期】！", "warning", "提示"); return; }
+            if (allRecords.length === 0) { customAlert("该日期暂无签到记录！", "warning", "提示"); return; }
+
+            const container = document.getElementById("groupListContainer");
+            container.innerHTML = ""; // 清空旧内容
+
+            // 生成 1 到 8 组的卡片
+            for (let i = 1; i <= 8; i++) {
+                // 筛选出属于这一组的学生
+                const groupStudents = allRecords.filter(r => r.groupNumber === i.toString());
+                
+                let studentListHtml = "";
+                if (groupStudents.length === 0) {
+                    studentListHtml = `<div class="text-center py-4 text-slate-400 text-sm">暂无学生</div>`;
+                } else {
+                    groupStudents.forEach(stu => {
+                        studentListHtml += `
+                            <div class="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
+                                <span class="font-bold text-sm text-slate-700">${stu.studentName}</span>
+                                <span class="text-xs font-mono text-slate-400">${stu.studentId}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                // 拼装每组的卡片
+                const cardHtml = `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-64">
+                        <div class="bg-emerald-50 border-b border-emerald-100 px-4 py-2.5 flex justify-between items-center">
+                            <span class="font-extrabold text-emerald-700">Group ${i}</span>
+                            <span class="text-xs font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full">${groupStudents.length} 人</span>
+                        </div>
+                        <div class="p-3 overflow-y-auto flex-1">
+                            ${studentListHtml}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            }
+
+            document.getElementById('groupListModal').classList.remove('hidden');
+        }
+
+        function closeGroupListModal() {
+            document.getElementById('groupListModal').classList.add('hidden');
         }
 
         function editRecordName(oldStudentId, currentName) {
@@ -702,7 +795,8 @@
                             const newStudentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(newId);
                             
                             const batch = db.batch();
-                            batch.set(newStudentRef, { studentId: newId, studentName: newName, timestamp: oldData.timestamp });
+                            // 🌟 注意：保留原本的 groupNumber
+                            batch.set(newStudentRef, { studentId: newId, studentName: newName, groupNumber: oldData.groupNumber || '-', timestamp: oldData.timestamp });
                             batch.delete(studentRef);
                             
                             batch.commit().then(() => {
@@ -761,15 +855,23 @@
             if (!selectedDate) { customAlert("请先在上方日历中选择你要进行补签的【日期】！", "warning", "提示"); return; }
             currentManualDate = selectedDate;
             document.getElementById('modalDateDisplay').innerText = selectedDate;
-            document.getElementById('manualStuId').value = ""; document.getElementById('manualStuName').value = "";
+            
+            // 🌟 开启手动补签时，重置所有输入框（包括小组）
+            document.getElementById('manualGroup').value = ""; 
+            document.getElementById('manualStuId').value = ""; 
+            document.getElementById('manualStuName').value = "";
+            
             document.getElementById('manualCheckInModal').classList.remove('hidden');
             setTimeout(() => document.getElementById('manualStuId').focus(), 100);
         }
         function closeManualModal() { document.getElementById('manualCheckInModal').classList.add('hidden'); }
+        
         function submitManualCheckIn() {
+            const stuGroup = document.getElementById('manualGroup').value; // 🌟 获取老师选择的组别
             const stuId = document.getElementById('manualStuId').value.trim().toUpperCase();
             const stuName = document.getElementById('manualStuName').value.trim().toUpperCase();
-            if (!stuId || !stuName) { customAlert("STUDENT ID 和 NAME 都不能为空！", "warning", "信息不完整"); return; }
+            
+            if (!stuId || !stuName || !stuGroup) { customAlert("Group, Student ID 和 Name 都不能为空！", "warning", "信息不完整"); return; }
             
             if (stuId.includes('@')) { customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误"); return; }
             if (/\d/.test(stuName)) { customAlert("Student Name 不能包含数字！", "warning", "格式错误"); return; }
@@ -778,8 +880,14 @@
             const btn = document.getElementById('submitManualBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...'; btn.disabled = true;
             
-            db.collection("Attendance").doc(currentManualDate).collection("Students").doc(stuId).set({ studentId: stuId, studentName: stuName, timestamp: new Date() })
-            .then(() => { customAlert(`成功补签！\n学生 ${stuName} 已加入 ${currentManualDate} 的名单。`, "success", "补签成功"); closeManualModal(); btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加'; btn.disabled = false; })
+            // 🌟 保存时加入 groupNumber
+            db.collection("Attendance").doc(currentManualDate).collection("Students").doc(stuId).set({ 
+                studentId: stuId, 
+                studentName: stuName, 
+                groupNumber: stuGroup,
+                timestamp: new Date() 
+            })
+            .then(() => { customAlert(`成功补签！\n学生 ${stuName} 已加入 ${currentManualDate} 的名单 (Group ${stuGroup})。`, "success", "补签成功"); closeManualModal(); btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加'; btn.disabled = false; })
             .catch(error => { customAlert("补签失败: " + error.message, "error", "操作异常"); btn.innerHTML = '<i class="fa-solid fa-check"></i> 确认添加'; btn.disabled = false; });
         }
 
@@ -816,8 +924,10 @@
             const selectedDate = document.getElementById("dateFilter").value;
             if (!selectedDate) { customAlert("请先在上方日历中选择要导出的日期！", "warning", "操作提示"); return; }
             if (allRecords.length === 0) { customAlert(`日期 ${selectedDate} 没有可导出的签到数据！`, "warning", "空数据"); return; }
-            let csvContent = "\uFEFF日期 (Date),时间 (Time),学号 (Student ID),姓名 (Name)\n"; 
-            allRecords.forEach(record => { csvContent += `"${record.dateString}","${record.timeString}","${record.studentId}","${record.studentName}"\n`; });
+            
+            // 🌟 导出时新增 Group 栏位
+            let csvContent = "\uFEFF日期 (Date),时间 (Time),组别 (Group),学号 (Student ID),姓名 (Name)\n"; 
+            allRecords.forEach(record => { csvContent += `"${record.dateString}","${record.timeString}","${record.groupNumber}","${record.studentId}","${record.studentName}"\n`; });
             triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);
         }
 

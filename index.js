@@ -60,6 +60,9 @@ let timerInterval = null;
 let hasAlertedCheat = false; 
 let hasPlayedAudio = false; 
 
+// 🌟 新增：追踪用户选了第几组
+let currentSelectedGroup = "";
+
 function isDeviceLocked() {
     const savedTime = localStorage.getItem(deviceLockKey);
     if (!savedTime) return false; 
@@ -93,6 +96,17 @@ window.onload = function() {
         }
         return; 
     }
+
+    // 🌟 新增：处理小组按钮点击效果
+    document.querySelectorAll('.group-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // 移除所有按钮的 active 状态
+            document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+            // 给当前点击的按钮加上 active 状态
+            e.currentTarget.classList.add('active');
+            currentSelectedGroup = e.currentTarget.getAttribute('data-group');
+        });
+    });
 
     db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
         const badge = document.getElementById('statusBadge');
@@ -192,6 +206,12 @@ function submitCheckIn() {
         return;
     }
 
+    // 🌟 新增校验：必须选组
+    if (currentSelectedGroup === "") {
+        customAlert("请选择您的组别 (Group 1-8)！", "warning", "缺少组别"); 
+        return;
+    }
+
     // 🌟 重点升级：学生端的防呆校验！
     if (studentId.includes('@')) {
         customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误");
@@ -232,6 +252,7 @@ function submitCheckIn() {
             .set({
                 studentId: studentId, 
                 studentName: studentName,
+                groupNumber: currentSelectedGroup, // 🌟 保存组别进数据库
                 timestamp: firebase.firestore.FieldValue.serverTimestamp() 
             })
             .then(() => {
@@ -256,3 +277,6 @@ function submitCheckIn() {
         }
     });
 }
+
+// 如果你用了 Vite (type="module")，需要这行；如果是普通的 <script src="..."> 这行不会有影响
+window.submitCheckIn = submitCheckIn;
