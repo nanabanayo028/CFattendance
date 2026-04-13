@@ -206,9 +206,9 @@ function submitCheckIn() {
         return;
     }
 
-    // 🌟 新增校验：必须选组
+    // 🌟 必须选组
     if (currentSelectedGroup === "") {
-        customAlert("请选择您的组别 (Group 1-8)！", "warning", "缺少组别"); 
+        customAlert("请选择您的组别 (Group 1-8 或 无组别)！", "warning", "缺少组别"); 
         return;
     }
 
@@ -278,5 +278,4 @@ function submitCheckIn() {
     });
 }
 
-// 如果你用了 Vite (type="module")，需要这行；如果是普通的 <script src="..."> 这行不会有影响
 window.submitCheckIn = submitCheckIn;

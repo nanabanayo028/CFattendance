@@ -201,7 +201,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                        
                         <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                             <div class="bg-slate-50 border-b border-slate-100 p-3 font-bold text-slate-700 flex items-center justify-between text-sm">
                                 <span><i class="fa-solid fa-users text-emerald-500"></i> 各小组累积出席人次</span>
@@ -257,7 +256,7 @@
                         </tr>
                     </thead>
                     <tbody id="rgd_list" class="divide-y divide-slate-100">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
             <div class="p-3 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
@@ -285,7 +284,7 @@
     <div id="qrModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden modal-fade-in border border-white/20">
             <div class="bg-purple-600 p-5 text-white flex justify-between items-center">
-                <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-expand"></i> 签大屏展示与控制</h3>
+                <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-expand"></i> 签到大屏展示与控制</h3>
                 <button onclick="closeQRModal()" class="text-white/80 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="p-6 bg-slate-50 flex flex-col items-center">
@@ -304,6 +303,15 @@
                         </div>
                         <button onclick="document.getElementById('adminPin').value = Math.floor(1000 + Math.random() * 9000)" class="px-4 py-3 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold rounded-xl transition-colors whitespace-nowrap"><i class="fa-solid fa-dice"></i></button>
                     </div>
+                    
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="bg-white border border-slate-200 rounded-xl flex items-center px-3 py-2 w-full shadow-sm">
+                            <i class="fa-solid fa-clock text-indigo-400 mr-2"></i>
+                            <input type="number" id="adminDuration" placeholder="开放时长(秒)" value="60" min="10" class="bg-transparent text-slate-800 text-base font-bold outline-none w-full">
+                        </div>
+                        <span class="text-sm font-bold text-slate-500 whitespace-nowrap px-1">秒</span>
+                    </div>
+
                     <div class="flex gap-2">
                         <button onclick="changeStatus('Open')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i> 开启签到
@@ -335,7 +343,7 @@
                         <option value="3">Group 3</option><option value="4">Group 4</option>
                         <option value="5">Group 5</option><option value="6">Group 6</option>
                         <option value="7">Group 7</option><option value="8">Group 8</option>
-                    </select>
+                        <option value="-">无组别 (-)</option> </select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student ID</label>
@@ -370,8 +378,7 @@
                             <option value="3">Group 3</option><option value="4">Group 4</option>
                             <option value="5">Group 5</option><option value="6">Group 6</option>
                             <option value="7">Group 7</option><option value="8">Group 8</option>
-                            <option value="-">- (无组别)</option>
-                        </select>
+                            <option value="-">- (无组别)</option> </select>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student ID</label>
@@ -392,6 +399,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="/admin.js"></script>
 
     <script>
         const dialogOverlay = document.getElementById('customDialog');
