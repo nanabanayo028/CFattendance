@@ -201,9 +201,10 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        
                         <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                             <div class="bg-slate-50 border-b border-slate-100 p-3 font-bold text-slate-700 flex items-center justify-between text-sm">
-                                <span><i class="fa-solid fa-users text-emerald-500"></i> 各小组累积出席人次</span>
+                                <span><i class="fa-solid fa-users text-emerald-500"></i> 各小组参与人数</span>
                                 <span class="text-[9px] text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">点击查看</span>
                             </div>
                             <div class="p-3 grid grid-cols-2 gap-2" id="reportGroupList"></div>
@@ -343,7 +344,8 @@
                         <option value="3">Group 3</option><option value="4">Group 4</option>
                         <option value="5">Group 5</option><option value="6">Group 6</option>
                         <option value="7">Group 7</option><option value="8">Group 8</option>
-                        <option value="-">无组别 (-)</option> </select>
+                        <option value="-">无组别 (-)</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student ID</label>
@@ -378,7 +380,8 @@
                             <option value="3">Group 3</option><option value="4">Group 4</option>
                             <option value="5">Group 5</option><option value="6">Group 6</option>
                             <option value="7">Group 7</option><option value="8">Group 8</option>
-                            <option value="-">- (无组别)</option> </select>
+                            <option value="-">- (无组别)</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Student ID</label>
@@ -399,7 +402,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="/admin.js"></script>
 
     <script>
         const dialogOverlay = document.getElementById('customDialog');
@@ -657,12 +659,12 @@
                     return;
                 }
 
-                // 🌟 重点修复：正确读取你输入的秒数！
+                // 🌟 读取秒数，并至少给 10 秒防呆
                 let durationSeconds = parseInt(document.getElementById('adminDuration').value) || 60;
-                if (durationSeconds < 10) durationSeconds = 10; // 最少给 10 秒防呆
+                if (durationSeconds < 10) durationSeconds = 10; 
 
                 dataToUpdate.currentPin = pinValue;
-                // 将秒数转换成毫秒加到当前时间
+                // 🌟 将输入的秒数转换为毫秒加到当前时间
                 dataToUpdate.endTime = new Date().getTime() + (durationSeconds * 1000); 
                 hasPlayedAudio = false;
 
@@ -675,7 +677,7 @@
                     }).catch(e => {});
                 }
 
-                // 根据你设置的秒数，自动触发关门
+                // 🌟 按照自定义时间（秒）倒数关门
                 adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, durationSeconds * 1000);
             } else {
                 document.getElementById('adminPin').value = "";
@@ -1040,6 +1042,7 @@
             db.collectionGroup("Students").get().then((snapshot) => {
                 let uniqueSessions = new Set();
                 let studentStats = {};
+                // 🌟 新增对各组人数进行计算，这回只算人头，不把打卡次数加起来！
                 let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0 };
 
                 snapshot.forEach((doc) => {
@@ -1056,16 +1059,19 @@
                             studentStats[id] = { id: id, name: data.studentName, group: group, count: 0 }; 
                         }
                         studentStats[id].count++;
-
-                        if (group >= '1' && group <= '8') {
-                            groupStats[group]++;
-                        }
                     }
                 });
 
                 currentReportSessions = uniqueSessions.size;
                 currentReportData = Object.values(studentStats).sort((a, b) => b.count - a.count);
                 let qualifiedCount = currentReportData.filter(s => s.count >= targetCount).length;
+
+                // 🌟 这回是拿整理好的名单去算，就不会多加了
+                currentReportData.forEach(stu => {
+                    if (stu.group >= '1' && stu.group <= '8') {
+                        groupStats[stu.group]++;
+                    }
+                });
 
                 document.getElementById('rs_totalSessions').innerText = currentReportSessions;
                 document.getElementById('rs_totalStudents').innerText = currentReportData.length;
@@ -1125,7 +1131,6 @@
             });
         }
 
-        // 🌟 新增：高级报表内的小组名单钻取展示
         function openReportGroupDetails(groupNum) {
             if (currentReportData.length === 0) return;
 
@@ -1200,6 +1205,3 @@
         window.handleSortClick = handleSortClick;
         window.openReportGroupDetails = openReportGroupDetails;
         window.closeReportGroupDetailsModal = closeReportGroupDetailsModal;
-    </script>
-</body>
-</html>

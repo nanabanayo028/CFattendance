@@ -163,7 +163,15 @@ const dialogOverlay = document.getElementById('customDialog');
         window.onload = checkAuthStatus;
         document.getElementById("adminPassword").addEventListener("keypress", function(event) { if (event.key === "Enter") { event.preventDefault(); handleLogin(); } });
 
-        // Firebase is initialized in HTML, so we just reference it
+        const firebaseConfig = {
+            apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
+            authDomain: "attendance-a7ac5.firebaseapp.com",
+            projectId: "attendance-a7ac5",
+            storageBucket: "attendance-a7ac5.firebasestorage.app",
+            messagingSenderId: "179755027767",
+            appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
+        };
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         const datePicker = flatpickr("#dateFilter", { dateFormat: "Y-m-d", disableMobile: true, onChange: function(selectedDates, dateStr, instance) { handleDateSelection(); }});
@@ -245,12 +253,12 @@ const dialogOverlay = document.getElementById('customDialog');
                     return;
                 }
 
-                // 🌟 重点修复：正确读取你输入的秒数！
+                // 🌟 读取秒数，并至少给 10 秒防呆
                 let durationSeconds = parseInt(document.getElementById('adminDuration').value) || 60;
-                if (durationSeconds < 10) durationSeconds = 10; // 最少给 10 秒防呆
+                if (durationSeconds < 10) durationSeconds = 10; 
 
                 dataToUpdate.currentPin = pinValue;
-                // 将秒数转换成毫秒加到当前时间
+                // 🌟 将输入的秒数转换为毫秒加到当前时间
                 dataToUpdate.endTime = new Date().getTime() + (durationSeconds * 1000); 
                 hasPlayedAudio = false;
 
@@ -263,7 +271,7 @@ const dialogOverlay = document.getElementById('customDialog');
                     }).catch(e => {});
                 }
 
-                // 根据你设置的秒数，自动触发关门
+                // 🌟 按照自定义时间（秒）倒数关门
                 adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, durationSeconds * 1000);
             } else {
                 document.getElementById('adminPin').value = "";
@@ -628,6 +636,7 @@ const dialogOverlay = document.getElementById('customDialog');
             db.collectionGroup("Students").get().then((snapshot) => {
                 let uniqueSessions = new Set();
                 let studentStats = {};
+                // 🌟 新增对各组人数进行计算，这回只算人头，不把打卡次数加起来！
                 let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0 };
 
                 snapshot.forEach((doc) => {
@@ -644,16 +653,19 @@ const dialogOverlay = document.getElementById('customDialog');
                             studentStats[id] = { id: id, name: data.studentName, group: group, count: 0 }; 
                         }
                         studentStats[id].count++;
-
-                        if (group >= '1' && group <= '8') {
-                            groupStats[group]++;
-                        }
                     }
                 });
 
                 currentReportSessions = uniqueSessions.size;
                 currentReportData = Object.values(studentStats).sort((a, b) => b.count - a.count);
                 let qualifiedCount = currentReportData.filter(s => s.count >= targetCount).length;
+
+                // 🌟 这回是拿整理好的名单去算，就不会多加了
+                currentReportData.forEach(stu => {
+                    if (stu.group >= '1' && stu.group <= '8') {
+                        groupStats[stu.group]++;
+                    }
+                });
 
                 document.getElementById('rs_totalSessions').innerText = currentReportSessions;
                 document.getElementById('rs_totalStudents').innerText = currentReportData.length;
