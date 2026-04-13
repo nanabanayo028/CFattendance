@@ -201,7 +201,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                        
                         <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                             <div class="bg-slate-50 border-b border-slate-100 p-3 font-bold text-slate-700 flex items-center justify-between text-sm">
                                 <span><i class="fa-solid fa-users text-emerald-500"></i> 各小组参与人数</span>
@@ -659,12 +658,10 @@
                     return;
                 }
 
-                // 🌟 读取秒数，并至少给 10 秒防呆
                 let durationSeconds = parseInt(document.getElementById('adminDuration').value) || 60;
                 if (durationSeconds < 10) durationSeconds = 10; 
 
                 dataToUpdate.currentPin = pinValue;
-                // 🌟 将输入的秒数转换为毫秒加到当前时间
                 dataToUpdate.endTime = new Date().getTime() + (durationSeconds * 1000); 
                 hasPlayedAudio = false;
 
@@ -677,7 +674,6 @@
                     }).catch(e => {});
                 }
 
-                // 🌟 按照自定义时间（秒）倒数关门
                 adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, durationSeconds * 1000);
             } else {
                 document.getElementById('adminPin').value = "";
@@ -979,7 +975,7 @@
 
         function openManualModal() {
             const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate) { customAlert("请先在上方日历中选择你要进行补签的【日期】！", "warning", "提示"); return; }
+            if (!selectedDate) { customAlert("请先在上方日历中选择你要进行补签的【日期】！", "提示", "info"); return; }
             currentManualDate = selectedDate;
             document.getElementById('modalDateDisplay').innerText = selectedDate;
             document.getElementById('manualGroup').value = ""; 
@@ -1042,7 +1038,6 @@
             db.collectionGroup("Students").get().then((snapshot) => {
                 let uniqueSessions = new Set();
                 let studentStats = {};
-                // 🌟 新增对各组人数进行计算，这回只算人头，不把打卡次数加起来！
                 let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0 };
 
                 snapshot.forEach((doc) => {
@@ -1066,7 +1061,6 @@
                 currentReportData = Object.values(studentStats).sort((a, b) => b.count - a.count);
                 let qualifiedCount = currentReportData.filter(s => s.count >= targetCount).length;
 
-                // 🌟 这回是拿整理好的名单去算，就不会多加了
                 currentReportData.forEach(stu => {
                     if (stu.group >= '1' && stu.group <= '8') {
                         groupStats[stu.group]++;
@@ -1120,7 +1114,7 @@
                 document.getElementById('reportEmpty').classList.add('hidden');
                 document.getElementById('reportListContainer').classList.remove('hidden');
                 document.getElementById('downloadReportBtn').disabled = false;
-  
+
                 btn.innerHTML = '<i class="fa-solid fa-rotate"></i> 重新生成';
                 btn.disabled = false;
 
@@ -1205,3 +1199,6 @@
         window.handleSortClick = handleSortClick;
         window.openReportGroupDetails = openReportGroupDetails;
         window.closeReportGroupDetailsModal = closeReportGroupDetailsModal;
+    </script>
+</body>
+</html>
