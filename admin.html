@@ -656,8 +656,14 @@
                     document.getElementById('adminPin').focus();
                     return;
                 }
+
+                // 🌟 重点修复：正确读取你输入的秒数！
+                let durationSeconds = parseInt(document.getElementById('adminDuration').value) || 60;
+                if (durationSeconds < 10) durationSeconds = 10; // 最少给 10 秒防呆
+
                 dataToUpdate.currentPin = pinValue;
-                dataToUpdate.endTime = new Date().getTime() + 1 * 60 * 1000; 
+                // 将秒数转换成毫秒加到当前时间
+                dataToUpdate.endTime = new Date().getTime() + (durationSeconds * 1000); 
                 hasPlayedAudio = false;
 
                 const audioPlayer = document.getElementById("tenseAudio");
@@ -669,7 +675,8 @@
                     }).catch(e => {});
                 }
 
-                adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, 1 * 60 * 1000);
+                // 根据你设置的秒数，自动触发关门
+                adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, durationSeconds * 1000);
             } else {
                 document.getElementById('adminPin').value = "";
                 dataToUpdate.endTime = 0;

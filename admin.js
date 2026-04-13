@@ -245,12 +245,12 @@ const dialogOverlay = document.getElementById('customDialog');
                     return;
                 }
 
-                // 🌟 读取秒数，并至少给 10 秒防呆
+                // 🌟 重点修复：正确读取你输入的秒数！
                 let durationSeconds = parseInt(document.getElementById('adminDuration').value) || 60;
-                if (durationSeconds < 10) durationSeconds = 10; 
+                if (durationSeconds < 10) durationSeconds = 10; // 最少给 10 秒防呆
 
                 dataToUpdate.currentPin = pinValue;
-                // 🌟 将输入的秒数转换为毫秒
+                // 将秒数转换成毫秒加到当前时间
                 dataToUpdate.endTime = new Date().getTime() + (durationSeconds * 1000); 
                 hasPlayedAudio = false;
 
@@ -263,7 +263,7 @@ const dialogOverlay = document.getElementById('customDialog');
                     }).catch(e => {});
                 }
 
-                // 🌟 根据自定义秒数触发自动关闭
+                // 根据你设置的秒数，自动触发关门
                 adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, durationSeconds * 1000);
             } else {
                 document.getElementById('adminPin').value = "";
