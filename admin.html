@@ -1038,7 +1038,8 @@
             db.collectionGroup("Students").get().then((snapshot) => {
                 let uniqueSessions = new Set();
                 let studentStats = {};
-                let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0 };
+                // 🌟 新增 '-' 代表无组别人数
+                let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0, '-':0 };
 
                 snapshot.forEach((doc) => {
                     const dateStr = doc.ref.parent.parent.id;
@@ -1048,7 +1049,7 @@
                         
                         const data = doc.data(); 
                         const id = data.studentId;
-                        const group = data.groupNumber || '-';
+                        const group = data.groupNumber || '-'; // 如果没有数据，默认就是 '-'
 
                         if (!studentStats[id]) { 
                             studentStats[id] = { id: id, name: data.studentName, group: group, count: 0 }; 
@@ -1061,9 +1062,12 @@
                 currentReportData = Object.values(studentStats).sort((a, b) => b.count - a.count);
                 let qualifiedCount = currentReportData.filter(s => s.count >= targetCount).length;
 
+                // 🌟 把学生归类到 1-8 组或无组别
                 currentReportData.forEach(stu => {
                     if (stu.group >= '1' && stu.group <= '8') {
                         groupStats[stu.group]++;
+                    } else {
+                        groupStats['-']++; // 归入无组别
                     }
                 });
 
@@ -1075,11 +1079,20 @@
                 for(let i=1; i<=8; i++) {
                     groupHtml += `
                         <div onclick="openReportGroupDetails('${i}')" class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex justify-between items-center cursor-pointer hover:bg-emerald-100 hover:shadow-sm transition-all active:scale-95" title="点击查看 Group ${i} 的详细出席名单">
-                            <span class="text-[11px] font-bold text-emerald-800">Group ${i}</span>
-                            <span class="text-xs font-extrabold bg-emerald-500 text-white px-2 py-0.5 rounded-full shadow-sm">${groupStats[i]}</span>
+                            <span class="text-sm font-bold text-emerald-800">Group ${i}</span>
+                            <span class="text-sm font-extrabold bg-emerald-500 text-white px-2.5 py-1 rounded-full shadow-sm">${groupStats[i]}</span>
                         </div>
                     `;
                 }
+                
+                // 🌟 新增“无组别”专属卡片 (灰色 UI)
+                groupHtml += `
+                    <div onclick="openReportGroupDetails('-')" class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex justify-between items-center cursor-pointer hover:bg-slate-100 hover:shadow-sm transition-all active:scale-95" title="点击查看无组别的详细出席名单">
+                        <span class="text-sm font-bold text-slate-700">无组别</span>
+                        <span class="text-sm font-extrabold bg-slate-400 text-white px-2.5 py-1 rounded-full shadow-sm">${groupStats['-']}</span>
+                    </div>
+                `;
+                
                 document.getElementById('reportGroupList').innerHTML = groupHtml;
 
                 let studentHtml = "";
@@ -1089,22 +1102,22 @@
                     currentReportData.forEach(stu => {
                         const isPass = stu.count >= targetCount;
                         const statusBadge = isPass 
-                            ? `<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200"><i class="fa-solid fa-check mr-1"></i>达标</span>`
-                            : `<span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-bold border border-slate-200">未达标</span>`;
+                            ? `<span class="bg-amber-100 text-amber-700 px-2.5 py-1 rounded text-xs font-bold border border-amber-200"><i class="fa-solid fa-check mr-1"></i>达标</span>`
+                            : `<span class="bg-slate-100 text-slate-500 px-2.5 py-1 rounded text-xs font-bold border border-slate-200">未达标</span>`;
                         
                         const groupBadge = stu.group !== '-' 
-                            ? `<span class="bg-emerald-100/80 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide border border-emerald-200">G${stu.group}</span>`
+                            ? `<span class="bg-emerald-100/80 text-emerald-700 px-2.5 py-1 rounded text-xs font-bold tracking-wide border border-emerald-200">G${stu.group}</span>`
                             : `<span class="text-slate-300">-</span>`;
 
                         studentHtml += `
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="p-2 pl-4 text-center">${groupBadge}</td>
-                                <td class="p-2">
-                                    <div class="font-bold text-[11px] text-slate-700 uppercase leading-tight">${stu.name}</div>
-                                    <div class="text-[9px] font-mono text-slate-400">${stu.id}</div>
+                                <td class="p-3 pl-5 text-center">${groupBadge}</td>
+                                <td class="p-3">
+                                    <div class="font-bold text-sm text-slate-700 uppercase leading-tight">${stu.name}</div>
+                                    <div class="text-xs font-mono text-slate-400">${stu.id}</div>
                                 </td>
-                                <td class="p-2 text-center font-extrabold text-blue-600 text-sm">${stu.count}</td>
-                                <td class="p-2 pr-4 text-center">${statusBadge}</td>
+                                <td class="p-3 text-center font-extrabold text-blue-600 text-lg">${stu.count}</td>
+                                <td class="p-3 pr-5 text-center">${statusBadge}</td>
                             </tr>
                         `;
                     });
@@ -1130,21 +1143,23 @@
 
             const groupStudents = currentReportData.filter(stu => stu.group === groupNum);
             
-            document.getElementById('rgd_title').innerText = `Group ${groupNum} - 成员出勤详情`;
+            // 🌟 智能判断弹窗标题
+            const displayGroupName = groupNum === '-' ? '无组别' : `Group ${groupNum}`;
+            document.getElementById('rgd_title').innerText = `${displayGroupName} - 成员出勤详情`;
             
             let listHtml = "";
             if (groupStudents.length === 0) {
-                listHtml = `<tr><td colspan="3" class="p-8 text-center text-slate-400">此时间段内，该小组无打卡记录</td></tr>`;
+                listHtml = `<tr><td colspan="3" class="p-8 text-center text-slate-400">此时间段内，无相关打卡记录</td></tr>`;
             } else {
                 groupStudents.forEach((stu, index) => {
                     listHtml += `
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-3 pl-6 text-center font-bold text-slate-400">${index + 1}</td>
-                            <td class="p-3">
-                                <div class="font-bold text-xs text-slate-700 uppercase leading-tight">${stu.name}</div>
-                                <div class="text-[10px] font-mono text-slate-400">${stu.id}</div>
+                            <td class="p-4 pl-6 text-center font-bold text-slate-400">${index + 1}</td>
+                            <td class="p-4">
+                                <div class="font-bold text-sm text-slate-700 uppercase leading-tight">${stu.name}</div>
+                                <div class="text-xs font-mono text-slate-400">${stu.id}</div>
                             </td>
-                            <td class="p-3 pr-6 text-center font-extrabold text-blue-600 text-base">${stu.count} 次</td>
+                            <td class="p-4 pr-6 text-center font-extrabold text-blue-600 text-lg">${stu.count} 次</td>
                         </tr>
                     `;
                 });
