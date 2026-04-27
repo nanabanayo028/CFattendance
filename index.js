@@ -228,6 +228,25 @@ function submitCheckIn() {
     db.collection("Sessions").doc("Class_01").get().then((doc) => {
         if (doc.exists && doc.data().status === "Open") {
             
+            // 🌟 核心修复：在提交瞬间，再次核对二维码是否最新！
+            const serverToken = doc.data().currentQRToken;
+            const searchString = window.location.search.substring(1); 
+            const mainParam = searchString.split('&')[0]; 
+            const authCode = mainParam.split('=')[1]; 
+            
+            if (serverToken && serverToken !== authCode) {
+                customAlert("该二维码已过期失效！请重新扫描大屏上最新的二维码。", "error", "验证失败");
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                btn.className = "w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50";
+                btn.disabled = false;
+                
+                // 隐藏表单并显示错误
+                document.getElementById('checkInForm').classList.add('hidden');
+                document.getElementById('statusBadge').innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 二维码已失效';
+                document.getElementById('statusBadge').className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
+                return;
+            }
+
             const correctPin = doc.data().currentPin;
             if (enteredPin !== correctPin) {
                 customAlert("PIN 码不正确！请查看前方大屏幕获取最新的 4 位数密码。", "error", "验证失败");

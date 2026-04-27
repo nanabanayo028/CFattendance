@@ -569,6 +569,9 @@ const dialogOverlay = document.getElementById('customDialog');
             
             const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
             qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+
+            // 🌟 核心修复：生成新 QR 时，强制把新 Token 写入数据库覆盖旧的！
+            db.collection("Sessions").doc("Class_01").set({ currentQRToken: randomLetters }, { merge: true });
         }
 
         function openManualModal() {
