@@ -610,14 +610,38 @@
                     return;
                 }
                 dataToUpdate.currentPin = pinValue;
-                dataToUpdate.endTime = 0; // 彻底取消自动关门
+                dataToUpdate.endTime = 0; // 取消自动关门时间
+
+                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
+                .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
             } else {
                 document.getElementById('adminPin').value = "";
                 dataToUpdate.endTime = 0;
+                
+                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
+                .then(() => {
+                    // 🌟 核心修复：一旦点击关闭，强制立刻生成新二维码！旧码瞬间作废！
+                    generateNewQR();
+                })
+                .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
             }
+        }
 
-            db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
-            .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
+        function generateNewQR() {
+            const baseUrl = "https://nanabanayo028.github.io/CFattendance/index.html"; 
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            let randomLetters = '';
+            for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
+            currentQRUrl = `${baseUrl}?q=${randomLetters}`;
+            
+            const urlDisplay = document.getElementById('qrUrlDisplay');
+            if(urlDisplay) urlDisplay.innerText = currentQRUrl;
+            
+            const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
+            qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+
+            // 🌟 核心修复：把最新生成的随机码存进数据库
+            db.collection("Sessions").doc("Class_01").set({ currentQRToken: randomLetters }, { merge: true });
         }
 
         function loadDataForDates(dateArray) {
@@ -919,22 +943,6 @@
 
         function openQRModal() { document.getElementById('qrModal').classList.remove('hidden'); if (!currentQRUrl) { generateNewQR(); } }
         function closeQRModal() { document.getElementById('qrModal').classList.add('hidden'); }
-        function generateNewQR() {
-            const baseUrl = "https://nanabanayo028.github.io/CFattendance/index.html"; 
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-            let randomLetters = '';
-            for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
-            currentQRUrl = `${baseUrl}?q=${randomLetters}`;
-            
-            const urlDisplay = document.getElementById('qrUrlDisplay');
-            if(urlDisplay) urlDisplay.innerText = currentQRUrl;
-            
-            const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
-            qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
-
-            // 🌟 每次刷新，把最新的 Token 存进数据库
-            db.collection("Sessions").doc("Class_01").set({ currentQRToken: randomLetters }, { merge: true });
-        }
 
         function openManualModal() {
             const selectedDate = document.getElementById("dateFilter").value;

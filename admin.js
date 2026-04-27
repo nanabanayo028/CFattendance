@@ -240,52 +240,48 @@ const dialogOverlay = document.getElementById('customDialog');
         });
 
         function changeStatus(newStatus) {
-            let pinValue = "";
             let dataToUpdate = { status: newStatus };
 
-            if (adminAutoCloseTimer) { clearTimeout(adminAutoCloseTimer); adminAutoCloseTimer = null; }
-
             if (newStatus === "Open") {
-                pinValue = document.getElementById('adminPin').value.trim();
+                let pinValue = document.getElementById('adminPin').value.trim();
                 if (pinValue === "") {
                     customAlert("请先输入 4 位数的 PIN 码，然后再开启签到！", "warning", "缺少 PIN 码");
                     document.getElementById('adminPin').focus();
                     return;
                 }
-
-                // 🌟 读取秒数，并至少给 10 秒防呆
-                let durationSeconds = parseInt(document.getElementById('adminDuration').value) || 60;
-                if (durationSeconds < 10) durationSeconds = 10; 
-
                 dataToUpdate.currentPin = pinValue;
-                // 🌟 将输入的秒数转换为毫秒加到当前时间
-                dataToUpdate.endTime = new Date().getTime() + (durationSeconds * 1000); 
-                hasPlayedAudio = false;
+                dataToUpdate.endTime = 0; // 取消自动关门时间
 
-                const audioPlayer = document.getElementById("tenseAudio");
-                if (audioPlayer) {
-                    audioPlayer.volume = 0.5; 
-                    audioPlayer.play().then(() => {
-                        audioPlayer.pause();
-                        audioPlayer.currentTime = 0;
-                    }).catch(e => {});
-                }
-
-                // 🌟 按照自定义时间（秒）倒数关门
-                adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, durationSeconds * 1000);
+                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
+                .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
             } else {
                 document.getElementById('adminPin').value = "";
                 dataToUpdate.endTime = 0;
                 
-                const audioPlayer = document.getElementById("tenseAudio");
-                if (audioPlayer) {
-                    audioPlayer.pause();
-                    audioPlayer.currentTime = 0; 
-                }
+                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
+                .then(() => {
+                    // 🌟 核心修复：一旦点击关闭，强制立刻生成新二维码！旧码瞬间作废！
+                    generateNewQR();
+                })
+                .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
             }
+        }
 
-            db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
-            .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
+        function generateNewQR() {
+            const baseUrl = "https://nanabanayo028.github.io/CFattendance/index.html"; 
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            let randomLetters = '';
+            for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
+            currentQRUrl = `${baseUrl}?q=${randomLetters}`;
+            
+            const urlDisplay = document.getElementById('qrUrlDisplay');
+            if(urlDisplay) urlDisplay.innerText = currentQRUrl;
+            
+            const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
+            qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+
+            // 🌟 核心修复：把最新生成的随机码存进数据库
+            db.collection("Sessions").doc("Class_01").set({ currentQRToken: randomLetters }, { merge: true });
         }
 
         function loadDataForDates(dateArray) {
@@ -557,23 +553,7 @@ const dialogOverlay = document.getElementById('customDialog');
 
         function openQRModal() { document.getElementById('qrModal').classList.remove('hidden'); if (!currentQRUrl) { generateNewQR(); } }
         function closeQRModal() { document.getElementById('qrModal').classList.add('hidden'); }
-        function generateNewQR() {
-            const baseUrl = "https://nanabanayo028.github.io/CFattendance/index.html"; 
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-            let randomLetters = '';
-            for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
-            currentQRUrl = `${baseUrl}?q=${randomLetters}`;
-            
-            const urlDisplay = document.getElementById('qrUrlDisplay');
-            if(urlDisplay) urlDisplay.innerText = currentQRUrl;
-            
-            const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
-            qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
-
-            // 🌟 核心修复：生成新 QR 时，强制把新 Token 写入数据库覆盖旧的！
-            db.collection("Sessions").doc("Class_01").set({ currentQRToken: randomLetters }, { merge: true });
-        }
-
+        
         function openManualModal() {
             const selectedDate = document.getElementById("dateFilter").value;
             if (!selectedDate) { customAlert("请先在上方日历中选择你要进行补签的【日期】！", "warning", "提示"); return; }

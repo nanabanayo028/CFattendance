@@ -106,86 +106,54 @@ window.onload = function() {
     });
 
     db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
-        const badge = document.getElementById('statusBadge');
-        const form = document.getElementById('checkInForm');
-        const successMsg = document.getElementById('successMessage');
-        const timerContainer = document.getElementById('countdownTimer');
-        const timeDisplay = document.getElementById('timeDisplay');
-        const audioPlayer = document.getElementById("tenseAudio");
-        const submitBtn = document.getElementById('submitBtn');
+                const badge = document.getElementById('statusBadge');
+                const form = document.getElementById('checkInForm');
+                const successMsg = document.getElementById('successMessage');
+                const submitBtn = document.getElementById('submitBtn');
 
-        if (timerInterval) clearInterval(timerInterval);
-
-        if (isDeviceLocked()) {
-            badge.classList.add('hidden');
-            form.classList.add('hidden');
-            if (timerContainer) timerContainer.classList.add('hidden');
-            successMsg.classList.remove('hidden');
-            document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
-            return; 
-        }
-
-        if (doc.exists && doc.data().status === "Open") {
-            const endTime = doc.data().endTime; 
-
-            if (endTime - new Date().getTime() > 10000) {
-                hasPlayedAudio = false;
-            }
-
-            if (!hasPlayedAudio && audioPlayer) {
-                audioPlayer.currentTime = 0;
-                audioPlayer.volume = 0.5; 
-                audioPlayer.play().catch(e => console.log("浏览器安全拦截"));
-                hasPlayedAudio = true;
-            }
-
-            timerInterval = setInterval(() => {
-                const now = new Date().getTime();
-                const distance = endTime - now;
-
-                if (distance <= 0) {
-                    clearInterval(timerInterval);
-                    timeDisplay.innerText = "00:00";
-                    form.classList.add('opacity-50', 'pointer-events-none');
-                    
-                    if (audioPlayer) {
-                        audioPlayer.pause();
-                        audioPlayer.currentTime = 0;
-                    }
-                } else {
-                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                    timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+                if (isDeviceLocked()) {
+                    badge.classList.add('hidden');
+                    form.classList.add('hidden');
+                    successMsg.classList.remove('hidden');
+                    document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
+                    return; 
                 }
-            }, 1000);
 
-            badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
-            badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200";
-            
-            form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
-            if (timerContainer) timerContainer.classList.remove('hidden');
-            successMsg.classList.add('hidden');
-            
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm';
-            submitBtn.className = "w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50";
+                if (doc.exists) {
+                    // 🌟 核心防线 1：只要你的二维码跟数据库最新的对不上，直接拉黑踢人！
+                    const serverToken = doc.data().currentQRToken;
+                    if (serverToken && serverToken !== authCode) {
+                        badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 二维码已失效';
+                        badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
+                        form.classList.add('hidden');
+                        
+                        if (!hasAlertedCheat) {
+                            customAlert("该二维码已过期失效！请重新扫描大屏幕上最新的二维码进入。", "error", "⚠️ 链接过期");
+                            hasAlertedCheat = true;
+                        }
+                        return; // 结束执行
+                    }
 
-        } else {
-            badge.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Waiting for access...';
-            badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-600 shadow-sm border border-amber-200";
-            
-            badge.classList.remove('hidden');
-            form.classList.add('hidden'); 
-            
-            if (timerContainer) timerContainer.classList.add('hidden'); 
-            successMsg.classList.add('hidden'); 
-
-            if (audioPlayer) {
-                audioPlayer.pause();
-                audioPlayer.currentTime = 0;
-            }
-        }
-    });
+                    if (doc.data().status === "Open") {
+                        badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
+                        badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200";
+                        
+                        form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
+                        successMsg.classList.add('hidden');
+                        
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm';
+                        submitBtn.className = "w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50";
+                    } else {
+                        badge.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Waiting for access...';
+                        badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-600 shadow-sm border border-amber-200";
+                        
+                        badge.classList.remove('hidden');
+                        form.classList.add('hidden'); 
+                        successMsg.classList.add('hidden'); 
+                    }
+                }
+            });
 };
 
 function submitCheckIn() {
@@ -228,19 +196,17 @@ function submitCheckIn() {
     db.collection("Sessions").doc("Class_01").get().then((doc) => {
         if (doc.exists && doc.data().status === "Open") {
             
-            // 🌟 核心修复：在提交瞬间，再次核对二维码是否最新！
+            // 🌟 核心防线 2：在学生按下 Confirm 瞬间，系统做最后一次查房，拿旧链接的直接拦截！
             const serverToken = doc.data().currentQRToken;
             const searchString = window.location.search.substring(1); 
             const mainParam = searchString.split('&')[0]; 
             const authCode = mainParam.split('=')[1]; 
-            
+
             if (serverToken && serverToken !== authCode) {
                 customAlert("该二维码已过期失效！请重新扫描大屏上最新的二维码。", "error", "验证失败");
                 btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                btn.className = "w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50";
                 btn.disabled = false;
                 
-                // 隐藏表单并显示错误
                 document.getElementById('checkInForm').classList.add('hidden');
                 document.getElementById('statusBadge').innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 二维码已失效';
                 document.getElementById('statusBadge').className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
@@ -251,7 +217,6 @@ function submitCheckIn() {
             if (enteredPin !== correctPin) {
                 customAlert("PIN 码不正确！请查看前方大屏幕获取最新的 4 位数密码。", "error", "验证失败");
                 btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                btn.className = "w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50";
                 btn.disabled = false;
                 return; 
             }

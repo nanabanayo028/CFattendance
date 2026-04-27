@@ -236,141 +236,156 @@
             });
 
             db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
-            const badge = document.getElementById('statusBadge');
-            const form = document.getElementById('checkInForm');
-            const successMsg = document.getElementById('successMessage');
-            const submitBtn = document.getElementById('submitBtn');
+                const badge = document.getElementById('statusBadge');
+                const form = document.getElementById('checkInForm');
+                const successMsg = document.getElementById('successMessage');
+                const submitBtn = document.getElementById('submitBtn');
 
-            if (isDeviceLocked()) {
-                badge.classList.add('hidden');
-                form.classList.add('hidden');
-                successMsg.classList.remove('hidden');
-                document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
-                return; 
-            }
-
-            if (doc.exists && doc.data().status === "Open") {
-                // 🌟 核对 URL 里的密码和数据库最新的是不是同一个
-                const serverToken = doc.data().currentQRToken;
-                if (serverToken && serverToken !== authCode) {
-                    badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 二维码已失效';
-                    badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
+                if (isDeviceLocked()) {
+                    badge.classList.add('hidden');
                     form.classList.add('hidden');
-                    
-                    if (!hasAlertedCheat) {
-                        customAlert("该二维码已失效！请扫描大屏上最新的二维码。", "error", "⚠️ 链接过期");
-                        hasAlertedCheat = true;
-                    }
-                    return;
+                    successMsg.classList.remove('hidden');
+                    document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
+                    return; 
                 }
 
-                badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
-                badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200";
-                
-                form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
-                successMsg.classList.add('hidden');
-                
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm';
-                submitBtn.className = "w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50";
+                if (doc.exists) {
+                    // 🌟 核心防线 1：只要你的二维码跟数据库最新的对不上，直接拉黑踢人！
+                    const serverToken = doc.data().currentQRToken;
+                    if (serverToken && serverToken !== authCode) {
+                        badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 二维码已失效';
+                        badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
+                        form.classList.add('hidden');
+                        
+                        if (!hasAlertedCheat) {
+                            customAlert("该二维码已过期失效！请重新扫描大屏幕上最新的二维码进入。", "error", "⚠️ 链接过期");
+                            hasAlertedCheat = true;
+                        }
+                        return; // 结束执行
+                    }
 
-                } else {
-                    badge.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Waiting for access...';
-                    badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-600 shadow-sm border border-amber-200";
-                    
-                    badge.classList.remove('hidden');
-                    form.classList.add('hidden'); 
-                    successMsg.classList.add('hidden'); 
+                    if (doc.data().status === "Open") {
+                        badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
+                        badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200";
+                        
+                        form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
+                        successMsg.classList.add('hidden');
+                        
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm';
+                        submitBtn.className = "w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50";
+                    } else {
+                        badge.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Waiting for access...';
+                        badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-600 shadow-sm border border-amber-200";
+                        
+                        badge.classList.remove('hidden');
+                        form.classList.add('hidden'); 
+                        successMsg.classList.add('hidden'); 
+                    }
                 }
             });
         };
 
         function submitCheckIn() {
-            if (isDeviceLocked()) {
-                customAlert("您刚刚已经成功签到过了，请耐心等待 5 分钟后再试。", "warning", "操作太频繁");
+    if (isDeviceLocked()) {
+        customAlert("您刚刚已经成功签到过了，请耐心等待 5 分钟后再试。", "warning", "操作太频繁");
+        return;
+    }
+
+    const studentId = document.getElementById('studentId').value.trim().toUpperCase();
+    const studentName = document.getElementById('studentName').value.trim().toUpperCase();
+    const enteredPin = document.getElementById('pinCode').value.trim();
+
+    if (!studentId || !studentName || !enteredPin) {
+        customAlert("请完整填写 Student ID, Name 以及屏幕上的 PIN 码！", "warning", "信息不完整"); 
+        return;
+    }
+
+    if (currentSelectedGroup === "") {
+        customAlert("请选择您的组别 (Group 1-8 或 无组别)！", "warning", "缺少组别"); 
+        return;
+    }
+
+    if (studentId.includes('@')) {
+        customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误");
+        return;
+    }
+    if (/\d/.test(studentName)) {
+        customAlert("Student Name 不能包含数字！", "warning", "格式错误");
+        return;
+    }
+    if (studentName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentName)) {
+        customAlert("Student Name 不能是 Email 格式！", "warning", "格式错误");
+        return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+    btn.disabled = true;
+
+    db.collection("Sessions").doc("Class_01").get().then((doc) => {
+        if (doc.exists && doc.data().status === "Open") {
+            
+            // 🌟 核心防线 2：在学生按下 Confirm 瞬间，系统做最后一次查房，拿旧链接的直接拦截！
+            const serverToken = doc.data().currentQRToken;
+            const searchString = window.location.search.substring(1); 
+            const mainParam = searchString.split('&')[0]; 
+            const authCode = mainParam.split('=')[1]; 
+
+            if (serverToken && serverToken !== authCode) {
+                customAlert("该二维码已过期失效！请重新扫描大屏上最新的二维码。", "error", "验证失败");
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                btn.disabled = false;
+                
+                document.getElementById('checkInForm').classList.add('hidden');
+                document.getElementById('statusBadge').innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 二维码已失效';
+                document.getElementById('statusBadge').className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
                 return;
             }
 
-            const studentId = document.getElementById('studentId').value.trim().toUpperCase();
-            const studentName = document.getElementById('studentName').value.trim().toUpperCase();
-            const enteredPin = document.getElementById('pinCode').value.trim();
-
-            if (!studentId || !studentName || !enteredPin) {
-                customAlert("请完整填写 Student ID, Name 以及屏幕上的 PIN 码！", "warning", "信息不完整"); 
-                return;
+            const correctPin = doc.data().currentPin;
+            if (enteredPin !== correctPin) {
+                customAlert("PIN 码不正确！请查看前方大屏幕获取最新的 4 位数密码。", "error", "验证失败");
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                btn.disabled = false;
+                return; 
             }
 
-            // 🌟 新增校验：必须选组
-            if (currentSelectedGroup === "") {
-                customAlert("请选择您的组别 (Group 1-8)！", "warning", "缺少组别"); 
-                return;
-            }
+            const today = new Date();
+            const dateFolderName = today.toISOString().split('T')[0]; 
 
-            // 🌟 重点防呆验证
-            if (studentId.includes('@')) {
-                customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误");
-                return;
-            }
-            if (/\d/.test(studentName)) {
-                customAlert("Student Name 不能包含数字！", "warning", "格式错误");
-                return;
-            }
-            if (studentName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentName)) {
-                customAlert("Student Name 不能是 Email 格式！", "warning", "格式错误");
-                return;
-            }
+            db.collection("Attendance")
+            .doc(dateFolderName)
+            .collection("Students")
+            .doc(studentId) 
+            .set({
+                studentId: studentId, 
+                studentName: studentName,
+                groupNumber: currentSelectedGroup,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+            })
+            .then(() => {
+                const currentTime = new Date().getTime();
+                localStorage.setItem(deviceLockKey, currentTime.toString());
 
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
-            btn.disabled = true;
-
-            db.collection("Sessions").doc("Class_01").get().then((doc) => {
-                if (doc.exists && doc.data().status === "Open") {
-                    
-                    const correctPin = doc.data().currentPin;
-                    if (enteredPin !== correctPin) {
-                        customAlert("PIN 码不正确！请查看前方大屏幕获取最新的 4 位数密码。", "error", "验证失败");
-                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                        btn.className = "w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50";
-                        btn.disabled = false;
-                        return; 
-                    }
-
-                    const today = new Date();
-                    const dateFolderName = today.toISOString().split('T')[0]; 
-
-                    db.collection("Attendance")
-                    .doc(dateFolderName)
-                    .collection("Students")
-                    .doc(studentId) 
-                    .set({
-                        studentId: studentId, 
-                        studentName: studentName,
-                        groupNumber: currentSelectedGroup, // 🌟 保存组别进数据库
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-                    })
-                    .then(() => {
-                        const currentTime = new Date().getTime();
-                        localStorage.setItem(deviceLockKey, currentTime.toString());
-
-                        document.getElementById('checkInForm').classList.add('hidden');
-                        document.getElementById('statusBadge').classList.add('hidden');
-                        document.getElementById('successMessage').classList.remove('hidden');
-                        document.getElementById('successDesc').innerText = "Attendance Submitted Successfully!";
-                    })
-                    .catch((error) => {
-                        customAlert("提交失败: " + error.message, "error", "网络异常");
-                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                        btn.disabled = false;
-                    });
-
-                } else {
-                    customAlert("已关闭,无法提交。", "warning", "签到结束");
-                    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                    btn.disabled = false;
-                }
+                document.getElementById('checkInForm').classList.add('hidden');
+                document.getElementById('statusBadge').classList.add('hidden');
+                document.getElementById('successMessage').classList.remove('hidden');
+                document.getElementById('successDesc').innerText = "Attendance Submitted Successfully!";
+            })
+            .catch((error) => {
+                customAlert("提交失败: " + error.message, "error", "网络异常");
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                btn.disabled = false;
             });
+
+        } else {
+            customAlert("已关闭,无法提交。", "warning", "签到结束");
+            btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+            btn.disabled = false;
         }
+    });
+}
     </script>
 </body>
 </html>
