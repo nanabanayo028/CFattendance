@@ -1216,6 +1216,102 @@
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
+        
+        // 💡 全局搜索功能核心逻辑
+        function executeGlobalSearch() {
+            const keyword = document.getElementById('globalSearchInput').value.trim().toUpperCase();
+            
+            if (!keyword) { 
+                customAlert("请输入要搜索的学生姓名或学号！", "warning", "缺失搜索词"); 
+                return; 
+            }
+
+            const btn = document.getElementById('globalSearchBtn');
+            const originalBtnHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 搜索中';
+            btn.disabled = true;
+
+            // 使用 collectionGroup 遍历所有日期下的 Students
+            db.collectionGroup("Students").get().then((snapshot) => {
+                let results = [];
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    // 巧用 doc.ref 获取上上层节点的 ID，也就是日期 (例如 "2026-04-24")
+                    const dateStr = doc.ref.parent.parent.id; 
+                    const sName = (data.studentName || '').toUpperCase();
+                    const sId = (data.studentId || '').toUpperCase();
+                    const group = data.groupNumber || '-';
+
+                    // 只要学号或者名字包含了关键词，就抓取出来！
+                    if (sName.includes(keyword) || sId.includes(keyword)) {
+                        results.push({
+                            date: dateStr,
+                            id: sId,
+                            name: sName,
+                            group: group,
+                            timestamp: data.timestamp ? data.timestamp.toMillis() : 0 // 用于排序
+                        });
+                    }
+                });
+
+                // 按照日期从最新到最旧排序
+                results.sort((a, b) => b.date.localeCompare(a.date));
+
+                // 渲染结果到弹窗
+                renderSearchResults(results, keyword);
+                
+                // 恢复按钮状态
+                btn.innerHTML = originalBtnHtml;
+                btn.disabled = false;
+
+            }).catch(error => {
+                customAlert("全局搜索失败: " + error.message, "error", "系统异常");
+                btn.innerHTML = originalBtnHtml;
+                btn.disabled = false;
+            });
+        }
+
+        // 💡 渲染搜索结果并打开弹窗
+        function renderSearchResults(results, keyword) {
+            document.getElementById('searchResultTitle').innerText = `搜索: "${keyword}"`;
+            document.getElementById('searchResultCount').innerText = `共找到 ${results.length} 条记录`;
+            
+            const tbody = document.getElementById('searchResultList');
+            let html = "";
+
+            if (results.length === 0) {
+                html = `<tr><td colspan="3" class="p-10 text-center text-slate-400">
+                    <i class="fa-solid fa-box-open text-4xl mb-3 block text-slate-300"></i>
+                    没有找到与 "<b>${keyword}</b>" 相关的历史记录
+                </td></tr>`;
+            } else {
+                results.forEach(res => {
+                    const groupBadge = res.group !== '-' 
+                        ? `<span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-xs font-bold border border-emerald-200">G${res.group}</span>`
+                        : `<span class="text-slate-400 font-normal">-</span>`;
+
+                    html += `
+                        <tr class="hover:bg-indigo-50/50 transition-colors">
+                            <td class="p-3 pl-6 font-medium text-slate-600">${res.date}</td>
+                            <td class="p-3 text-center">${groupBadge}</td>
+                            <td class="p-3">
+                                <div class="font-bold text-sm text-indigo-700 uppercase leading-tight">${res.name}</div>
+                                <div class="text-[11px] font-mono text-slate-400 mt-0.5">${res.id}</div>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            tbody.innerHTML = html;
+            document.getElementById('searchResultModal').classList.remove('hidden');
+        }
+
+        // 💡 关闭弹窗
+        function closeSearchModal() {
+            document.getElementById('searchResultModal').classList.add('hidden');
+        }
 
         window.handleSortClick = handleSortClick;
         window.openReportGroupDetails = openReportGroupDetails;
