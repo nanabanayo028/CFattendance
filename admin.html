@@ -287,11 +287,7 @@
                 <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-expand"></i> 签到大屏展示与控制</h3>
                 <button onclick="closeQRModal()" class="text-white/80 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="p-6 bg-slate-50 flex flex-col items-center">
-                <div id="adminTimerContainer" class="hidden mb-4 w-full bg-rose-50 border border-rose-100 rounded-xl p-3 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite] shadow-inner">
-                    <span class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1"><i class="fa-regular fa-clock mr-1"></i> 距离通道自动关闭还剩</span>
-                    <div class="text-4xl font-extrabold text-rose-600 font-mono tracking-wider" id="adminTimeDisplay">01:00</div>
-                </div>
+            
                 <div id="qrcode-box" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 min-h-[220px] flex items-center justify-center mb-2"></div>
                 <p id="qrUrlDisplay" class="text-[10px] text-slate-400 font-mono mb-2 break-all text-center"></p>
                 <button onclick="generateNewQR()" class="text-xs text-purple-500 hover:text-purple-700 underline font-bold mb-5 flex items-center gap-1"><i class="fa-solid fa-rotate"></i> 刷新二维码图案</button>
@@ -302,14 +298,6 @@
                             <input type="text" id="adminPin" placeholder="PIN 码" maxlength="4" class="bg-transparent text-slate-800 text-lg font-extrabold pin-tracking outline-none w-full">
                         </div>
                         <button onclick="document.getElementById('adminPin').value = Math.floor(1000 + Math.random() * 9000)" class="px-4 py-3 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold rounded-xl transition-colors whitespace-nowrap"><i class="fa-solid fa-dice"></i></button>
-                    </div>
-                    
-                    <div class="flex items-center gap-2 mt-2">
-                        <div class="bg-white border border-slate-200 rounded-xl flex items-center px-3 py-2 w-full shadow-sm">
-                            <i class="fa-solid fa-clock text-indigo-400 mr-2"></i>
-                            <input type="number" id="adminDuration" placeholder="开放时长(秒)" value="60" min="10" class="bg-transparent text-slate-800 text-base font-bold outline-none w-full">
-                        </div>
-                        <span class="text-sm font-bold text-slate-500 whitespace-nowrap px-1">秒</span>
                     </div>
 
                     <div class="flex gap-2">
@@ -600,90 +588,31 @@
 
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById("statusBadge");
-            const timerContainer = document.getElementById("adminTimerContainer");
-            const timeDisplay = document.getElementById("adminTimeDisplay");
-            const audioPlayer = document.getElementById("tenseAudio");
-
-            if (adminDisplayTimerInterval) clearInterval(adminDisplayTimerInterval);
 
             if (doc.exists && doc.data().status === "Open") {
                 badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] rounded-full"></i> <span class="hidden sm:inline">正在允许签到 (Open)</span><span class="sm:hidden">Open</span>';
                 badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
-                
-                const endTime = doc.data().endTime;
-                if (endTime) {
-                    timerContainer.classList.remove('hidden');
-                    adminDisplayTimerInterval = setInterval(() => {
-                        const now = new Date().getTime();
-                        const distance = endTime - now;
-                        if (distance <= 0) {
-                            clearInterval(adminDisplayTimerInterval);
-                            timeDisplay.innerText = "00:00";
-                            if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
-                        } else {
-                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                            timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-                            
-                            if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
-                                if (audioPlayer) {
-                                    audioPlayer.volume = 0.5;
-                                    audioPlayer.play().catch(e => console.log("浏览器限制自动播放"));
-                                    hasPlayedAudio = true;
-                                }
-                            }
-                        }
-                    }, 1000);
-                }
             } else {
                 badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)] rounded-full"></i> <span class="hidden sm:inline">签到已关闭 (Closed)</span><span class="sm:hidden">Closed</span>';
                 badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
-                if (timerContainer) timerContainer.classList.add('hidden');
-                
-                if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
             }
         });
 
         function changeStatus(newStatus) {
-            let pinValue = "";
             let dataToUpdate = { status: newStatus };
 
-            if (adminAutoCloseTimer) { clearTimeout(adminAutoCloseTimer); adminAutoCloseTimer = null; }
-
             if (newStatus === "Open") {
-                pinValue = document.getElementById('adminPin').value.trim();
+                let pinValue = document.getElementById('adminPin').value.trim();
                 if (pinValue === "") {
                     customAlert("请先输入 4 位数的 PIN 码，然后再开启签到！", "warning", "缺少 PIN 码");
                     document.getElementById('adminPin').focus();
                     return;
                 }
-
-                let durationSeconds = parseInt(document.getElementById('adminDuration').value) || 60;
-                if (durationSeconds < 10) durationSeconds = 10; 
-
                 dataToUpdate.currentPin = pinValue;
-                dataToUpdate.endTime = new Date().getTime() + (durationSeconds * 1000); 
-                hasPlayedAudio = false;
-
-                const audioPlayer = document.getElementById("tenseAudio");
-                if (audioPlayer) {
-                    audioPlayer.volume = 0.5; 
-                    audioPlayer.play().then(() => {
-                        audioPlayer.pause();
-                        audioPlayer.currentTime = 0;
-                    }).catch(e => {});
-                }
-
-                adminAutoCloseTimer = setTimeout(() => { changeStatus('Closed'); }, durationSeconds * 1000);
+                dataToUpdate.endTime = 0; // 彻底取消自动关门
             } else {
                 document.getElementById('adminPin').value = "";
                 dataToUpdate.endTime = 0;
-                
-                const audioPlayer = document.getElementById("tenseAudio");
-                if (audioPlayer) {
-                    audioPlayer.pause();
-                    audioPlayer.currentTime = 0; 
-                }
             }
 
             db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
@@ -1001,6 +930,9 @@
             
             const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
             qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+
+            // 🌟 每次刷新，把最新的 Token 存进数据库
+            db.collection("Sessions").doc("Class_01").set({ currentQRToken: randomLetters }, { merge: true });
         }
 
         function openManualModal() {
