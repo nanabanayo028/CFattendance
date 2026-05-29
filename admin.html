@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <style>
         .glass-card {
@@ -120,26 +121,53 @@
                     </button>
                 </div>
                 
-                <div class="flex flex-wrap justify-start lg:justify-end gap-2 w-full">
-                    <button onclick="deleteSelectedRecords()" id="deleteSelectedBtn" class="hidden glass-card hover:bg-rose-50 text-rose-600 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-rose-200 active:scale-95">
-                        <i class="fa-solid fa-trash-can"></i> 删除
+                <div class="flex flex-wrap items-center justify-start lg:justify-end gap-3 w-full">
+                    <div id="manageActionsGroup" class="hidden items-center gap-1 glass-card bg-rose-50/50 p-1 rounded-xl border border-rose-200 shadow-sm transition-all">
+                        <button onclick="deleteSelectedRecords()" id="deleteSelectedBtn" class="hover:bg-white text-rose-600 text-sm font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 active:scale-95">
+                            <i class="fa-solid fa-trash-can"></i> 删除
+                        </button>
+                        <div class="w-px h-4 bg-rose-200 mx-0.5"></div>
+                        <button onclick="openBatchEditModal()" id="batchEditGroupBtn" class="hover:bg-white text-blue-600 text-sm font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 active:scale-95">
+                            <i class="fa-solid fa-layer-group"></i> 换组
+                        </button>
+                    </div>
+
+                    <button onclick="toggleManageMode()" id="manageBtn" class="glass-card hover:bg-white text-blue-700 text-sm font-bold py-2 px-3.5 rounded-xl shadow-sm flex items-center gap-1.5 transition-all border-blue-200 active:scale-95">
+                        <i class="fa-solid fa-list-check"></i> <span>管理</span>
                     </button>
-                    <button onclick="toggleManageMode()" id="manageBtn" class="glass-card hover:bg-white text-blue-700 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-blue-200 active:scale-95">
-                        <i class="fa-solid fa-list-check"></i> 管理
-                    </button>
-                    <button onclick="openGroupListModal()" class="glass-card hover:bg-white text-emerald-600 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-emerald-200 active:scale-95">
-                        <i class="fa-solid fa-users-viewfinder"></i> 当日小组
-                    </button>
-                    <button onclick="openManualModal()" class="glass-card hover:bg-white text-indigo-700 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-indigo-200 active:scale-95">
-                        <i class="fa-solid fa-user-plus"></i> 补签
-                    </button>
-                    <button id="reportBtn" onclick="openReportModal()" class="glass-card hover:bg-white text-amber-600 text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all border-amber-200 active:scale-95 ring-2 ring-amber-400/50">
-                        <i class="fa-solid fa-chart-pie"></i> 高级报表
-                    </button>
-                    <button onclick="exportToExcel()" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 transition-all active:scale-95 border border-slate-700">
-                        <i class="fa-solid fa-file-excel text-emerald-400"></i> 导出
-                    </button>
-                    <button onclick="openQRModal()" class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-1.5 px-4 rounded-lg shadow-md shadow-purple-500/30 flex items-center gap-1.5 transition-all border border-purple-500 active:scale-95">
+
+                    <div class="flex items-center glass-card p-1 rounded-xl shadow-sm border-white/60">
+                        <button onclick="openManualModal()" class="hover:bg-slate-100 text-slate-700 text-sm font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 active:scale-95" title="手动补签">
+                            <i class="fa-solid fa-user-plus text-indigo-500"></i> 补签
+                        </button>
+                        
+                        <div class="w-px h-4 bg-slate-300/60 mx-0.5"></div>
+                        
+                        <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleCSVImport(event)">
+                        <button onclick="document.getElementById('csvFileInput').click()" class="hover:bg-slate-100 text-slate-700 text-sm font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 active:scale-95" title="导入CSV">
+                            <i class="fa-solid fa-file-import text-teal-500"></i> 导入
+                        </button>
+                        
+                        <div class="w-px h-4 bg-slate-300/60 mx-0.5"></div>
+                        
+                        <button onclick="exportToExcel()" class="hover:bg-slate-100 text-slate-700 text-sm font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 active:scale-95" title="导出数据">
+                            <i class="fa-solid fa-file-excel text-emerald-500"></i> 导出
+                        </button>
+                    </div>
+
+                    <div class="flex items-center glass-card p-1 rounded-xl shadow-sm border-white/60">
+                        <button onclick="openGroupListModal()" class="hover:bg-slate-100 text-slate-700 text-sm font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 active:scale-95" title="查看当日小组">
+                            <i class="fa-solid fa-users-viewfinder text-emerald-600"></i> 小组
+                        </button>
+                        
+                        <div class="w-px h-4 bg-slate-300/60 mx-0.5"></div>
+                        
+                        <button id="reportBtn" onclick="openReportModal()" class="hover:bg-slate-100 text-slate-700 text-sm font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 active:scale-95" title="高级统计报表">
+                            <i class="fa-solid fa-chart-pie text-amber-500"></i> 报表
+                        </button>
+                    </div>
+
+                    <button onclick="openQRModal()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-md shadow-purple-500/30 flex items-center gap-2 transition-all border border-purple-500/50 active:scale-95">
                         <i class="fa-solid fa-qrcode"></i> 扫码控制
                     </button>
                 </div>
@@ -371,10 +399,10 @@
                 <table class="w-full text-left text-sm">
                     <thead class="bg-white sticky top-0 border-b border-slate-200 shadow-sm z-10">
                         <tr class="text-slate-500 text-[10px] uppercase tracking-wider">
-                            <th class="p-3 pl-6 font-bold w-32">Date (签到日期)</th>
-                            <th class="p-3 font-bold w-20 text-center">Group</th>
+                            <th class="p-3 pl-6 font-bold w-28">Date (日期)</th>
+                            <th class="p-3 font-bold w-16 text-center">Group</th>
                             <th class="p-3 font-bold">Student Info</th>
-                        </tr>
+                            <th class="p-3 font-bold text-right pr-6 w-24">Action</th> </tr>
                     </thead>
                     <tbody id="searchResultList" class="divide-y divide-slate-100">
                         </tbody>
@@ -751,29 +779,40 @@
         }
 
         function toggleManageMode() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate || allRecords.length === 0) {
-                customAlert("请先选择有数据的日期，才能进行管理！", "warning", "提示");
-                return;
-            }
-            
-            isManageMode = !isManageMode;
-            const delBtn = document.getElementById('deleteSelectedBtn');
-            const mngBtn = document.getElementById('manageBtn');
-            
-            if (isManageMode) {
-                delBtn.classList.remove('hidden');
-                mngBtn.classList.remove('bg-white', 'text-blue-700');
-                mngBtn.classList.add('bg-blue-600', 'text-white');
-                mngBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> 退出管理';
-            } else {
-                delBtn.classList.add('hidden');
-                mngBtn.classList.add('bg-white', 'text-blue-700');
-                mngBtn.classList.remove('bg-blue-600', 'text-white');
-                mngBtn.innerHTML = '<i class="fa-solid fa-list-check"></i> 管理名单';
-            }
-            renderTable();
+        const selectedDate = document.getElementById("dateFilter").value;
+        if (!selectedDate || allRecords.length === 0) {
+            customAlert("请先选择有数据的日期，才能进行管理！", "warning", "提示");
+            return;
         }
+        
+        isManageMode = !isManageMode;
+        // 🌟 获取我们新建的操作组盒子
+        const manageActionsGroup = document.getElementById('manageActionsGroup'); 
+        const mngBtn = document.getElementById('manageBtn');
+        
+        if (isManageMode) {
+            // 显示危险操作组
+            if (manageActionsGroup) {
+                manageActionsGroup.classList.remove('hidden');
+                manageActionsGroup.classList.add('flex');
+            }
+            
+            mngBtn.classList.remove('glass-card', 'hover:bg-white', 'text-blue-700');
+            mngBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+            mngBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> 退出管理';
+        } else {
+            // 隐藏危险操作组
+            if (manageActionsGroup) {
+                manageActionsGroup.classList.add('hidden');
+                manageActionsGroup.classList.remove('flex');
+            }
+            
+            mngBtn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+            mngBtn.classList.add('glass-card', 'hover:bg-white', 'text-blue-700');
+            mngBtn.innerHTML = '<i class="fa-solid fa-list-check"></i> 管理';
+        }
+        renderTable();
+    }
 
         function toggleAllCheckboxes(source) {
             const checkboxes = document.querySelectorAll('.row-checkbox');
@@ -1292,12 +1331,22 @@
                         : `<span class="text-slate-400 font-normal">-</span>`;
 
                     html += `
-                        <tr class="hover:bg-indigo-50/50 transition-colors">
+                        <tr class="hover:bg-indigo-50/50 transition-colors group">
                             <td class="p-3 pl-6 font-medium text-slate-600">${res.date}</td>
                             <td class="p-3 text-center">${groupBadge}</td>
                             <td class="p-3">
                                 <div class="font-bold text-sm text-indigo-700 uppercase leading-tight">${res.name}</div>
                                 <div class="text-[11px] font-mono text-slate-400 mt-0.5">${res.id}</div>
+                            </td>
+                            <td class="p-3 text-right pr-6">
+                                <div class="flex justify-end gap-1.5 opacity-40 hover:opacity-100 transition-opacity">
+                                    <button onclick="editRecordFromSearch('${res.date}', '${res.id}', '${res.name.replace(/'/g, "\\'")}', '${res.group}')" class="text-indigo-600 hover:text-white bg-indigo-100 hover:bg-indigo-500 w-7 h-7 rounded flex items-center justify-center text-xs transition-all shadow-sm" title="编辑">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button onclick="deleteRecordFromSearch('${res.date}', '${res.id}')" class="text-rose-600 hover:text-white bg-rose-100 hover:bg-rose-500 w-7 h-7 rounded flex items-center justify-center text-xs transition-all shadow-sm" title="删除">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -1311,6 +1360,264 @@
         // 💡 关闭弹窗
         function closeSearchModal() {
             document.getElementById('searchResultModal').classList.add('hidden');
+        }
+        // ==========================================
+        // 🚀 功能: 在【全局搜索】中直接编辑学生资料
+        // ==========================================
+        function editRecordFromSearch(recordDate, oldStudentId, currentName, currentGroup) {
+            customEditPrompt(`正在修改 [${recordDate}] 的记录\n您可以更改 Group、Student ID 或 姓名：`, oldStudentId, currentName, currentGroup, (newId, newName, newGroup) => {
+                newId = newId.trim().toUpperCase();
+                newName = newName.trim().toUpperCase();
+
+                if (!newId || !newName) { customAlert("Student ID 和 Name 都不能为空！", "warning"); return; }
+                if (newId === oldStudentId && newName === currentName && newGroup === currentGroup) {
+                    customAlert("资料没有进行任何修改。", "info");
+                    return;
+                }
+
+                // 🌟 注意这里：使用的是 recordDate (该数据专属的日期)
+                const studentRef = db.collection("Attendance").doc(recordDate).collection("Students").doc(oldStudentId);
+
+                if (newId === oldStudentId) {
+                    // 如果 ID 没变，直接 update 更新名字和组别
+                    studentRef.update({ studentName: newName, groupNumber: newGroup }).then(() => {
+                        customAlert(`已成功更新资料！`, "success", "修改成功");
+                        executeGlobalSearch(); // 自动刷新搜索结果页面
+                        if(document.getElementById("dateFilter").value === recordDate) handleDateSelection(); // 如果背后主表格刚好是这一天，同步刷新
+                    }).catch(error => { customAlert("修改失败: " + error.message, "error"); });
+                } else {
+                    // 如果连 ID 也改了，需要重建文档 (先读，再设新，再删旧)
+                    studentRef.get().then((docSnapshot) => {
+                        if (docSnapshot.exists) {
+                            const oldData = docSnapshot.data();
+                            const newStudentRef = db.collection("Attendance").doc(recordDate).collection("Students").doc(newId);
+                            const batch = db.batch();
+                            
+                            batch.set(newStudentRef, { studentId: newId, studentName: newName, groupNumber: newGroup, timestamp: oldData.timestamp });
+                            batch.delete(studentRef);
+                            
+                            batch.commit().then(() => {
+                                customAlert(`成功！\n新 ID 变为: ${newId}\n新姓名变为: ${newName}`, "success", "修改成功");
+                                executeGlobalSearch(); // 自动刷新搜索结果页面
+                                if(document.getElementById("dateFilter").value === recordDate) handleDateSelection();
+                            }).catch(error => { customAlert("修改失败: " + error.message, "error"); });
+                        }
+                    });
+                }
+            }, "✍️ 编辑搜索记录");
+        }
+
+        // ==========================================
+        // 🚀 功能: 在【全局搜索】中直接删除打卡记录
+        // ==========================================
+        function deleteRecordFromSearch(recordDate, studentId) {
+            customConfirm(`确定要永久删除 ${studentId} 在 [${recordDate}] 的这 1 条签到记录吗？\n删除后无法恢复！`, () => {
+                db.collection("Attendance").doc(recordDate).collection("Students").doc(studentId).delete().then(() => {
+                    customAlert(`成功删除了记录！`, "success", "删除成功");
+                    executeGlobalSearch(); // 自动刷新搜索列表，删掉的那条会直接消失
+                    if(document.getElementById("dateFilter").value === recordDate) handleDateSelection();
+                }).catch(error => {
+                    customAlert("删除失败: " + error.message, "error", "系统异常");
+                });
+            }, "🚨 删除搜索记录");
+        }
+        
+        // ==========================================
+        // 🚀 功能 1: 批量修改组别逻辑
+        // ==========================================
+        function openBatchEditModal() {
+            const selectedDate = document.getElementById("dateFilter").value;
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkboxes.length === 0) {
+                customAlert("请先在左侧勾选想要修改的小组记录！", "warning", "未选择记录");
+                return;
+            }
+
+            // 借用原生 prompt 快速实现，或者你可以让他输入 1-8。为了UI简单，我们用 customEditPrompt 变体
+            let newGroup = prompt(`您已选中 ${checkboxes.length} 名学生。\n请输入要把他们统一修改为哪个组？(输入 1-8，或输入 - 代表无组别):`);
+            
+            if (newGroup === null) return; // 按了取消
+            newGroup = newGroup.trim();
+            if (!['1','2','3','4','5','6','7','8','-'].includes(newGroup)) {
+                customAlert("只能输入 1 到 8 之间的数字，或者输入 - 代表无组别！", "warning", "格式错误");
+                return;
+            }
+
+            const batch = db.batch();
+            checkboxes.forEach(cb => {
+                const studentId = cb.getAttribute('data-id');
+                const docRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(studentId);
+                batch.update(docRef, { groupNumber: newGroup });
+            });
+
+            batch.commit().then(() => {
+                customAlert(`成功将 ${checkboxes.length} 名学生的组别修改为 Group ${newGroup}！`, "success", "批量修改成功");
+                if(document.getElementById('selectAll')) document.getElementById('selectAll').checked = false;
+            }).catch(error => {
+                customAlert("批量修改失败: " + error.message, "error", "系统异常");
+            });
+        }
+
+        // ==========================================
+        // 🚀 升级版：导入 CSV 逻辑（带历史智能补全）
+        // ==========================================
+        function handleCSVImport(event) {
+            const selectedDate = document.getElementById("dateFilter").value;
+            const file = event.target.files[0];
+            
+            if (!selectedDate) {
+                customAlert("请先在上方日历选择你要导入数据的【日期】！", "warning", "缺失日期");
+                event.target.value = ''; 
+                return;
+            }
+            if (!file) return;
+
+            Papa.parse(file, {
+                header: true, 
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const data = results.data;
+                    if (data.length === 0) {
+                        customAlert("CSV 文件是空的或格式不正确！", "warning");
+                        event.target.value = '';
+                        return;
+                    }
+
+                    let validRecords = [];
+                    data.forEach((row) => {
+                        const getCol = (possibleNames) => {
+                            for (let key in row) {
+                                if (possibleNames.includes(key.trim().toLowerCase())) return row[key].trim();
+                            }
+                            return null;
+                        };
+
+                        const stuId = getCol(['student id', 'id', 'studentid', '学号']);
+                        const stuName = getCol(['name', 'student name', 'fullname', '姓名']);
+                        const stuGroup = getCol(['group', 'group number', '组别']) || '-';
+
+                        if (stuId && stuName) {
+                            validRecords.push({
+                                studentId: stuId.toUpperCase(),
+                                studentName: stuName.toUpperCase(),
+                                groupNumber: stuGroup.replace(/[^1-8-]/g, '') || '-'
+                            });
+                        }
+                    });
+
+                    if (validRecords.length === 0) {
+                        customAlert("未能从 CSV 中提取出有效数据。\n请确保表头包含 'Student ID' 和 'Name' 列！", "error");
+                        event.target.value = '';
+                        return;
+                    }
+
+                    customConfirm(`成功解析出 ${validRecords.length} 名学生。\n\n系统将自动通过历史记录补全未填写组别的学生。\n确认导入到日期：${selectedDate} 吗？`, async () => {
+                        
+                        // 显示加载中状态
+                        const btn = document.querySelector('button[onclick="document.getElementById(\'csvFileInput\').click()"]');
+                        const originalHtml = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 智能匹配中...';
+                        
+                        try {
+                            // 1. 获取智能字典
+                            const historyMap = await buildHistoricalGroupMap();
+                            
+                            // 2. 补全资料
+                            let autoFillCount = 0;
+                            validRecords = validRecords.map(record => {
+                                // 如果 CSV 里没有组别，且历史记录里有 >=2 次的常用组别，就自动补上！
+                                if (record.groupNumber === '-' && historyMap[record.studentId]) {
+                                    record.groupNumber = historyMap[record.studentId];
+                                    autoFillCount++;
+                                }
+                                return record;
+                            });
+                            
+                            console.log(`智能补全了 ${autoFillCount} 名学生的组别。`);
+
+                            // 3. 开始上传
+                            await uploadCSVInBatches(validRecords, selectedDate);
+                            
+                        } catch (error) {
+                            customAlert("匹配历史记录时出错: " + error.message, "error");
+                        } finally {
+                            btn.innerHTML = originalHtml;
+                        }
+                        
+                    }, "确认导入");
+
+                    event.target.value = ''; 
+                }
+            });
+        }
+
+        // 🧠 核心大脑：分析全库数据，找出出现 >= 2 次的“常用组别”
+        async function buildHistoricalGroupMap() {
+            const map = {};
+            const stats = {};
+
+            // 抓取所有学生的打卡记录
+            const snapshot = await db.collectionGroup("Students").get();
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const id = data.studentId;
+                const group = data.groupNumber;
+
+                if (id && group && group !== '-') {
+                    if (!stats[id]) stats[id] = {};
+                    if (!stats[id][group]) stats[id][group] = 0;
+                    stats[id][group]++;
+                }
+            });
+
+            // 找出每个学生出现次数 >= 2，且次数最多的组别
+            for (let id in stats) {
+                let maxCount = 0;
+                let dominantGroup = null;
+
+                for (let group in stats[id]) {
+                    if (stats[id][group] >= 2 && stats[id][group] > maxCount) {
+                        maxCount = stats[id][group];
+                        dominantGroup = group;
+                    }
+                }
+
+                if (dominantGroup) {
+                    map[id] = dominantGroup;
+                }
+            }
+
+            return map;
+        }
+
+        // （保留之前给你的 uploadCSVInBatches 不变即可）
+        async function uploadCSVInBatches(records, selectedDate) {
+            const CHUNK_SIZE = 450; 
+            let totalImported = 0;
+
+            try {
+                for (let i = 0; i < records.length; i += CHUNK_SIZE) {
+                    const chunk = records.slice(i, i + CHUNK_SIZE);
+                    const batch = db.batch();
+
+                    chunk.forEach(record => {
+                        const docRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(record.studentId);
+                        batch.set(docRef, {
+                            studentId: record.studentId,
+                            studentName: record.studentName,
+                            groupNumber: record.groupNumber,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true }); 
+                    });
+
+                    await batch.commit();
+                    totalImported += chunk.length;
+                }
+                customAlert(`太棒了！已成功将 ${totalImported} 名学生导入到 ${selectedDate} 的名单中！`, "success", "导入成功");
+            } catch (error) {
+                customAlert("导入过程中发生错误: " + error.message, "error", "上传异常");
+            }
         }
 
         window.handleSortClick = handleSortClick;
