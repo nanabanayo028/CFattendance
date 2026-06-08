@@ -232,13 +232,28 @@
 
     <div id="reportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh] modal-fade-in">
-            <div class="bg-gradient-to-r from-amber-400 to-orange-500 p-5 sm:p-6 text-white flex justify-between items-center">
-                <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-award"></i> 达标学生名单 (≥4次)</h3>
+            <div class="bg-gradient-to-r from-amber-400 to-orange-500 p-5 sm:p-6 text-white flex justify-between items-center shrink-0">
+                <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-award"></i> 自定义达标报表</h3>
                 <button onclick="closeReportModal()" class="text-white/80 hover:text-white transition-colors p-1"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
+            
+            <div class="p-4 bg-slate-100 border-b border-slate-200 flex flex-wrap gap-3 items-end shrink-0">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">Selected Dates (多选日期统计)</label>
+                    <input type="text" id="reportMultiDates" placeholder="点击此处，挑选一个或多个日期..." class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-amber-500 block p-2 outline-none shadow-sm cursor-pointer">
+                </div>
+                <div class="w-24 shrink-0">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">达标门槛</label>
+                    <input type="number" id="reportTargetCount" value="4" min="1" class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-amber-500 block p-2 outline-none shadow-sm text-center font-bold">
+                </div>
+                <button id="generateReportBtn" onclick="generateReport()" class="bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2 px-5 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2 h-[38px] shrink-0">
+                    <i class="fa-solid fa-bolt"></i> 生成
+                </button>
+            </div>
+
             <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-50">
-                <div id="reportLoading" class="text-center py-10 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-4xl mb-3 block"></i> 正在跨记录统计中...</div>
-                <div id="reportEmpty" class="hidden text-center py-10 text-slate-400"><i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-300"></i> 暂无达到出勤标准的学生</div>
+                <div id="reportLoading" class="hidden text-center py-10 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-4xl mb-3 block"></i> 正在精准统计中...</div>
+                <div id="reportEmpty" class="text-center py-10 text-slate-400"><i class="fa-solid fa-hand-pointer text-4xl mb-3 block text-slate-300"></i> 请在上方选择特定日期，并点击生成报表</div>
                 <ul id="reportList" class="hidden space-y-3"></ul>
             </div>
             <div class="p-4 border-t border-slate-100 bg-white flex justify-end gap-3">
@@ -474,6 +489,12 @@
             onChange: function(selectedDates, dateStr, instance) {
                 handleDateSelection(); 
             }
+        });
+        // 🌟 初始化报表专用的多选日历
+        flatpickr("#reportMultiDates", {
+            mode: "multiple",
+            dateFormat: "Y-m-d",
+            disableMobile: true
         });
 
         let allRecords = []; 
@@ -716,26 +737,66 @@
             });
         }
 
-        // 达标报表
+        // 🌟 1. 打开弹窗时，不再自动计算，而是等待操作
         function openReportModal() {
             document.getElementById('reportModal').classList.remove('hidden');
-            document.getElementById('reportLoading').classList.remove('hidden');
-            document.getElementById('reportEmpty').classList.add('hidden');
+            document.getElementById('reportLoading').classList.add('hidden');
+            document.getElementById('reportEmpty').classList.remove('hidden');
+            document.getElementById('reportEmpty').innerHTML = '<i class="fa-solid fa-hand-pointer text-4xl mb-3 block text-slate-300"></i> 请在上方选择特定日期，并点击生成';
             document.getElementById('reportList').classList.add('hidden');
             document.getElementById('downloadReportBtn').disabled = true;
+            
+            document.getElementById('reportMultiDates').value = ""; // 清空上一次选的日期
+            document.getElementById('reportTargetCount').value = 4; // 恢复默认门槛
+        }
+
+        function closeReportModal() { 
+            document.getElementById('reportModal').classList.add('hidden'); 
+        }
+
+        // 🌟 2. 点击“生成”后触发的精准计算逻辑
+        function generateReport() {
+            const datesInput = document.getElementById('reportMultiDates').value;
+            const targetCount = parseInt(document.getElementById('reportTargetCount').value) || 4;
+
+            if (!datesInput) {
+                customAlert("请先点击日历输入框，选择至少一个你要统计的日期！", "warning", "缺失条件");
+                return;
+            }
+
+            // 将类似 "2026-03-06, 2026-03-13" 变成真正的数组
+            const selectedDatesArray = datesInput.split(', ');
+
+            const btn = document.getElementById('generateReportBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 统计中...';
+            btn.disabled = true;
+
+            document.getElementById('reportEmpty').classList.add('hidden');
+            document.getElementById('reportList').classList.add('hidden');
+            document.getElementById('reportLoading').classList.remove('hidden');
 
             db.collectionGroup("Students").get().then((snapshot) => {
                 let attendanceCount = {}; 
+                
                 snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const id = data.studentId;
-                    if (!attendanceCount[id]) { attendanceCount[id] = { id: id, name: data.studentName, count: 0 }; }
-                    attendanceCount[id].count++;
+                    const dateStr = doc.ref.parent.parent.id;
+                    
+                    // 核心过滤机制：只算我们挑中的那几个日子
+                    if (selectedDatesArray.includes(dateStr)) {
+                        const data = doc.data();
+                        const id = data.studentId;
+                        if (!attendanceCount[id]) { attendanceCount[id] = { id: id, name: data.studentName, count: 0 }; }
+                        attendanceCount[id].count++;
+                    }
                 });
-                globalPassedStudents = Object.values(attendanceCount).filter(student => student.count >= 4).sort((a, b) => b.count - a.count);
+                
+                globalPassedStudents = Object.values(attendanceCount).filter(student => student.count >= targetCount).sort((a, b) => b.count - a.count);
+                
                 document.getElementById('reportLoading').classList.add('hidden');
+                
                 if (globalPassedStudents.length === 0) {
                     document.getElementById('reportEmpty').classList.remove('hidden');
+                    document.getElementById('reportEmpty').innerHTML = '<i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-300"></i> 在所选日期内，暂无达到标准的学生';
                 } else {
                     let listHtml = "";
                     globalPassedStudents.forEach(stu => {
@@ -752,18 +813,19 @@
                     document.getElementById('reportList').classList.remove('hidden');
                     document.getElementById('downloadReportBtn').disabled = false; 
                 }
+                
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> 生成';
+                btn.disabled = false;
+
             }).catch(error => {
-                // 高级错误弹窗
                 customAlert("统计失败: " + error.message, "error", "系统异常");
-                closeReportModal();
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> 生成';
+                btn.disabled = false;
+                document.getElementById('reportLoading').classList.add('hidden');
             });
         }
 
-        function closeReportModal() { 
-            document.getElementById('reportModal').classList.add('hidden'); 
-        }
-
-        // 导出表格
+        // 导出当日表格（不变）
         function exportToExcel() {
             const selectedDate = document.getElementById("dateFilter").value;
             if (!selectedDate) { 
@@ -779,10 +841,18 @@
             triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);
         }
 
+        // 🌟 3. 更新导出报表格式，加入选定日期信息
         function exportReportToExcel() {
-            let csvContent = "\uFEFF学号 (Student ID),姓名 (Name),总出勤次数 (Total Attendance)\n"; 
+            const datesInput = document.getElementById('reportMultiDates').value;
+            const targetCount = document.getElementById('reportTargetCount').value;
+
+            let csvContent = "\uFEFF"; 
+            csvContent += `多选统计日期 (Selected Dates),${datesInput}\n`;
+            csvContent += `设置达标门槛 (Target Attendances),>= ${targetCount}\n\n`;
+            csvContent += `学号 (Student ID),姓名 (Name),总出勤次数 (Total Attendance)\n`; 
+            
             globalPassedStudents.forEach(stu => { csvContent += `"${stu.id}","${stu.name}","${stu.count}"\n`; });
-            triggerDownload(csvContent, `Attendance_Pass_Report.csv`);
+            triggerDownload(csvContent, `Attendance_Custom_Report.csv`);
         }
 
         function triggerDownload(content, filename) {
