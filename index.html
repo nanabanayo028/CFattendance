@@ -14,64 +14,98 @@
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
         }
-        /* 自定义弹窗动画 */
         .modal-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        .text-glow-dark {
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7), 0 1px 2px rgba(0, 0, 0, 0.9);
+        }
+
+        input[type="text"], input[type="number"] { font-size: 16px !important; }
+
+        /* 🌟 小组按钮被选中时的特效 */
+        .group-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+        }
     </style>
     <link rel="preload" as="image" href="Background.webp">
     <link rel="preload" as="image" href="CF_LOGO.webp">
 </head>
 
-<body class="min-h-screen flex items-center justify-center p-4 font-sans text-gray-800 relative bg-cover bg-center bg-no-repeat bg-fixed" 
+<body class="min-h-[100dvh] flex items-center justify-center p-3 font-sans text-gray-800 relative bg-cover bg-center bg-no-repeat bg-fixed overflow-y-auto" 
       style="background-image: url('Background.webp');">
 
-    <div class="absolute inset-0 bg-black/30 z-0 pointer-events-none"></div>
+    <div class="fixed inset-0 bg-black/30 z-0 pointer-events-none"></div>
 
-    <div class="glass-card p-7 sm:p-8 rounded-3xl w-full max-w-[360px] relative z-10 overflow-hidden">
-        <div class="text-center mb-6 mt-2">
-            <img src="CF_LOGO.webp" alt="CF Logo" class="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-md">
-            <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">UTS校园团契我来报到啦~</h1>
-            <div id="statusBadge" class="inline-flex items-center gap-2 mt-3 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500 transition-colors duration-300 shadow-sm border border-white/50">
-                <i class="fa-solid fa-circle-notch fa-spin text-xs"></i> Connecting...
+    <audio id="tenseAudio" src="bgm.mp3" preload="auto"></audio>
+
+    <div class="glass-card p-5 sm:p-6 rounded-[20px] w-full max-w-[340px] relative z-10 flex flex-col justify-center my-auto shadow-2xl">
+        
+        <div class="text-center mb-4 mt-1">
+            <img src="CF_LOGO.webp" alt="CF Logo" class="w-16 h-16 rounded-full mx-auto mb-2 object-cover border-2 border-white shadow-sm">
+            <h1 class="text-lg font-extrabold tracking-tight text-glow-dark mb-1">UTS校园团契我来报到啦~</h1>
+            <div id="statusBadge" class="inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-white/80 text-gray-700 shadow-sm border border-white">
+                <i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i> Connecting...
             </div>
         </div>
 
-        <div id="checkInForm" class="space-y-4 hidden">
-            <div id="countdownTimer" class="hidden mb-2 bg-rose-50 border border-rose-100 rounded-xl p-3 flex flex-col items-center justify-center animate-[pulse_2s_ease-in-out_infinite] shadow-inner">
-                <span class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Time Remaining</span>
-                <div class="text-3xl font-extrabold text-rose-600 font-mono tracking-wider" id="timeDisplay">01:00</div>
-            </div>
-
+        <div id="checkInForm" class="space-y-3 hidden w-full">
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-regular fa-id-card text-gray-400"></i></div>
-                <input type="text" id="studentId" placeholder="STUDENT ID AS OCULUS" class="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-regular fa-id-card text-gray-500 text-sm"></i></div>
+                <input type="text" id="studentId" placeholder="STUDENT ID" 
+                       oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();"
+                       class="w-full pl-9 pr-3 py-2.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-gray-800 font-bold placeholder-gray-400 uppercase shadow-sm">
             </div>
             
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-regular fa-user text-gray-400"></i></div>
-                <input type="text" id="studentName" placeholder="FULL NAME AS OCULUS" class="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-gray-700 font-medium placeholder-gray-400 uppercase shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-regular fa-user text-gray-500 text-sm"></i></div>
+                <input type="text" id="studentName" placeholder="FULL NAME AS OCULUS" 
+                       oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '').toUpperCase();"
+                       class="w-full pl-9 pr-3 py-2.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-gray-800 font-bold placeholder-gray-400 uppercase shadow-sm">
+            </div>
+
+            <div class="bg-white/80 p-2.5 rounded-xl border border-white/50 shadow-sm">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Select Your Group / 选择你的小组</label>
+                <div class="grid grid-cols-3 gap-2" id="groupSelector">
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="1">1</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="2">2</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="3">3</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="4">4</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="5">5</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="6">6</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="7">7</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="8">8</button>
+                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm text-xs" data-group="-">无组别</button>
+                </div>
             </div>
 
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-solid fa-key text-indigo-400"></i></div>
-                <input type="text" id="pinCode" placeholder="4-DIGIT PIN" class="w-full pl-11 pr-4 py-3.5 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-500 transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-solid fa-key text-indigo-500 text-sm"></i></div>
+                <input type="text" inputmode="numeric" pattern="[0-9]*" id="pinCode" placeholder="4-DIGIT PIN" 
+                       oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 4) this.value = this.value.slice(0,4);"
+                       class="w-full pl-9 pr-3 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center shadow-sm">
             </div>
 
-            <button onclick="submitCheckIn()" id="submitBtn" class="w-full mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2">
+            <button onclick="submitCheckIn()" id="submitBtn" class="w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50">
                 <i class="fa-solid fa-check-circle"></i> Confirm
             </button>
-            <p class="text-[10px] text-black mt-4 text-center leading-relaxed px-1 font-medium">
-                <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-500"></i>
-                Please confirm your STUDENT ID and NAME is corrected. Once submitted, it cannot be changed.
+            
+            <p class="text-[10px] mt-1 text-center leading-relaxed px-1 font-medium tracking-wide text-glow-dark">
+                <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-400"></i>
+                Please confirm ID, NAME & GROUP. Cannot be changed.
             </p>
         </div>
 
-        <div id="successMessage" class="hidden text-center py-6 animate-[fadeIn_0.5s_ease-out]">
-            <div class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-sm">
+        <div id="successMessage" class="hidden text-center py-4 animate-[fadeIn_0.5s_ease-out]">
+            <div class="w-16 h-16 bg-gradient-to-tr from-emerald-400 to-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 text-3xl shadow-[0_0_20px_rgba(52,211,153,0.6)] border-2 border-white/50">
                 <i class="fa-solid fa-check"></i>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Attendance Submitted</h2>
-            <p id="successDesc" class="text-gray-500 text-sm mt-2">You can now close this page.</p>
+            <h2 class="text-xl font-extrabold mb-1 text-glow-dark">Attendance Submitted</h2>
+            <p id="successDesc" class="text-xs mt-1 font-medium text-glow-dark opacity-90">You can now close this page.</p>
         </div>
     </div>
 
@@ -86,34 +120,11 @@
         </div>
     </div>
 
-    <div id="customDialog" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300" id="customDialogBox">
-            <div class="p-6 text-center">
-                <div id="dialogIcon" class="mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl"></div>
-                <h3 id="dialogTitle" class="text-xl font-bold text-slate-800 mb-2"></h3>
-                <p id="dialogMessage" class="text-slate-500 text-sm mb-6 whitespace-pre-line"></p>
-                <div class="flex gap-3 justify-center" id="dialogButtons"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="customDialog" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300" id="customDialogBox">
-            <div class="p-6 text-center">
-                <div id="dialogIcon" class="mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl"></div>
-                <h3 id="dialogTitle" class="text-xl font-bold text-slate-800 mb-2"></h3>
-                <p id="dialogMessage" class="text-slate-500 text-sm mb-6 whitespace-pre-line"></p>
-                <div class="flex gap-3 justify-center" id="dialogButtons"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ////////////////////////////////////////////////////////////////////////////////////////////////// -->
-     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="index.js"></script>
+    
     <script>
-        // 🌟 系统通用弹窗组件
         const dialogOverlay = document.getElementById('customDialog');
         const dialogBox = document.getElementById('customDialogBox');
 
@@ -142,7 +153,7 @@
 
             btnDiv.innerHTML = '';
             const okBtn = document.createElement('button');
-            okBtn.className = "w-full py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md";
+            okBtn.className = "w-full py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
             okBtn.innerText = "我知道了";
             okBtn.onclick = () => {
                 dialogOverlay.classList.add('opacity-0');
@@ -158,8 +169,6 @@
             }, 10);
         }
 
-
-        // Firebase 逻辑
         const firebaseConfig = {
             apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
             authDomain: "attendance-a7ac5.firebaseapp.com",
@@ -176,13 +185,17 @@
         const deviceLockKey = "checkedInTime_" + todayStr;
         let timerInterval = null;
         let hasAlertedCheat = false; 
+        let hasPlayedAudio = false;
+        
+        // 🌟 新增：追踪用户选了第几组
+        let currentSelectedGroup = "";
 
         function isDeviceLocked() {
             const savedTime = localStorage.getItem(deviceLockKey);
             if (!savedTime) return false; 
             const currentTime = new Date().getTime();
             const timeDifference = currentTime - parseInt(savedTime);
-            if (timeDifference < 300000) {
+            if (timeDifference < 300000) { 
                 return true; 
             } else {
                 localStorage.removeItem(deviceLockKey);
@@ -205,137 +218,174 @@
                 badge.classList.remove('hidden');
                 
                 if (!hasAlertedCheat) {
-                    customAlert("Please scan the QR Code for Attendance", "error", "⚠️");
+                    customAlert("Please scan the QR Code for Attendance", "error", "⚠️ Invalid Access");
                     hasAlertedCheat = true;
                 }
                 return; 
             }
 
+            // 🌟 新增：处理小组按钮点击效果
+            document.querySelectorAll('.group-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // 移除所有按钮的 active 状态
+                    document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+                    // 给当前点击的按钮加上 active 状态
+                    e.currentTarget.classList.add('active');
+                    currentSelectedGroup = e.currentTarget.getAttribute('data-group');
+                });
+            });
+
             db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
                 const badge = document.getElementById('statusBadge');
                 const form = document.getElementById('checkInForm');
                 const successMsg = document.getElementById('successMessage');
-                const timerContainer = document.getElementById('countdownTimer');
-                const timeDisplay = document.getElementById('timeDisplay');
+                const submitBtn = document.getElementById('submitBtn');
 
-                if (timerInterval) clearInterval(timerInterval);
+                if (isDeviceLocked()) {
+                    badge.classList.add('hidden');
+                    form.classList.add('hidden');
+                    successMsg.classList.remove('hidden');
+                    document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
+                    return; 
+                }
 
-                if (doc.exists && doc.data().status === "Open") {
-                    
-                    if (isDeviceLocked()) {
-                        badge.classList.add('hidden');
+                if (doc.exists) {
+                    // 🌟 核心防线 1：只要你的二维码跟数据库最新的对不上，直接拉黑踢人！
+                    const serverToken = doc.data().currentQRToken;
+                    if (serverToken && serverToken !== authCode) {
+                        badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 二维码已失效';
+                        badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
                         form.classList.add('hidden');
-                        if (timerContainer) timerContainer.classList.add('hidden');
-                        successMsg.classList.remove('hidden');
-                        document.getElementById('successDesc').innerText = "You have recently checked in. Please wait 5 minutes.";
-                        document.getElementById('successDesc').style.color = 'black';
-                        document.getElementById('successDesc').style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
-                        return; 
+                        
+                        if (!hasAlertedCheat) {
+                            customAlert("该二维码已过期失效！请重新扫描大屏幕上最新的二维码进入。", "error", "⚠️ 链接过期");
+                            hasAlertedCheat = true;
+                        }
+                        return; // 结束执行
                     }
 
-                    const endTime = doc.data().endTime; 
-
-                    timerInterval = setInterval(() => {
-                        const now = new Date().getTime();
-                        const distance = endTime - now;
-
-                        if (distance <= 0) {
-                            clearInterval(timerInterval);
-                            timeDisplay.innerText = "00:00";
-                            form.classList.add('opacity-50', 'pointer-events-none');
-                        } else {
-                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                            timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-                        }
-                    }, 1000);
-
-                    badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
-                    badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-green-100 text-green-700 shadow-sm border border-green-200";
-                    
-                    badge.classList.remove('hidden');
-                    form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
-                    if (timerContainer) timerContainer.classList.remove('hidden');
-                    successMsg.classList.add('hidden');
-
-                } else {
-                    badge.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Waiting for access...';
-                    badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-amber-100 text-amber-600 shadow-sm border border-amber-200";
-                    
-                    badge.classList.remove('hidden'); 
-                    form.classList.add('hidden');     
-                    if (timerContainer) timerContainer.classList.add('hidden'); 
-                    successMsg.classList.add('hidden'); 
+                    if (doc.data().status === "Open") {
+                        badge.innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> Attendance Open';
+                        badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200";
+                        
+                        form.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
+                        successMsg.classList.add('hidden');
+                        
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm';
+                        submitBtn.className = "w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50";
+                    } else {
+                        badge.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Waiting for access...';
+                        badge.className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-600 shadow-sm border border-amber-200";
+                        
+                        badge.classList.remove('hidden');
+                        form.classList.add('hidden'); 
+                        successMsg.classList.add('hidden'); 
+                    }
                 }
             });
         };
 
         function submitCheckIn() {
-            if (isDeviceLocked()) {
-                customAlert("您刚刚已经成功签到过了，请耐心等待 5 分钟后再试。", "warning", "操作太频繁");
+    if (isDeviceLocked()) {
+        customAlert("您刚刚已经成功签到过了，请耐心等待 5 分钟后再试。", "warning", "操作太频繁");
+        return;
+    }
+
+    const studentId = document.getElementById('studentId').value.trim().toUpperCase();
+    const studentName = document.getElementById('studentName').value.trim().toUpperCase();
+    const enteredPin = document.getElementById('pinCode').value.trim();
+
+    if (!studentId || !studentName || !enteredPin) {
+        customAlert("请完整填写 Student ID, Name 以及屏幕上的 PIN 码！", "warning", "信息不完整"); 
+        return;
+    }
+
+    if (currentSelectedGroup === "") {
+        customAlert("请选择您的组别 (Group 1-8 或 无组别)！", "warning", "缺少组别"); 
+        return;
+    }
+
+    if (studentId.includes('@')) {
+        customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误");
+        return;
+    }
+    if (/\d/.test(studentName)) {
+        customAlert("Student Name 不能包含数字！", "warning", "格式错误");
+        return;
+    }
+    if (studentName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentName)) {
+        customAlert("Student Name 不能是 Email 格式！", "warning", "格式错误");
+        return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+    btn.disabled = true;
+
+    db.collection("Sessions").doc("Class_01").get().then((doc) => {
+        if (doc.exists && doc.data().status === "Open") {
+            
+            // 🌟 核心防线 2：在学生按下 Confirm 瞬间，系统做最后一次查房，拿旧链接的直接拦截！
+            const serverToken = doc.data().currentQRToken;
+            const searchString = window.location.search.substring(1); 
+            const mainParam = searchString.split('&')[0]; 
+            const authCode = mainParam.split('=')[1]; 
+
+            if (serverToken && serverToken !== authCode) {
+                customAlert("该二维码已过期失效！请重新扫描大屏上最新的二维码。", "error", "验证失败");
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                btn.disabled = false;
+                
+                document.getElementById('checkInForm').classList.add('hidden');
+                document.getElementById('statusBadge').innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 二维码已失效';
+                document.getElementById('statusBadge').className = "inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
                 return;
             }
 
-            const studentId = document.getElementById('studentId').value.trim().toUpperCase();
-            const studentName = document.getElementById('studentName').value.trim().toUpperCase();
-            const enteredPin = document.getElementById('pinCode').value.trim();
-
-            if (!studentId || !studentName || !enteredPin) {
-                customAlert("请完整填写 Student ID, Name 以及屏幕上的 PIN 码！", "warning", "信息不完整"); 
-                return;
+            const correctPin = doc.data().currentPin;
+            if (enteredPin !== correctPin) {
+                customAlert("PIN 码不正确！请查看前方大屏幕获取最新的 4 位数密码。", "error", "验证失败");
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                btn.disabled = false;
+                return; 
             }
 
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
-            btn.disabled = true;
+            const today = new Date();
+            const dateFolderName = today.toISOString().split('T')[0]; 
 
-            db.collection("Sessions").doc("Class_01").get().then((doc) => {
-                if (doc.exists && doc.data().status === "Open") {
-                    
-                    const correctPin = doc.data().currentPin;
-                    if (enteredPin !== correctPin) {
-                        customAlert("PIN 码不正确！请查看前方大屏幕获取最新的 4 位数密码。", "error", "验证失败");
-                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                        btn.disabled = false;
-                        return; 
-                    }
+            db.collection("Attendance")
+            .doc(dateFolderName)
+            .collection("Students")
+            .doc(studentId) 
+            .set({
+                studentId: studentId, 
+                studentName: studentName,
+                groupNumber: currentSelectedGroup,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+            })
+            .then(() => {
+                const currentTime = new Date().getTime();
+                localStorage.setItem(deviceLockKey, currentTime.toString());
 
-                    const today = new Date();
-                    const dateFolderName = today.toISOString().split('T')[0]; 
-
-                    db.collection("Attendance")
-                    .doc(dateFolderName)
-                    .collection("Students")
-                    .doc(studentId) 
-                    .set({
-                        studentId: studentId, 
-                        studentName: studentName,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-                    })
-                    .then(() => {
-                        const currentTime = new Date().getTime();
-                        localStorage.setItem(deviceLockKey, currentTime.toString());
-
-                        document.getElementById('checkInForm').classList.add('hidden');
-                        document.getElementById('statusBadge').classList.add('hidden');
-                        document.getElementById('successMessage').classList.remove('hidden');
-                        document.getElementById('successDesc').innerText = "Attendance Submitted Successfully!";
-                        document.getElementById('successDesc').style.color = 'black';
-                        document.getElementById('successDesc').style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
-                    })
-                    .catch((error) => {
-                        customAlert("提交失败: " + error.message, "error", "网络异常");
-                        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                        btn.disabled = false;
-                    });
-
-                } else {
-                    customAlert("已关闭,无法提交。", "warning", "签到结束");
-                    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
-                    btn.disabled = false;
-                }
+                document.getElementById('checkInForm').classList.add('hidden');
+                document.getElementById('statusBadge').classList.add('hidden');
+                document.getElementById('successMessage').classList.remove('hidden');
+                document.getElementById('successDesc').innerText = "Attendance Submitted Successfully!";
+            })
+            .catch((error) => {
+                customAlert("提交失败: " + error.message, "error", "网络异常");
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+                btn.disabled = false;
             });
+
+        } else {
+            customAlert("已关闭,无法提交。", "warning", "签到结束");
+            btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirm'; 
+            btn.disabled = false;
         }
+    });
+}
     </script>
 </body>
 </html>
