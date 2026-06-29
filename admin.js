@@ -1,4 +1,6 @@
-const dialogOverlay = document.getElementById('customDialog');
+    import { db, firebase } from './firebase-config.js';
+
+        const dialogOverlay = document.getElementById('customDialog');
         const dialogBox = document.getElementById('customDialogBox');
 
         function openDialog(config) {
@@ -6,7 +8,6 @@ const dialogOverlay = document.getElementById('customDialog');
             const titleDiv = document.getElementById('dialogTitle');
             const msgDiv = document.getElementById('dialogMessage');
             const btnDiv = document.getElementById('dialogButtons');
-            
             const inputContainer = document.getElementById('dialogInputsContainer'); 
             const inputId = document.getElementById('dialogInputId');
             const inputName = document.getElementById('dialogInputName'); 
@@ -33,43 +34,33 @@ const dialogOverlay = document.getElementById('customDialog');
             }
 
             if(config.type === 'edit') {
-                inputContainer.classList.remove('hidden');
-                inputContainer.classList.add('flex');
+                inputContainer.classList.remove('hidden'); inputContainer.classList.add('flex');
                 inputGroup.value = config.defaultGroup || '-'; 
                 inputId.value = config.defaultId || '';
                 inputName.value = config.defaultName || '';
                 setTimeout(() => inputName.focus(), 300);
             } else {
-                if(inputContainer) {
-                    inputContainer.classList.add('hidden');
-                    inputContainer.classList.remove('flex');
-                }
+                if(inputContainer) { inputContainer.classList.add('hidden'); inputContainer.classList.remove('flex'); }
             }
 
             btnDiv.innerHTML = '';
             if(config.type === 'confirm' || config.type === 'edit') {
                 const cancelBtn = document.createElement('button');
                 cancelBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors";
-                cancelBtn.innerText = "取消";
-                cancelBtn.onclick = closeDialog;
-                btnDiv.appendChild(cancelBtn);
+                cancelBtn.innerText = "取消"; cancelBtn.onclick = closeDialog; btnDiv.appendChild(cancelBtn);
 
                 const confirmBtn = document.createElement('button');
                 confirmBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
                 confirmBtn.innerText = "确定";
                 confirmBtn.onclick = () => { 
                     closeDialog(); 
-                    if(config.onConfirm) {
-                        config.type === 'edit' ? config.onConfirm(inputId.value, inputName.value, inputGroup.value) : config.onConfirm();
-                    }
+                    if(config.onConfirm) { config.type === 'edit' ? config.onConfirm(inputId.value, inputName.value, inputGroup.value) : config.onConfirm(); }
                 };
                 btnDiv.appendChild(confirmBtn);
             } else {
                 const okBtn = document.createElement('button');
                 okBtn.className = "w-full py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
-                okBtn.innerText = "我知道了";
-                okBtn.onclick = closeDialog;
-                btnDiv.appendChild(okBtn);
+                okBtn.innerText = "我知道了"; okBtn.onclick = closeDialog; btnDiv.appendChild(okBtn);
             }
 
             dialogOverlay.classList.remove('hidden');
@@ -93,8 +84,7 @@ const dialogOverlay = document.getElementById('customDialog');
             if (idleTimer) clearTimeout(idleTimer);
             idleTimer = setTimeout(() => {
                 if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                    sessionStorage.removeItem('isLoggedIn');
-                    hideDashboard();
+                    sessionStorage.removeItem('isLoggedIn'); hideDashboard();
                     customAlert("由于您长时间未操作，出于安全考虑，系统已自动登出。", "warning", "自动登出提示");
                 }
             }, IDLE_TIMEOUT_MS);
@@ -103,10 +93,8 @@ const dialogOverlay = document.getElementById('customDialog');
         function stopIdleTimer() { if (idleTimer) clearTimeout(idleTimer); }
         function resetTimerOnAction() { if (sessionStorage.getItem('isLoggedIn') === 'true') { startIdleTimer(); } }
 
-        document.addEventListener('mousemove', resetTimerOnAction);
-        document.addEventListener('keydown', resetTimerOnAction);
-        document.addEventListener('click', resetTimerOnAction);
-        document.addEventListener('scroll', resetTimerOnAction);
+        document.addEventListener('mousemove', resetTimerOnAction); document.addEventListener('keydown', resetTimerOnAction);
+        document.addEventListener('click', resetTimerOnAction); document.addEventListener('scroll', resetTimerOnAction);
 
         function checkAuthStatus() { if (sessionStorage.getItem('isLoggedIn') === 'true') { showDashboard(); startIdleTimer(); } }
 
@@ -117,11 +105,9 @@ const dialogOverlay = document.getElementById('customDialog');
             const btn = document.getElementById('loginBtn');
 
             if (enteredId === ADMIN_CREDENTIALS.id.toUpperCase() && enteredPass === ADMIN_CREDENTIALS.password) {
-                errorMsg.classList.add('hidden');
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+                errorMsg.classList.add('hidden'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
                 setTimeout(() => {
-                    sessionStorage.setItem('isLoggedIn', 'true');
-                    showDashboard(); startIdleTimer(); 
+                    sessionStorage.setItem('isLoggedIn', 'true'); showDashboard(); startIdleTimer(); 
                     btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Secure Login';
                     document.getElementById('adminUserId').value = ""; document.getElementById('adminPassword').value = "";
                 }, 500); 
@@ -135,8 +121,7 @@ const dialogOverlay = document.getElementById('customDialog');
 
         function handleLogout() {
             customConfirm("您确定要退出 Admin 控制台吗？", () => {
-                sessionStorage.removeItem('isLoggedIn');
-                stopIdleTimer(); hideDashboard();
+                sessionStorage.removeItem('isLoggedIn'); stopIdleTimer(); hideDashboard();
             }, "退出登录");
         }
 
@@ -145,8 +130,7 @@ const dialogOverlay = document.getElementById('customDialog');
             setTimeout(() => {
                 document.getElementById('loginScreen').classList.add('hidden');
                 const dash = document.getElementById('adminDashboard');
-                dash.classList.remove('hidden');
-                setTimeout(() => dash.classList.remove('opacity-0'), 50);
+                dash.classList.remove('hidden'); setTimeout(() => dash.classList.remove('opacity-0'), 50);
             }, 500);
         }
 
@@ -155,28 +139,19 @@ const dialogOverlay = document.getElementById('customDialog');
             setTimeout(() => {
                 document.getElementById('adminDashboard').classList.add('hidden');
                 const login = document.getElementById('loginScreen');
-                login.classList.remove('hidden');
-                setTimeout(() => login.classList.remove('opacity-0', 'pointer-events-none'), 50);
+                login.classList.remove('hidden'); setTimeout(() => login.classList.remove('opacity-0', 'pointer-events-none'), 50);
             }, 500);
         }
 
         window.onload = checkAuthStatus;
         document.getElementById("adminPassword").addEventListener("keypress", function(event) { if (event.key === "Enter") { event.preventDefault(); handleLogin(); } });
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
-            authDomain: "attendance-a7ac5.firebaseapp.com",
-            projectId: "attendance-a7ac5",
-            storageBucket: "attendance-a7ac5.firebasestorage.app",
-            messagingSenderId: "179755027767",
-            appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+       
 
-        const datePicker = flatpickr("#dateFilter", { dateFormat: "Y-m-d", disableMobile: true, onChange: function(selectedDates, dateStr, instance) { handleDateSelection(); }});
-        flatpickr("#reportStartDate", { dateFormat: "Y-m-d", disableMobile: true });
-        flatpickr("#reportEndDate", { dateFormat: "Y-m-d", disableMobile: true });
+        const datePicker = flatpickr("#dateFilter", { dateFormat: "Y-m-d", disableMobile: true, onChange: function(selectedDates, dateStr, instance) { handleDateSelection(); } });
+        
+        // 🌟 初始化多选报表日期选择器
+        flatpickr("#reportMultiDates", { mode: "multiple", dateFormat: "Y-m-d", disableMobile: true });
 
         let allRecords = []; 
         let activeListeners = []; 
@@ -185,113 +160,49 @@ const dialogOverlay = document.getElementById('customDialog');
         let currentManualDate = ""; 
         let qrCodeInstance = null; 
         let isManageMode = false;
-        let hasPlayedAudio = false;
-
         let currentSortColumn = 'time'; 
         let currentSortOrder = 'desc';  
-
         let currentReportData = [];
         let currentReportSessions = 0;
 
         db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
             const badge = document.getElementById("statusBadge");
-            const timerContainer = document.getElementById("adminTimerContainer");
-            const timeDisplay = document.getElementById("adminTimeDisplay");
-            const audioPlayer = document.getElementById("tenseAudio");
-
-            if (adminDisplayTimerInterval) clearInterval(adminDisplayTimerInterval);
-
             if (doc.exists && doc.data().status === "Open") {
                 badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] rounded-full"></i> <span class="hidden sm:inline">正在允许签到 (Open)</span><span class="sm:hidden">Open</span>';
                 badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
-                
-                const endTime = doc.data().endTime;
-                if (endTime) {
-                    timerContainer.classList.remove('hidden');
-                    adminDisplayTimerInterval = setInterval(() => {
-                        const now = new Date().getTime();
-                        const distance = endTime - now;
-                        if (distance <= 0) {
-                            clearInterval(adminDisplayTimerInterval);
-                            timeDisplay.innerText = "00:00";
-                            if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
-                        } else {
-                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                            timeDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-                            
-                            if (distance <= 15000 && distance > 0 && !hasPlayedAudio) {
-                                if (audioPlayer) {
-                                    audioPlayer.volume = 0.5;
-                                    audioPlayer.play().catch(e => console.log("浏览器限制自动播放"));
-                                    hasPlayedAudio = true;
-                                }
-                            }
-                        }
-                    }, 1000);
-                }
             } else {
                 badge.innerHTML = '<i class="fa-solid fa-circle text-[10px] text-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)] rounded-full"></i> <span class="hidden sm:inline">签到已关闭 (Closed)</span><span class="sm:hidden">Closed</span>';
                 badge.className = "px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold bg-white/10 text-white border border-white/20 flex items-center gap-2 transition-all";
-                if (timerContainer) timerContainer.classList.add('hidden');
-                
-                if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
             }
         });
 
         function changeStatus(newStatus) {
             let dataToUpdate = { status: newStatus };
-
             if (newStatus === "Open") {
                 let pinValue = document.getElementById('adminPin').value.trim();
-                if (pinValue === "") {
-                    customAlert("请先输入 4 位数的 PIN 码，然后再开启签到！", "warning", "缺少 PIN 码");
-                    document.getElementById('adminPin').focus();
-                    return;
-                }
-                dataToUpdate.currentPin = pinValue;
-                dataToUpdate.endTime = 0; // 取消自动关门时间
-
-                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
-                .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
+                if (pinValue === "") { customAlert("请先输入 4 位数的 PIN 码，然后再开启签到！", "warning", "缺少 PIN 码"); document.getElementById('adminPin').focus(); return; }
+                dataToUpdate.currentPin = pinValue; dataToUpdate.endTime = 0; 
+                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true }).catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
             } else {
-                document.getElementById('adminPin').value = "";
-                dataToUpdate.endTime = 0;
-                
-                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
-                .then(() => {
-                    // 🌟 核心修复：一旦点击关闭，强制立刻生成新二维码！旧码瞬间作废！
-                    generateNewQR();
-                })
-                .catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
+                document.getElementById('adminPin').value = ""; dataToUpdate.endTime = 0; 
+                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true }).then(() => { generateNewQR(); }).catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
             }
         }
 
         function generateNewQR() {
             const baseUrl = "https://nanabanayo028.github.io/CFattendance/index.html"; 
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-            let randomLetters = '';
-            for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
+            let randomLetters = ''; for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
             currentQRUrl = `${baseUrl}?q=${randomLetters}`;
-            
-            const urlDisplay = document.getElementById('qrUrlDisplay');
-            if(urlDisplay) urlDisplay.innerText = currentQRUrl;
-            
+            const urlDisplay = document.getElementById('qrUrlDisplay'); if(urlDisplay) urlDisplay.innerText = currentQRUrl;
             const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
             qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
-
-            // 🌟 核心修复：把最新生成的随机码存进数据库
             db.collection("Sessions").doc("Class_01").set({ currentQRToken: randomLetters }, { merge: true });
         }
 
         function loadDataForDates(dateArray) {
-            activeListeners.forEach(unsub => unsub());
-            activeListeners = [];
-            allRecords = []; 
-            renderTable(); 
-
+            activeListeners.forEach(unsub => unsub()); activeListeners = []; allRecords = []; renderTable(); 
             if (dateArray.length === 0) return;
-
             dateArray.forEach((dateString) => {
                 const unsub = db.collection("Attendance").doc(dateString).collection("Students").orderBy("timestamp", "desc").onSnapshot((studentSnapshot) => {
                       allRecords = allRecords.filter(r => r.dateString !== dateString);
@@ -300,54 +211,33 @@ const dialogOverlay = document.getElementById('customDialog');
                           if (data.timestamp) {
                               const jsDate = data.timestamp.toDate();
                               allRecords.push({
-                                  studentId: data.studentId, 
-                                  studentName: data.studentName, 
-                                  groupNumber: data.groupNumber || '-', 
-                                  fullDateObj: jsDate, 
-                                  dateString: dateString, 
-                                  timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
+                                  studentId: data.studentId, studentName: data.studentName, groupNumber: data.groupNumber || '-', 
+                                  fullDateObj: jsDate, dateString: dateString, timeString: jsDate.toLocaleTimeString('zh-CN', { hour12: false })
                               });
                           }
                       });
-                      
-                      executeSort(); 
-                      renderTable(); 
+                      executeSort(); renderTable(); 
                   });
                 activeListeners.push(unsub);
             });
         }
 
-        function handleDateSelection() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (selectedDate) { loadDataForDates([selectedDate]); } else { loadDataForDates([]); }
-        }
-
+        function handleDateSelection() { const selectedDate = document.getElementById("dateFilter").value; if (selectedDate) { loadDataForDates([selectedDate]); } else { loadDataForDates([]); } }
         function clearDateFilter() { datePicker.clear(); handleDateSelection(); }
 
         function handleSortClick(column) {
-            if (currentSortColumn === column) {
-                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSortColumn = column;
-                currentSortOrder = column === 'time' ? 'desc' : 'asc';
-            }
-            executeSort();
-            renderTable();
+            if (currentSortColumn === column) { currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc'; } 
+            else { currentSortColumn = column; currentSortOrder = column === 'time' ? 'desc' : 'asc'; }
+            executeSort(); renderTable();
         }
 
         function executeSort() {
             allRecords.sort((a, b) => {
                 let valA, valB;
-                if (currentSortColumn === 'time') {
-                    return currentSortOrder === 'asc' ? a.fullDateObj - b.fullDateObj : b.fullDateObj - a.fullDateObj;
-                } else if (currentSortColumn === 'name') {
-                    valA = a.studentName; valB = b.studentName;
-                } else if (currentSortColumn === 'id') {
-                    valA = a.studentId; valB = b.studentId;
-                } else if (currentSortColumn === 'group') {
-                    valA = a.groupNumber === '-' ? '99' : a.groupNumber;
-                    valB = b.groupNumber === '-' ? '99' : b.groupNumber;
-                }
+                if (currentSortColumn === 'time') { return currentSortOrder === 'asc' ? a.fullDateObj - b.fullDateObj : b.fullDateObj - a.fullDateObj; } 
+                else if (currentSortColumn === 'name') { valA = a.studentName; valB = b.studentName; } 
+                else if (currentSortColumn === 'id') { valA = a.studentId; valB = b.studentId; } 
+                else if (currentSortColumn === 'group') { valA = a.groupNumber === '-' ? '99' : a.groupNumber; valB = b.groupNumber === '-' ? '99' : b.groupNumber; }
 
                 if (valA < valB) return currentSortOrder === 'asc' ? -1 : 1;
                 if (valA > valB) return currentSortOrder === 'asc' ? 1 : -1;
@@ -357,54 +247,34 @@ const dialogOverlay = document.getElementById('customDialog');
 
         function toggleManageMode() {
             const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate || allRecords.length === 0) {
-                customAlert("请先选择有数据的日期，才能进行管理！", "warning", "提示");
-                return;
-            }
-            
+            if (!selectedDate || allRecords.length === 0) { customAlert("请先选择有数据的日期，才能进行管理！", "warning", "提示"); return; }
             isManageMode = !isManageMode;
-            const delBtn = document.getElementById('deleteSelectedBtn');
-            const mngBtn = document.getElementById('manageBtn');
-            
+            const manageActionsGroup = document.getElementById('manageActionsGroup'); const mngBtn = document.getElementById('manageBtn');
             if (isManageMode) {
-                delBtn.classList.remove('hidden');
-                mngBtn.classList.remove('bg-white', 'text-blue-700');
-                mngBtn.classList.add('bg-blue-600', 'text-white');
+                if (manageActionsGroup) { manageActionsGroup.classList.remove('hidden'); manageActionsGroup.classList.add('flex'); }
+                mngBtn.classList.remove('glass-card', 'hover:bg-white', 'text-blue-700'); mngBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
                 mngBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> 退出管理';
             } else {
-                delBtn.classList.add('hidden');
-                mngBtn.classList.add('bg-white', 'text-blue-700');
-                mngBtn.classList.remove('bg-blue-600', 'text-white');
-                mngBtn.innerHTML = '<i class="fa-solid fa-list-check"></i> 管理名单';
+                if (manageActionsGroup) { manageActionsGroup.classList.add('hidden'); manageActionsGroup.classList.remove('flex'); }
+                mngBtn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700'); mngBtn.classList.add('glass-card', 'hover:bg-white', 'text-blue-700');
+                mngBtn.innerHTML = '<i class="fa-solid fa-list-check"></i> 管理';
             }
             renderTable();
         }
 
-        function toggleAllCheckboxes(source) {
-            const checkboxes = document.querySelectorAll('.row-checkbox');
-            checkboxes.forEach(cb => cb.checked = source.checked);
-        }
+        function toggleAllCheckboxes(source) { const checkboxes = document.querySelectorAll('.row-checkbox'); checkboxes.forEach(cb => cb.checked = source.checked); }
 
         function renderTable() {
-            const list = document.getElementById("attendanceList");
-            const thead = document.getElementById("tableHeader");
+            const list = document.getElementById("attendanceList"); const thead = document.getElementById("tableHeader");
             const selectedDate = document.getElementById("dateFilter").value;
             document.getElementById("studentCount").innerText = allRecords.length;
 
-            if (!selectedDate) {
-                list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 5}" class="p-10 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>`;
-                return;
-            }
-            if (allRecords.length === 0) {
-                list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 5}" class="p-10 text-center text-slate-500 font-medium"><i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-400"></i>该日期暂无签到记录</td></tr>`;
-                return;
-            }
+            if (!selectedDate) { list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 5}" class="p-10 text-center text-slate-500 font-medium"><i class="fa-regular fa-calendar-check text-4xl mb-3 block text-slate-400"></i>请先在上方选择日期以查看签到名单</td></tr>`; return; }
+            if (allRecords.length === 0) { list.innerHTML = `<tr><td colspan="${isManageMode ? 6 : 5}" class="p-10 text-center text-slate-500 font-medium"><i class="fa-regular fa-folder-open text-4xl mb-3 block text-slate-400"></i>该日期暂无签到记录</td></tr>`; return; }
 
             const getSortIcon = (col) => {
                 if (currentSortColumn !== col) return '<i class="fa-solid fa-sort ml-1 opacity-30"></i>';
-                return currentSortOrder === 'asc' 
-                    ? '<i class="fa-solid fa-sort-up ml-1 text-indigo-600"></i>' 
-                    : '<i class="fa-solid fa-sort-down ml-1 text-indigo-600"></i>';
+                return currentSortOrder === 'asc' ? '<i class="fa-solid fa-sort-up ml-1 text-indigo-600"></i>' : '<i class="fa-solid fa-sort-down ml-1 text-indigo-600"></i>';
             };
 
             const theadHtml = `
@@ -446,41 +316,43 @@ const dialogOverlay = document.getElementById('customDialog');
             const selectedDate = document.getElementById("dateFilter").value;
             if (!selectedDate) { customAlert("请先在上方日历中选择你要查看的【日期】！", "warning", "提示"); return; }
             if (allRecords.length === 0) { customAlert("该日期暂无签到记录！", "warning", "提示"); return; }
-
-            const container = document.getElementById("groupListContainer");
-            container.innerHTML = ""; 
+            const container = document.getElementById("groupListContainer"); container.innerHTML = ""; 
 
             for (let i = 1; i <= 8; i++) {
                 const groupStudents = allRecords.filter(r => r.groupNumber === i.toString());
-                
                 let studentListHtml = "";
-                if (groupStudents.length === 0) {
-                    studentListHtml = `<div class="text-center py-6 text-slate-400 text-xs">暂无学生</div>`;
-                } else {
+                if (groupStudents.length === 0) { studentListHtml = `<div class="text-center py-6 text-slate-400 text-xs">暂无学生</div>`; } 
+                else {
                     groupStudents.forEach(stu => {
-                        studentListHtml += `
-                            <div class="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0">
-                                <span class="font-bold text-[11px] text-slate-700 uppercase leading-tight">${stu.studentName}</span>
-                                <span class="text-[10px] font-mono text-slate-400 ml-2">${stu.studentId}</span>
-                            </div>
-                        `;
+                        studentListHtml += `<div class="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0"><span class="font-bold text-[11px] text-slate-700 uppercase leading-tight">${stu.studentName}</span><span class="text-[10px] font-mono text-slate-400 ml-2">${stu.studentId}</span></div>`;
                     });
                 }
-
-                const cardHtml = `
+                container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-56">
                         <div class="bg-emerald-50 border-b border-emerald-100 px-3 py-2 flex justify-between items-center shrink-0">
                             <span class="font-extrabold text-sm text-emerald-700">Group ${i}</span>
                             <span class="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full">${groupStudents.length} 人</span>
                         </div>
-                        <div class="p-2 overflow-y-auto flex-1">
-                            ${studentListHtml}
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += cardHtml;
+                        <div class="p-2 overflow-y-auto flex-1">${studentListHtml}</div>
+                    </div>`;
             }
 
+            const noGroupStudents = allRecords.filter(r => r.groupNumber === '-');
+            let noGroupListHtml = "";
+            if (noGroupStudents.length === 0) { noGroupListHtml = `<div class="text-center py-6 text-slate-400 text-xs">暂无学生</div>`; } 
+            else {
+                noGroupStudents.forEach(stu => {
+                    noGroupListHtml += `<div class="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0"><span class="font-bold text-[11px] text-slate-700 uppercase leading-tight">${stu.studentName}</span><span class="text-[10px] font-mono text-slate-400 ml-2">${stu.studentId}</span></div>`;
+                });
+            }
+            container.innerHTML += `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-56">
+                    <div class="bg-slate-50 border-b border-slate-200 px-3 py-2 flex justify-between items-center shrink-0">
+                        <span class="font-extrabold text-sm text-slate-700">无组别</span>
+                        <span class="text-[10px] font-bold bg-slate-400 text-white px-2 py-0.5 rounded-full">${noGroupStudents.length} 人</span>
+                    </div>
+                    <div class="p-2 overflow-y-auto flex-1">${noGroupListHtml}</div>
+                </div>`;
             document.getElementById('groupListModal').classList.remove('hidden');
         }
 
@@ -488,21 +360,14 @@ const dialogOverlay = document.getElementById('customDialog');
 
         function editRecordName(oldStudentId, currentName, currentGroup) {
             const selectedDate = document.getElementById("dateFilter").value;
-            
             customEditPrompt(`正在修改选中学生的资料\n您可以更改 Group、Student ID 或 姓名：`, oldStudentId, currentName, currentGroup, (newId, newName, newGroup) => {
-                newId = newId.trim().toUpperCase();
-                newName = newName.trim().toUpperCase();
-
+                newId = newId.trim().toUpperCase(); newName = newName.trim().toUpperCase();
                 if (!newId || !newName) { customAlert("Student ID 和 Name 都不能为空！", "warning", "信息不完整"); return; }
                 if (newId.includes('@')) { customAlert("Student ID 不能是 Email 格式！", "warning", "格式错误"); return; }
                 if (/\d/.test(newName)) { customAlert("学生姓名不能包含数字！", "warning", "格式错误"); return; }
                 if (newName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newName)) { customAlert("学生姓名不能是 Email 格式！", "warning", "格式错误"); return; }
 
-                if (newId === oldStudentId && newName === currentName && newGroup === currentGroup) {
-                    customAlert("资料没有进行任何修改。", "info", "未修改");
-                    return;
-                }
-
+                if (newId === oldStudentId && newName === currentName && newGroup === currentGroup) { customAlert("资料没有进行任何修改。", "info", "未修改"); return; }
                 const studentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(oldStudentId);
 
                 if (newId === oldStudentId) {
@@ -515,13 +380,9 @@ const dialogOverlay = document.getElementById('customDialog');
                             const oldData = docSnapshot.data();
                             const newStudentRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(newId);
                             const batch = db.batch();
-                            
                             batch.set(newStudentRef, { studentId: newId, studentName: newName, groupNumber: newGroup, timestamp: oldData.timestamp });
                             batch.delete(studentRef);
-                            
-                            batch.commit().then(() => {
-                                customAlert(`成功！\nID 变为: ${newId}\n姓名变为: ${newName}\n组别: Group ${newGroup}`, "success", "修改成功");
-                            }).catch(error => { customAlert("修改 ID 失败: " + error.message, "error", "系统异常"); });
+                            batch.commit().then(() => { customAlert(`成功！\nID 变为: ${newId}\n姓名变为: ${newName}\n组别: Group ${newGroup}`, "success", "修改成功"); }).catch(error => { customAlert("修改 ID 失败: " + error.message, "error", "系统异常"); });
                         }
                     });
                 }
@@ -531,10 +392,7 @@ const dialogOverlay = document.getElementById('customDialog');
         function deleteSelectedRecords() {
             const selectedDate = document.getElementById("dateFilter").value;
             const checkboxes = document.querySelectorAll('.row-checkbox:checked');
-            if (checkboxes.length === 0) {
-                customAlert("请先在左侧勾选想要删除的学生记录！", "warning", "未选择记录");
-                return;
-            }
+            if (checkboxes.length === 0) { customAlert("请先在左侧勾选想要删除的学生记录！", "warning", "未选择记录"); return; }
             customConfirm(`确定要永久删除这 ${checkboxes.length} 条签到记录吗？\n删除后将无法恢复！`, () => {
                 const batch = db.batch();
                 checkboxes.forEach(cb => {
@@ -545,9 +403,7 @@ const dialogOverlay = document.getElementById('customDialog');
                 batch.commit().then(() => {
                     customAlert(`成功删除了 ${checkboxes.length} 条记录！`, "success", "删除成功");
                     if(document.getElementById('selectAll')) document.getElementById('selectAll').checked = false;
-                }).catch(error => {
-                    customAlert("批量删除失败: " + error.message, "error", "系统异常");
-                });
+                }).catch(error => { customAlert("批量删除失败: " + error.message, "error", "系统异常"); });
             }, "🚨 危险操作确认");
         }
 
@@ -556,14 +412,10 @@ const dialogOverlay = document.getElementById('customDialog');
 
         function openManualModal() {
             const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate) { customAlert("请先在上方日历中选择你要进行补签的【日期】！", "warning", "提示"); return; }
-            currentManualDate = selectedDate;
-            document.getElementById('modalDateDisplay').innerText = selectedDate;
-            document.getElementById('manualGroup').value = ""; 
-            document.getElementById('manualStuId').value = ""; 
-            document.getElementById('manualStuName').value = "";
-            document.getElementById('manualCheckInModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('manualStuId').focus(), 100);
+            if (!selectedDate) { customAlert("请先在上方日历中选择你要进行补签的【日期】！", "提示", "info"); return; }
+            currentManualDate = selectedDate; document.getElementById('modalDateDisplay').innerText = selectedDate;
+            document.getElementById('manualGroup').value = ""; document.getElementById('manualStuId').value = ""; document.getElementById('manualStuName').value = "";
+            document.getElementById('manualCheckInModal').classList.remove('hidden'); setTimeout(() => document.getElementById('manualStuId').focus(), 100);
         }
         function closeManualModal() { document.getElementById('manualCheckInModal').classList.add('hidden'); }
         
@@ -577,9 +429,7 @@ const dialogOverlay = document.getElementById('customDialog');
             if (/\d/.test(stuName)) { customAlert("Student Name 不能包含数字！", "warning", "格式错误"); return; }
             if (stuName.includes('@') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stuName)) { customAlert("Student Name 不能是 Email 格式！", "warning", "格式错误"); return; }
             
-            const btn = document.getElementById('submitManualBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...'; btn.disabled = true;
-            
+            const btn = document.getElementById('submitManualBtn'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 提交中...'; btn.disabled = true;
             db.collection("Attendance").doc(currentManualDate).collection("Students").doc(stuId).set({ 
                 studentId: stuId, studentName: stuName, groupNumber: stuGroup, timestamp: new Date() 
             }).then(() => { 
@@ -591,50 +441,47 @@ const dialogOverlay = document.getElementById('customDialog');
             });
         }
 
+        // 🌟 核心融合：高级报表 + 多选日期筛选
         function openReportModal() {
             document.getElementById('reportModal').classList.remove('hidden');
             document.getElementById('reportListContainer').classList.add('hidden');
             document.getElementById('reportEmpty').classList.remove('hidden');
+            document.getElementById('reportEmpty').innerHTML = '<i class="fa-solid fa-hand-pointer text-5xl mb-4 block text-slate-300"></i> <p class="font-medium text-sm">请在上方挑选特定日期，并点击生成报表</p>';
             document.getElementById('downloadReportBtn').disabled = true;
-            
-            document.getElementById('reportStartDate').value = "";
-            document.getElementById('reportEndDate').value = "";
+            document.getElementById('reportMultiDates').value = "";
             document.getElementById('reportTargetCount').value = 4;
         }
         
         function closeReportModal() { document.getElementById('reportModal').classList.add('hidden'); }
 
         function generateReport() {
-            const startDate = document.getElementById('reportStartDate').value;
-            const endDate = document.getElementById('reportEndDate').value;
+            const datesInput = document.getElementById('reportMultiDates').value;
             const targetCount = parseInt(document.getElementById('reportTargetCount').value) || 4;
 
-            if (!startDate || !endDate) { customAlert("请先选择 开始日期 和 结束日期！", "warning", "缺失条件"); return; }
-            if (startDate > endDate) { customAlert("开始日期 不能晚于 结束日期！", "warning", "逻辑错误"); return; }
-
+            if (!datesInput) { customAlert("请先点击日历输入框，选择至少一个你要统计的日期！", "warning", "缺失条件"); return; }
+            
+            const selectedDatesArray = datesInput.split(', ');
             const btn = document.getElementById('generateReportBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 统计中...';
-            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 计算中...'; btn.disabled = true;
+
+            document.getElementById('reportEmpty').classList.add('hidden');
+            document.getElementById('reportListContainer').classList.add('hidden');
+            document.getElementById('reportLoading').classList.remove('hidden');
 
             db.collectionGroup("Students").get().then((snapshot) => {
                 let uniqueSessions = new Set();
                 let studentStats = {};
-                // 🌟 新增对各组人数进行计算，这回只算人头，不把打卡次数加起来！
-                let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0 };
+                let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0, '-':0 };
 
                 snapshot.forEach((doc) => {
                     const dateStr = doc.ref.parent.parent.id;
-                    
-                    if (dateStr >= startDate && dateStr <= endDate) {
+                    if (selectedDatesArray.includes(dateStr)) {
                         uniqueSessions.add(dateStr);
-                        
                         const data = doc.data(); 
                         const id = data.studentId;
                         const group = data.groupNumber || '-';
 
-                        if (!studentStats[id]) { 
-                            studentStats[id] = { id: id, name: data.studentName, group: group, count: 0 }; 
-                        }
+                        if (!studentStats[id]) { studentStats[id] = { id: id, name: data.studentName, group: group, count: 0 }; }
                         studentStats[id].count++;
                     }
                 });
@@ -643,11 +490,9 @@ const dialogOverlay = document.getElementById('customDialog');
                 currentReportData = Object.values(studentStats).sort((a, b) => b.count - a.count);
                 let qualifiedCount = currentReportData.filter(s => s.count >= targetCount).length;
 
-                // 🌟 这回是拿整理好的名单去算，就不会多加了
                 currentReportData.forEach(stu => {
-                    if (stu.group >= '1' && stu.group <= '8') {
-                        groupStats[stu.group]++;
-                    }
+                    if (stu.group >= '1' && stu.group <= '8') { groupStats[stu.group]++; } 
+                    else { groupStats['-']++; }
                 });
 
                 document.getElementById('rs_totalSessions').innerText = currentReportSessions;
@@ -657,12 +502,18 @@ const dialogOverlay = document.getElementById('customDialog');
                 let groupHtml = "";
                 for(let i=1; i<=8; i++) {
                     groupHtml += `
-                        <div onclick="openReportGroupDetails('${i}')" class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex justify-between items-center cursor-pointer hover:bg-emerald-100 hover:shadow-sm transition-all active:scale-95" title="点击查看 Group ${i} 的详细出席名单">
-                            <span class="text-[11px] font-bold text-emerald-800">Group ${i}</span>
-                            <span class="text-xs font-extrabold bg-emerald-500 text-white px-2 py-0.5 rounded-full shadow-sm">${groupStats[i]}</span>
+                        <div onclick="openReportGroupDetails('${i}')" class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex justify-between items-center cursor-pointer hover:bg-emerald-100 hover:shadow-sm transition-all active:scale-95">
+                            <span class="text-sm font-bold text-emerald-800">Group ${i}</span>
+                            <span class="text-sm font-extrabold bg-emerald-500 text-white px-2.5 py-1 rounded-full shadow-sm">${groupStats[i]}</span>
                         </div>
                     `;
                 }
+                groupHtml += `
+                    <div onclick="openReportGroupDetails('-')" class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex justify-between items-center cursor-pointer hover:bg-slate-100 hover:shadow-sm transition-all active:scale-95">
+                        <span class="text-sm font-bold text-slate-700">无组别</span>
+                        <span class="text-sm font-extrabold bg-slate-400 text-white px-2.5 py-1 rounded-full shadow-sm">${groupStats['-']}</span>
+                    </div>
+                `;
                 document.getElementById('reportGroupList').innerHTML = groupHtml;
 
                 let studentHtml = "";
@@ -672,95 +523,85 @@ const dialogOverlay = document.getElementById('customDialog');
                     currentReportData.forEach(stu => {
                         const isPass = stu.count >= targetCount;
                         const statusBadge = isPass 
-                            ? `<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200"><i class="fa-solid fa-check mr-1"></i>达标</span>`
-                            : `<span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-bold border border-slate-200">未达标</span>`;
-                        
+                            ? `<span class="bg-amber-100 text-amber-700 px-2.5 py-1 rounded text-xs font-bold border border-amber-200"><i class="fa-solid fa-check mr-1"></i>达标</span>`
+                            : `<span class="bg-slate-100 text-slate-500 px-2.5 py-1 rounded text-xs font-bold border border-slate-200">未达标</span>`;
                         const groupBadge = stu.group !== '-' 
-                            ? `<span class="bg-emerald-100/80 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide border border-emerald-200">G${stu.group}</span>`
+                            ? `<span class="bg-emerald-100/80 text-emerald-700 px-2.5 py-1 rounded text-xs font-bold tracking-wide border border-emerald-200">G${stu.group}</span>`
                             : `<span class="text-slate-300">-</span>`;
 
                         studentHtml += `
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="p-2 pl-4 text-center">${groupBadge}</td>
-                                <td class="p-2">
-                                    <div class="font-bold text-[11px] text-slate-700 uppercase leading-tight">${stu.name}</div>
-                                    <div class="text-[9px] font-mono text-slate-400">${stu.id}</div>
+                                <td class="p-3 pl-5 text-center">${groupBadge}</td>
+                                <td class="p-3">
+                                    <div class="font-bold text-sm text-slate-700 uppercase leading-tight">${stu.name}</div>
+                                    <div class="text-xs font-mono text-slate-400">${stu.id}</div>
                                 </td>
-                                <td class="p-2 text-center font-extrabold text-blue-600 text-sm">${stu.count}</td>
-                                <td class="p-2 pr-4 text-center">${statusBadge}</td>
+                                <td class="p-3 text-center font-extrabold text-blue-600 text-lg">${stu.count}</td>
+                                <td class="p-3 pr-5 text-center">${statusBadge}</td>
                             </tr>
                         `;
                     });
                 }
                 document.getElementById('reportStudentList').innerHTML = studentHtml;
 
-                document.getElementById('reportEmpty').classList.add('hidden');
+                document.getElementById('reportLoading').classList.add('hidden');
                 document.getElementById('reportListContainer').classList.remove('hidden');
                 document.getElementById('downloadReportBtn').disabled = false;
 
-                btn.innerHTML = '<i class="fa-solid fa-rotate"></i> 重新生成';
-                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> 生成报表'; btn.disabled = false;
 
             }).catch(error => { 
                 customAlert("报表生成失败: " + error.message, "error", "系统异常"); 
-                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> 生成报表';
-                btn.disabled = false;
+                document.getElementById('reportLoading').classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> 生成报表'; btn.disabled = false;
             });
         }
 
         function openReportGroupDetails(groupNum) {
             if (currentReportData.length === 0) return;
-
             const groupStudents = currentReportData.filter(stu => stu.group === groupNum);
-            
-            document.getElementById('rgd_title').innerText = `Group ${groupNum} - 成员出勤详情`;
+            const displayGroupName = groupNum === '-' ? '无组别' : `Group ${groupNum}`;
+            document.getElementById('rgd_title').innerText = `${displayGroupName} - 成员详情`;
             
             let listHtml = "";
             if (groupStudents.length === 0) {
-                listHtml = `<tr><td colspan="3" class="p-8 text-center text-slate-400">此时间段内，该小组无打卡记录</td></tr>`;
+                listHtml = `<tr><td colspan="3" class="p-8 text-center text-slate-400">此时间段内，无相关打卡记录</td></tr>`;
             } else {
                 groupStudents.forEach((stu, index) => {
                     listHtml += `
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-3 pl-6 text-center font-bold text-slate-400">${index + 1}</td>
-                            <td class="p-3">
-                                <div class="font-bold text-xs text-slate-700 uppercase leading-tight">${stu.name}</div>
-                                <div class="text-[10px] font-mono text-slate-400">${stu.id}</div>
+                            <td class="p-4 pl-6 text-center font-bold text-slate-400">${index + 1}</td>
+                            <td class="p-4">
+                                <div class="font-bold text-sm text-slate-700 uppercase leading-tight">${stu.name}</div>
+                                <div class="text-xs font-mono text-slate-400">${stu.id}</div>
                             </td>
-                            <td class="p-3 pr-6 text-center font-extrabold text-blue-600 text-base">${stu.count} 次</td>
+                            <td class="p-4 pr-6 text-center font-extrabold text-blue-600 text-lg">${stu.count} 次</td>
                         </tr>
                     `;
                 });
             }
-            
             document.getElementById('rgd_list').innerHTML = listHtml;
             document.getElementById('reportGroupDetailsModal').classList.remove('hidden');
         }
-
-        function closeReportGroupDetailsModal() {
-            document.getElementById('reportGroupDetailsModal').classList.add('hidden');
-        }
+        function closeReportGroupDetailsModal() { document.getElementById('reportGroupDetailsModal').classList.add('hidden'); }
 
         function exportReportToExcel() {
-            const startDate = document.getElementById('reportStartDate').value;
-            const endDate = document.getElementById('reportEndDate').value;
+            const datesInput = document.getElementById('reportMultiDates').value;
             const targetCount = parseInt(document.getElementById('reportTargetCount').value) || 4;
 
             if (currentReportData.length === 0) { customAlert("没有可导出的数据！", "warning"); return; }
             
             let csvContent = "\uFEFF"; 
-            csvContent += `报表范围 (Date Range),${startDate} to ${endDate}\n`;
-            csvContent += `总开放签到天数 (Total Sessions),${currentReportSessions}\n`;
+            csvContent += `特定报表日期 (Selected Dates),${datesInput}\n`;
+            csvContent += `总计签到天数 (Total Sessions),${currentReportSessions}\n`;
             csvContent += `设置达标门槛 (Target Attendances),>= ${targetCount}\n\n`;
-            
             csvContent += "组别 (Group),学号 (Student ID),姓名 (Name),出勤次数 (Attendances),是否达标 (Qualified)\n"; 
             
             currentReportData.forEach(stu => { 
                 const isPass = stu.count >= targetCount ? "是 (Yes)" : "否 (No)";
                 csvContent += `"${stu.group}","${stu.id}","${stu.name}","${stu.count}","${isPass}"\n`; 
             });
-            
-            triggerDownload(csvContent, `Attendance_Advanced_Report_${startDate}_to_${endDate}.csv`);
+            triggerDownload(csvContent, `Attendance_Custom_Report.csv`);
         }
 
         function exportToExcel() {
@@ -779,102 +620,242 @@ const dialogOverlay = document.getElementById('customDialog');
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
         
-        // 💡 全局搜索功能核心逻辑
+        // 💡 全局搜索功能
         function executeGlobalSearch() {
             const keyword = document.getElementById('globalSearchInput').value.trim().toUpperCase();
-            
-            if (!keyword) { 
-                customAlert("请输入要搜索的学生姓名或学号！", "warning", "缺失搜索词"); 
-                return; 
-            }
+            if (!keyword) { customAlert("请输入要搜索的学生姓名或学号！", "warning", "缺失搜索词"); return; }
 
             const btn = document.getElementById('globalSearchBtn');
             const originalBtnHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 搜索中';
-            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
 
-            // 使用 collectionGroup 遍历所有日期下的 Students
             db.collectionGroup("Students").get().then((snapshot) => {
                 let results = [];
-                
                 snapshot.forEach((doc) => {
                     const data = doc.data();
-                    // 巧用 doc.ref 获取上上层节点的 ID，也就是日期 (例如 "2026-04-24")
                     const dateStr = doc.ref.parent.parent.id; 
                     const sName = (data.studentName || '').toUpperCase();
                     const sId = (data.studentId || '').toUpperCase();
                     const group = data.groupNumber || '-';
 
-                    // 只要学号或者名字包含了关键词，就抓取出来！
                     if (sName.includes(keyword) || sId.includes(keyword)) {
-                        results.push({
-                            date: dateStr,
-                            id: sId,
-                            name: sName,
-                            group: group,
-                            timestamp: data.timestamp ? data.timestamp.toMillis() : 0 // 用于排序
-                        });
+                        results.push({ date: dateStr, id: sId, name: sName, group: group, timestamp: data.timestamp ? data.timestamp.toMillis() : 0 });
                     }
                 });
 
-                // 按照日期从最新到最旧排序
                 results.sort((a, b) => b.date.localeCompare(a.date));
-
-                // 渲染结果到弹窗
                 renderSearchResults(results, keyword);
-                
-                // 恢复按钮状态
-                btn.innerHTML = originalBtnHtml;
-                btn.disabled = false;
-
+                btn.innerHTML = originalBtnHtml; btn.disabled = false;
             }).catch(error => {
                 customAlert("全局搜索失败: " + error.message, "error", "系统异常");
-                btn.innerHTML = originalBtnHtml;
-                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml; btn.disabled = false;
             });
         }
 
-        // 💡 渲染搜索结果并打开弹窗
         function renderSearchResults(results, keyword) {
             document.getElementById('searchResultTitle').innerText = `搜索: "${keyword}"`;
             document.getElementById('searchResultCount').innerText = `共找到 ${results.length} 条记录`;
-            
             const tbody = document.getElementById('searchResultList');
             let html = "";
 
             if (results.length === 0) {
-                html = `<tr><td colspan="3" class="p-10 text-center text-slate-400">
-                    <i class="fa-solid fa-box-open text-4xl mb-3 block text-slate-300"></i>
-                    没有找到与 "<b>${keyword}</b>" 相关的历史记录
-                </td></tr>`;
+                html = `<tr><td colspan="4" class="p-10 text-center text-slate-400"><i class="fa-solid fa-box-open text-4xl mb-3 block text-slate-300"></i>没有找到与 "<b>${keyword}</b>" 相关的历史记录</td></tr>`;
             } else {
                 results.forEach(res => {
-                    const groupBadge = res.group !== '-' 
-                        ? `<span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-xs font-bold border border-emerald-200">G${res.group}</span>`
-                        : `<span class="text-slate-400 font-normal">-</span>`;
-
+                    const groupBadge = res.group !== '-' ? `<span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-xs font-bold border border-emerald-200">G${res.group}</span>` : `<span class="text-slate-400 font-normal">-</span>`;
                     html += `
-                        <tr class="hover:bg-indigo-50/50 transition-colors">
+                        <tr class="hover:bg-indigo-50/50 transition-colors group">
                             <td class="p-3 pl-6 font-medium text-slate-600">${res.date}</td>
                             <td class="p-3 text-center">${groupBadge}</td>
                             <td class="p-3">
                                 <div class="font-bold text-sm text-indigo-700 uppercase leading-tight">${res.name}</div>
                                 <div class="text-[11px] font-mono text-slate-400 mt-0.5">${res.id}</div>
                             </td>
-                        </tr>
-                    `;
+                            <td class="p-3 text-right pr-6">
+                                <div class="flex justify-end gap-1.5 opacity-40 hover:opacity-100 transition-opacity">
+                                    <button onclick="editRecordFromSearch('${res.date}', '${res.id}', '${res.name.replace(/'/g, "\\'")}', '${res.group}')" class="text-indigo-600 hover:text-white bg-indigo-100 hover:bg-indigo-500 w-7 h-7 rounded flex items-center justify-center text-xs transition-all shadow-sm" title="编辑"><i class="fa-solid fa-pen"></i></button>
+                                    <button onclick="deleteRecordFromSearch('${res.date}', '${res.id}')" class="text-rose-600 hover:text-white bg-rose-100 hover:bg-rose-500 w-7 h-7 rounded flex items-center justify-center text-xs transition-all shadow-sm" title="删除"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>`;
                 });
             }
-
             tbody.innerHTML = html;
             document.getElementById('searchResultModal').classList.remove('hidden');
         }
 
-        // 💡 关闭弹窗
-        function closeSearchModal() {
-            document.getElementById('searchResultModal').classList.add('hidden');
+        function closeSearchModal() { document.getElementById('searchResultModal').classList.add('hidden'); }
+
+        function editRecordFromSearch(recordDate, oldStudentId, currentName, currentGroup) {
+            customEditPrompt(`正在修改 [${recordDate}] 的记录\n您可以更改 Group、Student ID 或 姓名：`, oldStudentId, currentName, currentGroup, (newId, newName, newGroup) => {
+                newId = newId.trim().toUpperCase(); newName = newName.trim().toUpperCase();
+                if (!newId || !newName) { customAlert("Student ID 和 Name 都不能为空！", "warning"); return; }
+                if (newId === oldStudentId && newName === currentName && newGroup === currentGroup) { customAlert("资料没有进行任何修改。", "info"); return; }
+
+                const studentRef = db.collection("Attendance").doc(recordDate).collection("Students").doc(oldStudentId);
+                if (newId === oldStudentId) {
+                    studentRef.update({ studentName: newName, groupNumber: newGroup }).then(() => {
+                        customAlert(`已成功更新资料！`, "success", "修改成功");
+                        executeGlobalSearch(); if(document.getElementById("dateFilter").value === recordDate) handleDateSelection(); 
+                    }).catch(error => { customAlert("修改失败: " + error.message, "error"); });
+                } else {
+                    studentRef.get().then((docSnapshot) => {
+                        if (docSnapshot.exists) {
+                            const oldData = docSnapshot.data();
+                            const newStudentRef = db.collection("Attendance").doc(recordDate).collection("Students").doc(newId);
+                            const batch = db.batch();
+                            batch.set(newStudentRef, { studentId: newId, studentName: newName, groupNumber: newGroup, timestamp: oldData.timestamp });
+                            batch.delete(studentRef);
+                            batch.commit().then(() => {
+                                customAlert(`成功！\n新 ID 变为: ${newId}\n新姓名变为: ${newName}`, "success", "修改成功");
+                                executeGlobalSearch(); if(document.getElementById("dateFilter").value === recordDate) handleDateSelection();
+                            }).catch(error => { customAlert("修改失败: " + error.message, "error"); });
+                        }
+                    });
+                }
+            }, "✍️ 编辑搜索记录");
         }
 
-        window.handleSortClick = handleSortClick;
-        window.openReportGroupDetails = openReportGroupDetails;
-        window.closeReportGroupDetailsModal = closeReportGroupDetailsModal;
+        function deleteRecordFromSearch(recordDate, studentId) {
+            customConfirm(`确定要永久删除 ${studentId} 在 [${recordDate}] 的这 1 条签到记录吗？\n删除后无法恢复！`, () => {
+                db.collection("Attendance").doc(recordDate).collection("Students").doc(studentId).delete().then(() => {
+                    customAlert(`成功删除了记录！`, "success", "删除成功");
+                    executeGlobalSearch(); if(document.getElementById("dateFilter").value === recordDate) handleDateSelection();
+                }).catch(error => { customAlert("删除失败: " + error.message, "error", "系统异常"); });
+            }, "🚨 删除搜索记录");
+        }
+        
+        function openBatchEditModal() {
+            const selectedDate = document.getElementById("dateFilter").value;
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkboxes.length === 0) { customAlert("请先在左侧勾选想要修改的小组记录！", "warning", "未选择记录"); return; }
+            let newGroup = prompt(`您已选中 ${checkboxes.length} 名学生。\n请输入要把他们统一修改为哪个组？(输入 1-8，或输入 - 代表无组别):`);
+            if (newGroup === null) return; 
+            newGroup = newGroup.trim();
+            if (!['1','2','3','4','5','6','7','8','-'].includes(newGroup)) { customAlert("只能输入 1 到 8 之间的数字，或者输入 - 代表无组别！", "warning", "格式错误"); return; }
+
+            const batch = db.batch();
+            checkboxes.forEach(cb => {
+                const studentId = cb.getAttribute('data-id');
+                const docRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(studentId);
+                batch.update(docRef, { groupNumber: newGroup });
+            });
+            batch.commit().then(() => {
+                customAlert(`成功将 ${checkboxes.length} 名学生的组别修改为 Group ${newGroup}！`, "success", "批量修改成功");
+                if(document.getElementById('selectAll')) document.getElementById('selectAll').checked = false;
+            }).catch(error => { customAlert("批量修改失败: " + error.message, "error", "系统异常"); });
+        }
+
+        function handleCSVImport(event) {
+            const selectedDate = document.getElementById("dateFilter").value;
+            const file = event.target.files[0];
+            if (!selectedDate) { customAlert("请先在上方日历选择你要导入数据的【日期】！", "warning", "缺失日期"); event.target.value = ''; return; }
+            if (!file) return;
+
+            Papa.parse(file, {
+                header: true, skipEmptyLines: true,
+                complete: function(results) {
+                    const data = results.data;
+                    if (data.length === 0) { customAlert("CSV 文件是空的或格式不正确！", "warning"); event.target.value = ''; return; }
+
+                    let validRecords = [];
+                    data.forEach((row) => {
+                        const getCol = (possibleNames) => { for (let key in row) { if (possibleNames.includes(key.trim().toLowerCase())) return row[key].trim(); } return null; };
+                        const stuId = getCol(['student id', 'id', 'studentid', '学号']);
+                        const stuName = getCol(['name', 'student name', 'fullname', '姓名']);
+                        const stuGroup = getCol(['group', 'group number', '组别']) || '-';
+
+                        if (stuId && stuName) {
+                            validRecords.push({ studentId: stuId.toUpperCase(), studentName: stuName.toUpperCase(), groupNumber: stuGroup.replace(/[^1-8-]/g, '') || '-' });
+                        }
+                    });
+
+                    if (validRecords.length === 0) { customAlert("未能从 CSV 中提取出有效数据。\n请确保表头包含 'Student ID' 和 'Name' 列！", "error"); event.target.value = ''; return; }
+
+                    customConfirm(`成功解析出 ${validRecords.length} 名学生。\n\n系统将自动通过历史记录补全未填写组别的学生。\n确认导入到日期：${selectedDate} 吗？`, async () => {
+                        const btn = document.querySelector('button[onclick="document.getElementById(\'csvFileInput\').click()"]');
+                        const originalHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 匹配中...';
+                        try {
+                            const historyMap = await buildHistoricalGroupMap();
+                            let autoFillCount = 0;
+                            validRecords = validRecords.map(record => {
+                                if (record.groupNumber === '-' && historyMap[record.studentId]) {
+                                    record.groupNumber = historyMap[record.studentId]; autoFillCount++;
+                                }
+                                return record;
+                            });
+                            await uploadCSVInBatches(validRecords, selectedDate);
+                        } catch (error) { customAlert("导入时出错: " + error.message, "error"); } 
+                        finally { btn.innerHTML = originalHtml; }
+                    }, "确认导入");
+                    event.target.value = ''; 
+                }
+            });
+        }
+
+        async function buildHistoricalGroupMap() {
+            const map = {}; const stats = {};
+            const snapshot = await db.collectionGroup("Students").get();
+            snapshot.forEach(doc => {
+                const data = doc.data(); const id = data.studentId; const group = data.groupNumber;
+                if (id && group && group !== '-') {
+                    if (!stats[id]) stats[id] = {};
+                    if (!stats[id][group]) stats[id][group] = 0;
+                    stats[id][group]++;
+                }
+            });
+            for (let id in stats) {
+                let maxCount = 0; let dominantGroup = null;
+                for (let group in stats[id]) {
+                    if (stats[id][group] >= 2 && stats[id][group] > maxCount) { maxCount = stats[id][group]; dominantGroup = group; }
+                }
+                if (dominantGroup) { map[id] = dominantGroup; }
+            }
+            return map;
+        }
+
+        async function uploadCSVInBatches(records, selectedDate) {
+            const CHUNK_SIZE = 450; let totalImported = 0;
+            try {
+                for (let i = 0; i < records.length; i += CHUNK_SIZE) {
+                    const chunk = records.slice(i, i + CHUNK_SIZE);
+                    const batch = db.batch();
+                    chunk.forEach(record => {
+                        const docRef = db.collection("Attendance").doc(selectedDate).collection("Students").doc(record.studentId);
+                        batch.set(docRef, { studentId: record.studentId, studentName: record.studentName, groupNumber: record.groupNumber, timestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }); 
+                    });
+                    await batch.commit(); totalImported += chunk.length;
+                }
+                customAlert(`成功将 ${totalImported} 名学生导入到 ${selectedDate} 的名单中！`, "success", "导入成功");
+            } catch (error) { customAlert("导入错误: " + error.message, "error", "上传异常"); }
+        }
+
+        // --- 将模块内的函数暴露给全局 HTML onclick 使用 ---
+window.handleLogin = handleLogin;
+window.handleLogout = handleLogout;
+window.clearDateFilter = clearDateFilter;
+window.executeGlobalSearch = executeGlobalSearch;
+window.deleteSelectedRecords = deleteSelectedRecords;
+window.openBatchEditModal = openBatchEditModal;
+window.toggleManageMode = toggleManageMode;
+window.openManualModal = openManualModal;
+window.handleCSVImport = handleCSVImport;
+window.exportToExcel = exportToExcel;
+window.exportReportToExcel = exportReportToExcel;
+window.openGroupListModal = openGroupListModal;
+window.openReportModal = openReportModal;
+window.openQRModal = openQRModal;
+window.closeReportModal = closeReportModal;
+window.generateReport = generateReport;
+window.closeReportGroupDetailsModal = closeReportGroupDetailsModal;
+window.closeGroupListModal = closeGroupListModal;
+window.generateNewQR = generateNewQR;
+window.changeStatus = changeStatus;
+window.closeQRModal = closeQRModal;
+window.closeManualModal = closeManualModal;
+window.submitManualCheckIn = submitManualCheckIn;
+window.closeSearchModal = closeSearchModal;
+window.toggleAllCheckboxes = toggleAllCheckboxes;
+window.editRecordName = editRecordName;
+window.editRecordFromSearch = editRecordFromSearch;
+window.deleteRecordFromSearch = deleteRecordFromSearch;

@@ -1,111 +1,104 @@
+import { db, firebase } from './firebase-config.js';
+
 const dialogOverlay = document.getElementById('customDialog');
-const dialogBox = document.getElementById('customDialogBox');
+        const dialogBox = document.getElementById('customDialogBox');
 
-function customAlert(msg, type='info', title='系统提示') {
-    const iconDiv = document.getElementById('dialogIcon');
-    const titleDiv = document.getElementById('dialogTitle');
-    const msgDiv = document.getElementById('dialogMessage');
-    const btnDiv = document.getElementById('dialogButtons');
+        function customAlert(msg, type='info', title='系统提示') {
+            const iconDiv = document.getElementById('dialogIcon');
+            const titleDiv = document.getElementById('dialogTitle');
+            const msgDiv = document.getElementById('dialogMessage');
+            const btnDiv = document.getElementById('dialogButtons');
 
-    titleDiv.innerText = title;
-    msgDiv.innerText = msg;
+            titleDiv.innerText = title;
+            msgDiv.innerText = msg;
 
-    if(type === 'success') {
-        iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-green-100 text-green-500";
-        iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
-    } else if(type === 'warning') {
-        iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-amber-100 text-amber-500";
-        iconDiv.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
-    } else if(type === 'error') {
-        iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-rose-100 text-rose-500";
-        iconDiv.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-    } else {
-        iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-indigo-100 text-indigo-500";
-        iconDiv.innerHTML = '<i class="fa-solid fa-info"></i>';
-    }
+            if(type === 'success') {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-green-100 text-green-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else if(type === 'warning') {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-amber-100 text-amber-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
+            } else if(type === 'error') {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-rose-100 text-rose-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            } else {
+                iconDiv.className = "mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl bg-indigo-100 text-indigo-500";
+                iconDiv.innerHTML = '<i class="fa-solid fa-info"></i>';
+            }
 
-    btnDiv.innerHTML = '';
-    const okBtn = document.createElement('button');
-    okBtn.className = "w-full py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
-    okBtn.innerText = "我知道了";
-    okBtn.onclick = () => {
-        dialogOverlay.classList.add('opacity-0');
-        dialogBox.classList.add('scale-95');
-        setTimeout(() => { dialogOverlay.classList.add('hidden'); }, 300);
-    };
-    btnDiv.appendChild(okBtn);
+            btnDiv.innerHTML = '';
+            const okBtn = document.createElement('button');
+            okBtn.className = "w-full py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md active:scale-95";
+            okBtn.innerText = "我知道了";
+            okBtn.onclick = () => {
+                dialogOverlay.classList.add('opacity-0');
+                dialogBox.classList.add('scale-95');
+                setTimeout(() => { dialogOverlay.classList.add('hidden'); }, 300);
+            };
+            btnDiv.appendChild(okBtn);
 
-    dialogOverlay.classList.remove('hidden');
-    setTimeout(() => {
-        dialogOverlay.classList.remove('opacity-0');
-        dialogBox.classList.remove('scale-95');
-    }, 10);
-}
-
-// 🌟 将 Vite 变量换回明文配置，让普通浏览器可以直接读取
-const firebaseConfig = {
-    apiKey: "AIzaSyBowy5HiYuzmuQnVoiPhM7hvDsAaMSK3a8",
-    authDomain: "attendance-a7ac5.firebaseapp.com",
-    projectId: "attendance-a7ac5",
-    storageBucket: "attendance-a7ac5.firebasestorage.app",
-    messagingSenderId: "179755027767",
-    appId: "1:179755027767:web:37c6a12e95c8ea0a5b9eb2"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const todayStr = new Date().toISOString().split('T')[0]; 
-const deviceLockKey = "checkedInTime_" + todayStr;
-let timerInterval = null;
-let hasAlertedCheat = false; 
-let hasPlayedAudio = false; 
-
-let currentSelectedGroup = "";
-
-function isDeviceLocked() {
-    const savedTime = localStorage.getItem(deviceLockKey);
-    if (!savedTime) return false; 
-    const currentTime = new Date().getTime();
-    const timeDifference = currentTime - parseInt(savedTime);
-    if (timeDifference < 300000) { 
-        return true; 
-    } else {
-        localStorage.removeItem(deviceLockKey);
-        return false;
-    }
-}
-
-window.onload = function() {
-    const searchString = window.location.search.substring(1); 
-    const mainParam = searchString.split('&')[0]; 
-    const authCode = mainParam.split('=')[1]; 
-
-    if (!authCode || authCode.length !== 6) {
-        if (timerInterval) clearInterval(timerInterval);
-        document.getElementById('checkInForm').classList.add('hidden');
-        
-        const badge = document.getElementById('statusBadge');
-        badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
-        badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 无法访问 (Invalid Access)';
-        badge.classList.remove('hidden');
-        
-        if (!hasAlertedCheat) {
-            customAlert("Please scan the QR Code for Attendance", "error", "⚠️ Invalid Access");
-            hasAlertedCheat = true;
+            dialogOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                dialogOverlay.classList.remove('opacity-0');
+                dialogBox.classList.remove('scale-95');
+            }, 10);
         }
-        return; 
-    }
 
-    document.querySelectorAll('.group-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            currentSelectedGroup = e.currentTarget.getAttribute('data-group');
-        });
-    });
+        const todayStr = new Date().toISOString().split('T')[0]; 
+        const deviceLockKey = "checkedInTime_" + todayStr;
+        let timerInterval = null;
+        let hasAlertedCheat = false; 
+        let hasPlayedAudio = false;
+        
+        // 🌟 新增：追踪用户选了第几组
+        let currentSelectedGroup = "";
 
-    db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
+        function isDeviceLocked() {
+            const savedTime = localStorage.getItem(deviceLockKey);
+            if (!savedTime) return false; 
+            const currentTime = new Date().getTime();
+            const timeDifference = currentTime - parseInt(savedTime);
+            if (timeDifference < 300000) { 
+                return true; 
+            } else {
+                localStorage.removeItem(deviceLockKey);
+                return false;
+            }
+        }
+
+        window.onload = function() {
+            const searchString = window.location.search.substring(1); 
+            const mainParam = searchString.split('&')[0]; 
+            const authCode = mainParam.split('=')[1]; 
+
+            if (!authCode || authCode.length !== 6) {
+                if (timerInterval) clearInterval(timerInterval);
+                document.getElementById('checkInForm').classList.add('hidden');
+                
+                const badge = document.getElementById('statusBadge');
+                badge.className = "inline-flex items-center gap-2 mt-3 px-4 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-600 shadow-sm border border-red-200";
+                badge.innerHTML = '<i class="fa-solid fa-ban text-xs"></i> 无法访问 (Invalid Access)';
+                badge.classList.remove('hidden');
+                
+                if (!hasAlertedCheat) {
+                    customAlert("Please scan the QR Code for Attendance", "error", "⚠️ Invalid Access");
+                    hasAlertedCheat = true;
+                }
+                return; 
+            }
+
+            // 🌟 新增：处理小组按钮点击效果
+            document.querySelectorAll('.group-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // 移除所有按钮的 active 状态
+                    document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+                    // 给当前点击的按钮加上 active 状态
+                    e.currentTarget.classList.add('active');
+                    currentSelectedGroup = e.currentTarget.getAttribute('data-group');
+                });
+            });
+
+            db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
                 const badge = document.getElementById('statusBadge');
                 const form = document.getElementById('checkInForm');
                 const successMsg = document.getElementById('successMessage');
@@ -154,9 +147,9 @@ window.onload = function() {
                     }
                 }
             });
-};
+        };
 
-function submitCheckIn() {
+        function submitCheckIn() {
     if (isDeviceLocked()) {
         customAlert("您刚刚已经成功签到过了，请耐心等待 5 分钟后再试。", "warning", "操作太频繁");
         return;
@@ -256,5 +249,4 @@ function submitCheckIn() {
         }
     });
 }
-
 window.submitCheckIn = submitCheckIn;
