@@ -1,5 +1,7 @@
     import { db, firebase } from './firebase-config.js';
 
+        window.currentQRUrl = "";
+
         const dialogOverlay = document.getElementById('customDialog');
         const dialogBox = document.getElementById('customDialogBox');
 
@@ -193,7 +195,7 @@
             const baseUrl = "https://nanabanayo028.github.io/CFattendance/index.html"; 
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
             let randomLetters = ''; for (let i = 0; i < 6; i++) randomLetters += chars.charAt(Math.floor(Math.random() * chars.length));
-            currentQRUrl = `${baseUrl}?q=${randomLetters}`;
+            window.currentQRUrl = `${baseUrl}?q=${randomLetters}`;
             const urlDisplay = document.getElementById('qrUrlDisplay'); if(urlDisplay) urlDisplay.innerText = currentQRUrl;
             const box = document.getElementById("qrcode-box"); box.innerHTML = ""; 
             qrCodeInstance = new QRCode(box, { text: currentQRUrl, width: 220, height: 220, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
