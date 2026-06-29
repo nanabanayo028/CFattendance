@@ -1,7 +1,10 @@
     import { db, firebase } from './firebase-config.js';
 
         window.currentQRUrl = "";
-
+        console.log("--- 🚨 Firebase 密钥云端检查 ---");
+        console.log("Project ID:", db.app.options.projectId);
+        console.log("API Key 是否加载:", !!db.app.options.apiKey);
+        
         const dialogOverlay = document.getElementById('customDialog');
         const dialogBox = document.getElementById('customDialogBox');
 
