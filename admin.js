@@ -352,11 +352,14 @@
             if (allRecords.length === 0) { customAlert("该日期暂无签到记录！", "warning", "提示"); return; }
             const container = document.getElementById("groupListContainer"); container.innerHTML = ""; 
 
-            // for (let i = 1; i <= 8; i++) {
-            for (let i = 1; i <= 4; i++) {
-                const groupStudents = allRecords.filter(r => r.groupNumber === i.toString());
-                let studentListHtml = "";
-                if (groupStudents.length === 0) { studentListHtml = `<div class="text-center py-6 text-slate-400 text-xs">暂无学生</div>`; } 
+            for (let i = 1; i <= 8; i++) {
+            const groupStudents = allRecords.filter(r => r.groupNumber === i.toString());
+            
+            // 🌟 智能兼容逻辑：如果是 5-8 组，且里面没有学生，就直接跳过不显示
+            if (i > 4 && groupStudents.length === 0) continue;
+            
+            let studentListHtml = "";
+            if (groupStudents.length === 0) { studentListHtml = `<div class="text-center py-6 text-slate-400 text-xs">暂无学生</div>`; }
                 else {
                     groupStudents.forEach(stu => {
                         studentListHtml += `<div class="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0"><span class="font-bold text-[11px] text-slate-700 uppercase leading-tight">${stu.studentName}</span><span class="text-[10px] font-mono text-slate-400 ml-2">${stu.studentId}</span></div>`;
@@ -506,8 +509,8 @@
             db.collectionGroup("Students").get().then((snapshot) => {
                 let uniqueSessions = new Set();
                 let studentStats = {};
-                // let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0, '-':0 };
-                let groupStats = { '1':0, '2':0, '3':0, '4':0, '-':0 };
+                
+                let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0, '-':0 };
 
                 snapshot.forEach((doc) => {
                     const dateStr = doc.ref.parent.parent.id;
@@ -526,23 +529,21 @@
                 currentReportData = Object.values(studentStats).sort((a, b) => b.count - a.count);
                 let qualifiedCount = currentReportData.filter(s => s.count >= targetCount).length;
 
-                // currentReportData.forEach(stu => {
-                //     if (stu.group >= '1' && stu.group <= '8') { groupStats[stu.group]++; } 
-                //     else { groupStats['-']++; }
-                // });
                 currentReportData.forEach(stu => {
-                if (stu.group >= '1' && stu.group <= '4') { groupStats[stu.group]++; } 
-                else { groupStats['-']++; }
-            });
+                    // 恢复统计 1-8
+                    if (stu.group >= '1' && stu.group <= '8') { groupStats[stu.group]++; } 
+                    else { groupStats['-']++; }
+                });
 
                 document.getElementById('rs_totalSessions').innerText = currentReportSessions;
                 document.getElementById('rs_totalStudents').innerText = currentReportData.length;
                 document.getElementById('rs_qualified').innerText = qualifiedCount;
 
-                // let groupHtml = "";
-                // for(let i=1; i<=8; i++) {
                 let groupHtml = "";
-                for(let i=1; i<=4; i++) {
+                for(let i=1; i<=8; i++) {
+                    // 🌟 智能兼容逻辑：5-8组如果历史数据为0，则不显示在报表里
+                    if (i > 4 && groupStats[i] === 0) continue;
+
                     groupHtml += `
                         <div onclick="openReportGroupDetails('${i}')" class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex justify-between items-center cursor-pointer hover:bg-emerald-100 hover:shadow-sm transition-all active:scale-95">
                             <span class="text-sm font-bold text-emerald-800">Group ${i}</span>
