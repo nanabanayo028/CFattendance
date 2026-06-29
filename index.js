@@ -166,7 +166,7 @@ const dialogOverlay = document.getElementById('customDialog');
     }
 
     if (currentSelectedGroup === "") {
-        customAlert("请选择您的组别 (Group 1-8 或 无组别)！", "warning", "缺少组别"); 
+        customAlert("请选择您的组别 (Group 1-4 或 无组别)！", "warning", "缺少组别"); 
         return;
     }
 

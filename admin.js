@@ -4,7 +4,7 @@
         console.log("--- 🚨 Firebase 密钥云端检查 ---");
         console.log("Project ID:", db.app.options.projectId);
         console.log("API Key 是否加载:", !!db.app.options.apiKey);
-        
+
         const dialogOverlay = document.getElementById('customDialog');
         const dialogBox = document.getElementById('customDialogBox');
 
@@ -352,7 +352,8 @@
             if (allRecords.length === 0) { customAlert("该日期暂无签到记录！", "warning", "提示"); return; }
             const container = document.getElementById("groupListContainer"); container.innerHTML = ""; 
 
-            for (let i = 1; i <= 8; i++) {
+            // for (let i = 1; i <= 8; i++) {
+            for (let i = 1; i <= 4; i++) {
                 const groupStudents = allRecords.filter(r => r.groupNumber === i.toString());
                 let studentListHtml = "";
                 if (groupStudents.length === 0) { studentListHtml = `<div class="text-center py-6 text-slate-400 text-xs">暂无学生</div>`; } 
@@ -505,7 +506,8 @@
             db.collectionGroup("Students").get().then((snapshot) => {
                 let uniqueSessions = new Set();
                 let studentStats = {};
-                let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0, '-':0 };
+                // let groupStats = { '1':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0, '-':0 };
+                let groupStats = { '1':0, '2':0, '3':0, '4':0, '-':0 };
 
                 snapshot.forEach((doc) => {
                     const dateStr = doc.ref.parent.parent.id;
@@ -524,17 +526,23 @@
                 currentReportData = Object.values(studentStats).sort((a, b) => b.count - a.count);
                 let qualifiedCount = currentReportData.filter(s => s.count >= targetCount).length;
 
+                // currentReportData.forEach(stu => {
+                //     if (stu.group >= '1' && stu.group <= '8') { groupStats[stu.group]++; } 
+                //     else { groupStats['-']++; }
+                // });
                 currentReportData.forEach(stu => {
-                    if (stu.group >= '1' && stu.group <= '8') { groupStats[stu.group]++; } 
-                    else { groupStats['-']++; }
-                });
+                if (stu.group >= '1' && stu.group <= '4') { groupStats[stu.group]++; } 
+                else { groupStats['-']++; }
+            });
 
                 document.getElementById('rs_totalSessions').innerText = currentReportSessions;
                 document.getElementById('rs_totalStudents').innerText = currentReportData.length;
                 document.getElementById('rs_qualified').innerText = qualifiedCount;
 
+                // let groupHtml = "";
+                // for(let i=1; i<=8; i++) {
                 let groupHtml = "";
-                for(let i=1; i<=8; i++) {
+                for(let i=1; i<=4; i++) {
                     groupHtml += `
                         <div onclick="openReportGroupDetails('${i}')" class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex justify-between items-center cursor-pointer hover:bg-emerald-100 hover:shadow-sm transition-all active:scale-95">
                             <span class="text-sm font-bold text-emerald-800">Group ${i}</span>
@@ -763,10 +771,14 @@
             const selectedDate = document.getElementById("dateFilter").value;
             const checkboxes = document.querySelectorAll('.row-checkbox:checked');
             if (checkboxes.length === 0) { customAlert("请先在左侧勾选想要修改的小组记录！", "warning", "未选择记录"); return; }
-            let newGroup = prompt(`您已选中 ${checkboxes.length} 名学生。\n请输入要把他们统一修改为哪个组？(输入 1-8，或输入 - 代表无组别):`);
+            // let newGroup = prompt(`您已选中 ${checkboxes.length} 名学生。\n请输入要把他们统一修改为哪个组？(输入 1-8，或输入 - 代表无组别):`);
+            // if (newGroup === null) return; 
+            // newGroup = newGroup.trim();
+            // if (!['1','2','3','4','5','6','7','8','-'].includes(newGroup)) { customAlert("只能输入 1 到 8 之间的数字，或者输入 - 代表无组别！", "warning", "格式错误"); return; }
+            let newGroup = prompt(`您已选中 ${checkboxes.length} 名学生。\n请输入要把他们统一修改为哪个组？(输入 1-4，或输入 - 代表无组别):`);
             if (newGroup === null) return; 
             newGroup = newGroup.trim();
-            if (!['1','2','3','4','5','6','7','8','-'].includes(newGroup)) { customAlert("只能输入 1 到 8 之间的数字，或者输入 - 代表无组别！", "warning", "格式错误"); return; }
+            if (!['1','2','3','4','-'].includes(newGroup)) { customAlert("只能输入 1 到 4 之间的数字，或者输入 - 代表无组别！", "warning", "格式错误"); return; }
 
             const batch = db.batch();
             checkboxes.forEach(cb => {
@@ -800,7 +812,8 @@
                         const stuGroup = getCol(['group', 'group number', '组别']) || '-';
 
                         if (stuId && stuName) {
-                            validRecords.push({ studentId: stuId.toUpperCase(), studentName: stuName.toUpperCase(), groupNumber: stuGroup.replace(/[^1-8-]/g, '') || '-' });
+                            // validRecords.push({ studentId: stuId.toUpperCase(), studentName: stuName.toUpperCase(), groupNumber: stuGroup.replace(/[^1-8-]/g, '') || '-' });
+                            validRecords.push({ studentId: stuId.toUpperCase(), studentName: stuName.toUpperCase(), groupNumber: stuGroup.replace(/[^1-4-]/g, '') || '-' });
                         }
                     });
 
