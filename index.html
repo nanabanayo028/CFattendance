@@ -31,7 +31,6 @@
             border-color: #4f46e5;
             box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
         }
-<<<<<<< HEAD
     </style>
     <link rel="preload" as="image" href="Background.webp">
     <link rel="preload" as="image" href="CF_LOGO.webp">
@@ -123,98 +122,4 @@
     
     <script type="module" src="/index.js"></script>
 </body>
-=======
-    </style>
-    <link rel="preload" as="image" href="Background.webp">
-    <link rel="preload" as="image" href="CF_LOGO.webp">
-  <script type="module" crossorigin src="/assets/main-CLYYEZfx.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/firebase-config-CY6lsV6f.js">
-</head>
-
-<body class="min-h-[100dvh] flex items-center justify-center p-3 font-sans text-gray-800 relative bg-cover bg-center bg-no-repeat bg-fixed overflow-y-auto" 
-      style="background-image: url('Background.webp');">
-
-    <div class="fixed inset-0 bg-black/30 z-0 pointer-events-none"></div>
-
-    <audio id="tenseAudio" src="bgm.mp3" preload="auto"></audio>
-
-    <div class="glass-card p-5 sm:p-6 rounded-[20px] w-full max-w-[340px] relative z-10 flex flex-col justify-center my-auto shadow-2xl">
-        
-        <div class="text-center mb-4 mt-1">
-            <img src="CF_LOGO.webp" alt="CF Logo" class="w-16 h-16 rounded-full mx-auto mb-2 object-cover border-2 border-white shadow-sm">
-            <h1 class="text-lg font-extrabold tracking-tight text-glow-dark mb-1">UTS校园团契我来报到啦~</h1>
-            <div id="statusBadge" class="inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold bg-white/80 text-gray-700 shadow-sm border border-white">
-                <i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i> Connecting...
-            </div>
-        </div>
-
-        <div id="checkInForm" class="space-y-3 hidden w-full">
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-regular fa-id-card text-gray-500 text-sm"></i></div>
-                <input type="text" id="studentId" placeholder="STUDENT ID" 
-                       oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();"
-                       class="w-full pl-9 pr-3 py-2.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-gray-800 font-bold placeholder-gray-400 uppercase shadow-sm">
-            </div>
-            
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-regular fa-user text-gray-500 text-sm"></i></div>
-                <input type="text" id="studentName" placeholder="FULL NAME AS OCULUS" 
-                       oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '').toUpperCase();"
-                       class="w-full pl-9 pr-3 py-2.5 bg-white/90 border border-white/50 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-gray-800 font-bold placeholder-gray-400 uppercase shadow-sm">
-            </div>
-
-            <div class="bg-white/80 p-2.5 rounded-xl border border-white/50 shadow-sm">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Select Your Group / 选择你的小组</label>
-                <div class="grid grid-cols-3 gap-2" id="groupSelector">
-                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="1">1</button>
-                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="2">2</button>
-                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="3">3</button>
-                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="4">4</button>
-                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="5">5</button>
-                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="6">6</button>
-                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="7">7</button>
-                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm" data-group="8">8</button>
-                    <button type="button" class="group-btn py-1.5 rounded-lg border border-white bg-white font-bold text-slate-600 transition-all shadow-sm text-xs" data-group="-">无组别</button>
-                </div>
-            </div>
-
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-solid fa-key text-indigo-500 text-sm"></i></div>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="pinCode" placeholder="4-DIGIT PIN" 
-                       oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 4) this.value = this.value.slice(0,4);"
-                       class="w-full pl-9 pr-3 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-indigo-900 font-extrabold tracking-widest placeholder-indigo-400 text-center shadow-sm">
-            </div>
-
-            <button onclick="submitCheckIn()" id="submitBtn" class="w-full mt-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 active:scale-95 flex justify-center items-center gap-2 border border-indigo-400/50">
-                <i class="fa-solid fa-check-circle"></i> Confirm
-            </button>
-            
-            <p class="text-[10px] mt-1 text-center leading-relaxed px-1 font-medium tracking-wide text-glow-dark">
-                <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-400"></i>
-                Please confirm ID, NAME & GROUP. Cannot be changed.
-            </p>
-        </div>
-
-        <div id="successMessage" class="hidden text-center py-4 animate-[fadeIn_0.5s_ease-out]">
-            <div class="w-16 h-16 bg-gradient-to-tr from-emerald-400 to-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 text-3xl shadow-[0_0_20px_rgba(52,211,153,0.6)] border-2 border-white/50">
-                <i class="fa-solid fa-check"></i>
-            </div>
-            <h2 class="text-xl font-extrabold mb-1 text-glow-dark">Attendance Submitted</h2>
-            <p id="successDesc" class="text-xs mt-1 font-medium text-glow-dark opacity-90">You can now close this page.</p>
-        </div>
-    </div>
-
-    <div id="customDialog" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300" id="customDialogBox">
-            <div class="p-6 text-center">
-                <div id="dialogIcon" class="mx-auto w-16 h-16 mb-4 rounded-full flex items-center justify-center text-3xl"></div>
-                <h3 id="dialogTitle" class="text-xl font-bold text-slate-800 mb-2"></h3>
-                <p id="dialogMessage" class="text-slate-500 text-sm mb-6 whitespace-pre-line"></p>
-                <div class="flex gap-3 justify-center" id="dialogButtons"></div>
-            </div>
-        </div>
-    </div>
-    
-</body>
->>>>>>> 1e03d3879d15043212948f862cff88a3f08882dd
 </html>
