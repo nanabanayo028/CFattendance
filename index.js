@@ -99,6 +99,7 @@ const dialogOverlay = document.getElementById('customDialog');
             });
 
             db.collection("Sessions").doc("Class_01").onSnapshot((doc) => {
+                console.log("检测到数据库变动:", doc.data());
                 const badge = document.getElementById('statusBadge');
                 const form = document.getElementById('checkInForm');
                 const successMsg = document.getElementById('successMessage');
