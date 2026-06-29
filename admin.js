@@ -179,15 +179,44 @@
         });
 
         function changeStatus(newStatus) {
+            console.log("1. 收到状态切换指令:", newStatus);
             let dataToUpdate = { status: newStatus };
+            
             if (newStatus === "Open") {
                 let pinValue = document.getElementById('adminPin').value.trim();
-                if (pinValue === "") { customAlert("请先输入 4 位数的 PIN 码，然后再开启签到！", "warning", "缺少 PIN 码"); document.getElementById('adminPin').focus(); return; }
-                dataToUpdate.currentPin = pinValue; dataToUpdate.endTime = 0; 
-                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true }).catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
+                if (pinValue === "") { 
+                    customAlert("请先输入 4 位数的 PIN 码，然后再开启签到！", "warning", "缺少 PIN 码"); 
+                    document.getElementById('adminPin').focus(); 
+                    return; 
+                }
+                dataToUpdate.currentPin = pinValue; 
+                dataToUpdate.endTime = 0; 
+
+                console.log("2. 准备发送 Open 数据:", dataToUpdate);
+                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
+                    .then(() => {
+                        console.log("3. ✅ 写入成功！");
+                        customAlert("签到通道已成功开启！", "success", "开启成功");
+                    })
+                    .catch(error => {
+                        console.error("3. ❌ 写入失败:", error);
+                        customAlert("操作失败: " + error.message, "error", "系统异常");
+                    });
             } else {
-                document.getElementById('adminPin').value = ""; dataToUpdate.endTime = 0; 
-                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true }).then(() => { generateNewQR(); }).catch(error => customAlert("操作失败: " + error.message, "error", "系统异常"));
+                document.getElementById('adminPin').value = ""; 
+                dataToUpdate.endTime = 0; 
+                
+                console.log("2. 准备发送 Closed 数据:", dataToUpdate);
+                db.collection("Sessions").doc("Class_01").set(dataToUpdate, { merge: true })
+                    .then(() => {
+                        console.log("3. ✅ 写入成功！");
+                        generateNewQR();
+                        customAlert("签到通道已关闭！", "success", "关闭成功");
+                    })
+                    .catch(error => {
+                        console.error("3. ❌ 写入失败:", error);
+                        customAlert("操作失败: " + error.message, "error", "系统异常");
+                    });
             }
         }
 
