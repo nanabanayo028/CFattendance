@@ -520,8 +520,13 @@
                         const id = data.studentId;
                         const group = data.groupNumber || '-';
 
-                        if (!studentStats[id]) { studentStats[id] = { id: id, name: data.studentName, group: group, count: 0 }; }
+                        if (!studentStats[id]) { 
+                            // ✨ 新增 attendanceByDate 专门用来记录单独每一天的出席状态
+                            studentStats[id] = { id: id, name: data.studentName, group: group, count: 0, attendanceByDate: {} }; 
+                        }
                         studentStats[id].count++;
+                        // ✨ 如果在这个日期里有记录，就标记为 1
+                        studentStats[id].attendanceByDate[dateStr] = 1; 
                     }
                 });
 
@@ -634,16 +639,37 @@
 
             if (currentReportData.length === 0) { customAlert("没有可导出的数据！", "warning"); return; }
             
+            // ✨ 将字符串格式的日期拆分成数组，方便遍历
+            const selectedDatesArray = datesInput.split(', ');
+            
             let csvContent = "\uFEFF"; 
             csvContent += `特定报表日期 (Selected Dates),${datesInput}\n`;
             csvContent += `总计签到天数 (Total Sessions),${currentReportSessions}\n`;
             csvContent += `设置达标门槛 (Target Attendances),>= ${targetCount}\n\n`;
-            csvContent += "组别 (Group),学号 (Student ID),姓名 (Name),出勤次数 (Attendances),是否达标 (Qualified)\n"; 
             
+            // ✨ 动态生成表头：组别, 学号, 姓名, [选中的日期1], [选中的日期2]..., 总数, 是否达标
+            let headerRow = "组别 (Group),学号 (Student ID),姓名 (Name),";
+            selectedDatesArray.forEach(date => {
+                headerRow += `${date},`;
+            });
+            headerRow += "出勤总数 (Total Count),是否达标 (Qualified)\n";
+            csvContent += headerRow;
+            
+            // ✨ 组装数据行
             currentReportData.forEach(stu => { 
                 const isPass = stu.count >= targetCount ? "是 (Yes)" : "否 (No)";
-                csvContent += `"${stu.group}","${stu.id}","${stu.name}","${stu.count}","${isPass}"\n`; 
+                let rowStr = `"${stu.group}","${stu.id}","${stu.name}",`;
+                
+                // 遍历每一个选中的日期，如果 attendanceByDate 里有记录就是 1，否则就是 0
+                selectedDatesArray.forEach(date => {
+                    const status = (stu.attendanceByDate && stu.attendanceByDate[date] === 1) ? "1" : "0";
+                    rowStr += `"${status}",`;
+                });
+                
+                rowStr += `"${stu.count}","${isPass}"\n`; 
+                csvContent += rowStr;
             });
+            
             triggerDownload(csvContent, `Attendance_Custom_Report.csv`);
         }
 
