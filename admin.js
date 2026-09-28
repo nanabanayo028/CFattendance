@@ -674,14 +674,47 @@
         }
 
         function exportToExcel() {
-            const selectedDate = document.getElementById("dateFilter").value;
-            if (!selectedDate) { customAlert("请先在上方日历中选择要导出的日期！", "warning", "操作提示"); return; }
-            if (allRecords.length === 0) { customAlert(`日期 ${selectedDate} 没有可导出的签到数据！`, "warning", "空数据"); return; }
+        const selectedDate = document.getElementById("dateFilter").value;
+        if (!selectedDate) { customAlert("请先在上方日历中选择要导出的日期！", "warning", "操作提示"); return; }
+        if (allRecords.length === 0) { customAlert(`日期 ${selectedDate} 没有可导出的签到数据！`, "warning", "空数据"); return; }
+        
+        // 1. 统计 Student ID 和 Student Name 的出现次数
+        const idCounts = {};
+        const nameCounts = {};
+        allRecords.forEach(record => {
+            idCounts[record.studentId] = (idCounts[record.studentId] || 0) + 1;
+            nameCounts[record.studentName] = (nameCounts[record.studentName] || 0) + 1;
+        });
+
+        let hasDuplicates = false;
+        
+        // 2. 修改表头，增加“备注 (Remarks)”列
+        let csvContent = "\uFEFF日期 (Date),时间 (Time),组别 (Group),学号 (Student ID),姓名 (Name),备注 (Remarks)\n"; 
+        
+        // 3. 遍历记录并标记重复项
+        allRecords.forEach(record => { 
+            let remarks = [];
+            if (idCounts[record.studentId] > 1) {
+                remarks.push("学号重叠");
+                hasDuplicates = true;
+            }
+            if (nameCounts[record.studentName] > 1) {
+                remarks.push("姓名重叠");
+                hasDuplicates = true;
+            }
+            // 将可能存在的多个警告用 "/" 连接
+            let remarkStr = remarks.join(" / ");
             
-            let csvContent = "\uFEFF日期 (Date),时间 (Time),组别 (Group),学号 (Student ID),姓名 (Name)\n"; 
-            allRecords.forEach(record => { csvContent += `"${record.dateString}","${record.timeString}","${record.groupNumber}","${record.studentId}","${record.studentName}"\n`; });
-            triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);
+            csvContent += `"${record.dateString}","${record.timeString}","${record.groupNumber}","${record.studentId}","${record.studentName}","${remarkStr}"\n`; 
+        });
+
+        // 4. 如果发现重复项，在下载前提示管理员
+        if (hasDuplicates) {
+            customAlert("系统检测到名单中有【重叠的学号】或【重叠的姓名】，已在导出的 Excel 备注列中自动标注以供核对！", "warning", "数据异常提示");
         }
+        
+        triggerDownload(csvContent, `Attendance_${selectedDate}.csv`);
+    }
 
         function triggerDownload(content, filename) {
             const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
